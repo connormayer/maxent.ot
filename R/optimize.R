@@ -1,8 +1,48 @@
+#' Optimizes constraint weights given a data set and optional biases. If no
+#' bias arguments are provided, the bias term will not be included in the
+#' optimization.
+#'
+#' TODO: Add description of how optimization functions.
+#'
+#' @param input_file The path to the input data file. This file contains one or
+#'   more OT tableaux consisting of mappings between underlying and surface
+#'   forms with observed frequency and violation profiles. Constraint
+#'   violations must be numeric.
+#' @param bias_file (optional) The path to the file containing mus and sigma
+#'   for constraint biases. If this argument is provided, the scalar and vector
+#'   mu and sigma arguments will be ignored.
+#' @param mu_scalar (optional) A single scalar value that will serve as the mu
+#'   for each constraint in the bias term. Constraint weights will also be
+#'   initialized to this value. This value will not be used if either bias_file
+#'   or mu_vector are provided.
+#' @param mu_vector (optional) A vector of mus for each constraint in the bias
+#'   term. The length of this vector must equal the number of constraints in
+#'   the input file. If bias_file is provided, this argument will be ignored.
+#'   If this argument is provided, mu_scalar will be ignored.
+#' @param sigma_scalar (optional) A single scalar value that will serve as the
+#'   sigma for each constraint in the bias term. This value will not be used if
+#'   either bias_file or sigma_vector are provided.
+#' @param sigma_vector (optional) A vector of sigmas for each constraint in the
+#'   bias term. The length of this vector must equal the number of constraints
+#'   in the input file. If bias_file is provided, this argument will be ignored.
+#'   If this argument is provided, sigma_scalar will be ignored.
+#' @param input_format (optional) A string specifying the format of the input
+#'   files. Currently only otsoft-style formatting is supported.
+#'
+#' @return A named vector containing optimized constraint weights.
+#'
+#' @examples
+#'   optimize_weights('my_tableaux.csv')
+#'   optimize_weights('my_tableaux.csv', 'my_biases.csv')
+#'   optimize_weights('my_tableaux.csv', mu_vector = c(1,2), sigma_vector = c(100, 200))
+#'   optimize_weights('my_tableaux.csv', mu_scalar = 0, sigma_scalar = 1000)
+#'   optimize_weights('my_tableaux.csv', mu_vector = c(1, 2), sigma_scalar = 1000)
+#'
 #' @export
-optimize_weights <- function(input_file=NA, starting_weights=NA,
-                             bias_file=NA,
+optimize_weights <- function(input_file, bias_file=NA,
                              mu_scalar=NA, mu_vector=NA,
-                             sigma_scalar=NA, sigma_vector=NA) {
+                             sigma_scalar=NA, sigma_vector=NA,
+                             input_format='otsoft') {
 
   # Organize our inputs
   input <- load_data_otsoft(input_file)
@@ -15,11 +55,11 @@ optimize_weights <- function(input_file=NA, starting_weights=NA,
     num_constraints
   )
 
-  # If starting weights aren't provided, initialize all weights to 1
-  if (is.na(starting_weights)) {
-    constraint_weights <- rep(1, length(long_names))
+  # If mus aren't provided, initialize all weights to 1
+  if (any_not_na(bias_params)) {
+    constraint_weights <- bias_params$mus
   } else {
-    constraint_weights <- starting_weights
+    constraint_weights <- rep(1, length(long_names))
   }
 
   # Perform optimization
@@ -41,12 +81,15 @@ optimize_weights <- function(input_file=NA, starting_weights=NA,
   return(out_weights)
 }
 
-calculate_log_likelihood <- function(constraint_weights, data, bias_params=NA) {
+# Calculate the log likelihood of the data given the current constraint weights
+# and bias parameters. This is the function that is optimized.
+calculate_log_likelihood <- function(constraint_weights,
+                                     data, bias_params=NA) {
   ll = 0
   # Sum of likelihoods of each datum
-  for (datum in data) {
-    datum_likelihood <- calculate_datum_likelihood(constraint_weights, datum)
-    ll <- ll + datum_likelihood
+  for (tableau in data) {
+    tableau_likelihood <- calculate_tableau_likelihood(constraint_weights, tableau)
+    ll <- ll + tableau_likelihood
   }
   # Minus the bias term
   if (any_not_na(bias_params)) {
@@ -56,32 +99,49 @@ calculate_log_likelihood <- function(constraint_weights, data, bias_params=NA) {
   return(ll)
 }
 
+# Calculates the bias term in the optimized function.
 calculate_bias <- function(bias_params, constraint_weights) {
   top <- (constraint_weights - bias_params$mus)^2
   bottom <- 2 * bias_params$sigmas^2
   bias <- sum(top / bottom)
+
   return(bias)
 }
 
-calculate_datum_likelihood <- function(constraint_weights, datum) {
-  freqs <- datum[,3]
-  violations <- datum[,4:ncol(datum)]
-  violations_mat <- data.matrix(violations)
-  violations_mat[is.na(violations_mat)] <- 0
-  harmony <- violations_mat %*% constraint_weights
+calculate_tableau_likelihood <- function(constraint_weights, tableau) {
+  freqs <- tableau[,3]
+  violations <- tableau[,4:ncol(tableau)]
+
+  log_candidate_probs <- calculate_tableau_probabilities(
+    constraint_weights, violations
+  )
+  log_prob <- sum(freqs * log_candidate_probs)
+  return (log_prob)
+}
+
+# Calculates the likelihood of a single tableau.
+calculate_tableau_probabilities <- function(constraint_weights, tableau) {
+  tableau <- data.matrix(tableau)
+  # Replace empty constraint violations with 0
+  tableau[is.na(tableau)] <- 0
+
+  # Calculate log probability
+  harmony <- tableau %*% constraint_weights
   e_harmonies <- exp(1)^-harmony
   z <- sum(e_harmonies)
   candidate_probs <- e_harmonies / z
   log_candidate_probs <- log(e_harmonies / z)
-  log_prob <- sum(freqs * log_candidate_probs)
-  return(log_prob)
+
+  return(log_candidate_probs)
 }
 
+# Helper function that checks whether any arguments are NA
 any_not_na <- function(...) {
   x <- list(...)
   return(any(!is.na(x)))
 }
 
+# Function to load and validate bias parameters.
 process_bias_arguments <- function(bias_file=NA, mu_scalar=NA, mu_vector=NA,
                                    sigma_scalar=NA, sigma_vector=NA,
                                    num_constraints=NA) {
@@ -162,3 +222,4 @@ process_bias_arguments <- function(bias_file=NA, mu_scalar=NA, mu_vector=NA,
 
   return(bias_params)
 }
+

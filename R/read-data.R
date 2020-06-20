@@ -1,3 +1,4 @@
+# Loads tableaux in OTSoft format
 load_data_otsoft <- function(infile, sep = "\t") {
   in.dt <- data.table::fread(infile, header = FALSE, sep = sep)
 
@@ -14,6 +15,7 @@ load_data_otsoft <- function(infile, sep = "\t") {
   return(list(full_names, abbr_names, candidate_entries))
 }
 
+# Loads bias file in OTSoft format
 load_bias_file_otsoft <- function(infile, sep = "\t") {
   in.dt <- data.table::fread(infile, header = FALSE, sep = sep)
   return(in.dt[,2:3])
