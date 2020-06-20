@@ -1,4 +1,3 @@
-#' @export
 load_data_otsoft <- function(infile, sep = "\t") {
   in.dt <- data.table::fread(infile, header = FALSE, sep = sep)
 
@@ -17,14 +16,5 @@ load_data_otsoft <- function(infile, sep = "\t") {
 
 load_bias_file_otsoft <- function(infile, sep = "\t") {
   in.dt <- data.table::fread(infile, header = FALSE, sep = sep)
-  abbr_names <- in.dt[,1]
-  mus <- in.dt[,2]
-  sigmas <- in.dt[,3]
   return(in.dt[,2:3])
 }
-
-#
-# setwd("C:/Users/conno/Dropbox/ling/maxent_r/maxent.ot/R/test-files")
-#
-# bar <- load_data_otsoft("SampleDataFile.txt")
-#
