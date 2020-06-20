@@ -176,10 +176,10 @@ process_bias_arguments <- function(bias_file=NA, mu_scalar=NA, mu_vector=NA,
           length(mu_vector), num_constraints)
         )
       }
-      bias_params$mus <- mu_vector
+      bias_params <- cbind(bias_params, mu_vector)
     }
     else {
-      bias_params$mus <- rep(mu_scalar, num_constraints)
+      bias_params <- cbind(bias_params, rep(mu_scalar, num_constraints))
     }
     # Set our sigmas
     if (any_not_na(sigma_vector)) {
@@ -198,11 +198,12 @@ process_bias_arguments <- function(bias_file=NA, mu_scalar=NA, mu_vector=NA,
           length(sigma_vector), num_constraints)
         )
       }
-      bias_params$sigmas <- sigma_vector
+      bias_params <- cbind(bias_params, sigma_vector)
     }
     else {
-      bias_params$sigmas <- rep(sigma_scalar, num_constraints)
+      bias_params <- cbind(bias_params, rep(sigma_scalar, num_constraints))
     }
+    names(bias_params) <- c("mus", "sigmas")
   } else if (any_not_na(mu_scalar, mu_vector, sigma_scalar, sigma_vector)) {
     stop("You must specify both constraint mus and sigmas, or neither.")
   } else {
@@ -212,14 +213,13 @@ process_bias_arguments <- function(bias_file=NA, mu_scalar=NA, mu_vector=NA,
 
   # Check that bias params fall within acceptable ranges
   if (any_not_na(bias_params)) {
-    if (!all(bias_params$mu >= 0)) {
+    if (!all(bias_params$mus >= 0)) {
       stop("All constraint mus must be >= 0")
     }
-    if (!all(bias_params$sigma > 0)) {
+    if (!all(bias_params$sigmas > 0)) {
       stop("All constraint sigmas must be > 0")
     }
   }
-
   return(bias_params)
 }
 

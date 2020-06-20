@@ -18,5 +18,7 @@ load_data_otsoft <- function(infile, sep = "\t") {
 # Loads bias file in OTSoft format
 load_bias_file_otsoft <- function(infile, sep = "\t") {
   in.dt <- data.table::fread(infile, header = FALSE, sep = sep)
-  return(in.dt[,2:3])
+  bias_params <- in.dt[,2:3]
+  names(bias_params) <- c("mus", "sigmas")
+  return(bias_params)
 }
