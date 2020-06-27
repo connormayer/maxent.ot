@@ -1,8 +1,47 @@
+#' Optimize maxent OT constraint weights
+#'
 #' Optimizes constraint weights given a data set and optional biases. If no
 #' bias arguments are provided, the bias term will not be included in the
 #' optimization.
 #'
-#' TODO: Add description of how optimization functions.
+#' By default, this function optimizes the log likelihood of the training data
+#' by changing the values of \eqn{w}, the vector of constraint weights. The log
+#' likelihood of the training data is
+#'
+#' \deqn{LL_w(D) = \sum_{i=1}^{n}{\ln L_w(x)}
+#' - \sum_{k=1}^{m}{\frac{(w_k - \mu_k)^2}{2\sigma_k^2}}}
+#'
+#' where \eqn{w_k} is the weight of constraint \eqn{k}, and \eqn{\mu_k} and
+#' \eqn{\sigma_k} parameterize a normal distribution that serves as a
+#' prior bias for \eqn{w_k}.
+#'
+#' \eqn{L_(x)} is the likelihood of a single tableau whose input is the
+#' underlying form \eqn{x}. \eqn{L_(x)} is defined as
+#'
+#' \deqn{L_w(x) = \prod_{y\in \mathcal{Y}(x)}{\nu(y)P(y|x; w)}}
+#'
+#' where \eqn{\mathcal{Y}(x)} is the set of observed surface realizations of
+#' \eqn{x}, \eqn{\nu(y)} is the number of observed tokens of surface form
+#' \eqn{y}, and \eqn{P(y|x; w)} is the probability of realizing underlying
+#' \eqn{x} as surface \eqn{y} given the constraint weighting \eqn{w}. This
+#' probability is defined as
+#'
+#' \deqn{P(y|x; w) = \frac{1}{Z_w(x)}\exp(\sum_{k=1}^{m}{w_k f_k(y, x)})}
+#'
+#' where \eqn{f_k(y, x)} is the number of violatons of constraint \eqn{k}
+#' incurred by mapping underlying \eqn{x} to surface \eqn{y}, and \eqn{Z(x)}
+#' is a normalization term defined as
+#'
+#' \deqn{Z(x) = \sum_{y\in \mathcal{Y}(x)}{\exp(\sum_{k=1}^{m}{w_k f_k(y, x)})}}
+#'
+#' Optimization is done using the `optim` function from the R-core statistics
+#' library. By default it uses `L-BFGS-B` optimization, which is a quasi-Newton
+#' method that allows upper and lower bounds on variables. Constraint weights
+#' are restricted to finite, non-negative values.
+#'
+#' If no bias parameters are specified (either the `bias_file` argument or some
+#' combination of the scalar/vector mu/sigma parameters), optimization will be
+#' done without the bias term.
 #'
 #' @param input_file The path to the input data file. This file contains one or
 #'   more OT tableaux consisting of mappings between underlying and surface
@@ -13,36 +52,45 @@
 #'   mu and sigma arguments will be ignored.
 #' @param mu_scalar (optional) A single scalar value that will serve as the mu
 #'   for each constraint in the bias term. Constraint weights will also be
-#'   initialized to this value. This value will not be used if either bias_file
-#'   or mu_vector are provided.
+#'   initialized to this value. This value will not be used if either
+#'   `bias_file` or `mu_vector` are provided.
 #' @param mu_vector (optional) A vector of mus for each constraint in the bias
 #'   term. The length of this vector must equal the number of constraints in
-#'   the input file. If bias_file is provided, this argument will be ignored.
-#'   If this argument is provided, mu_scalar will be ignored.
+#'   the input file. If `bias_file` is provided, this argument will be
+#'   ignored. If this argument is provided, `mu_scalar` will be ignored.
 #' @param sigma_scalar (optional) A single scalar value that will serve as the
 #'   sigma for each constraint in the bias term. This value will not be used if
-#'   either bias_file or sigma_vector are provided.
+#'   either `bias_file` or `sigma_vector` are provided.
 #' @param sigma_vector (optional) A vector of sigmas for each constraint in the
 #'   bias term. The length of this vector must equal the number of constraints
-#'   in the input file. If bias_file is provided, this argument will be ignored.
-#'   If this argument is provided, sigma_scalar will be ignored.
+#'   in the input file. If `bias_file` is provided, this argument will be ignored.
+#'   If this argument is provided, `sigma_scalar` will be ignored.
 #' @param input_format (optional) A string specifying the format of the input
-#'   files. Currently only otsoft-style formatting is supported.
+#'   files. Currently only OTSoft-style formatting is supported.
+#' @param in_sep (optional) The delimiter used in the input files. Defaults to
+#'   tabs.
+#' @param control_params (optional) A named list of control parameters that
+#'   will be passed to the optim function. See documentation of that function
+#'   for details. Note that some parameter settings may interfere with
+#'   optimization. The parameter `fnscale` will be overwritten to `-1` if
+#'   specified, since this must be treated as a maximization problem.
 #'
 #' @return A named vector containing optimized constraint weights.
 #'
 #' @examples
 #'   optimize_weights('my_tableaux.csv')
 #'   optimize_weights('my_tableaux.csv', 'my_biases.csv')
-#'   optimize_weights('my_tableaux.csv', mu_vector = c(1,2), sigma_vector = c(100, 200))
+#'   optimize_weights('my_tableaux.csv', mu_vector = c(1, 2), sigma_vector = c(100, 200))
 #'   optimize_weights('my_tableaux.csv', mu_scalar = 0, sigma_scalar = 1000)
 #'   optimize_weights('my_tableaux.csv', mu_vector = c(1, 2), sigma_scalar = 1000)
+#'   optimize_weights('my_tableau.csv, control_params=list(maxit = 500))
 #'
 #' @export
-optimize_weights <- function(input_file, bias_file=NA,
-                             mu_scalar=NA, mu_vector=NA,
-                             sigma_scalar=NA, sigma_vector=NA,
-                             input_format='otsoft') {
+optimize_weights <- function(input_file, bias_file = NA,
+                             mu_scalar = NA, mu_vector = NA,
+                             sigma_scalar = NA, sigma_vector = NA,
+                             input_format = 'otsoft', sep = '\t',
+                             control_params = NA) {
 
   # Organize our inputs
   input <- load_data_otsoft(input_file)
@@ -56,10 +104,20 @@ optimize_weights <- function(input_file, bias_file=NA,
   )
 
   # If mus aren't provided, initialize all weights to 1
+  # TODO: Does initializing contraints to the mus make sense?
   if (any_not_na(bias_params)) {
     constraint_weights <- bias_params$mus
   } else {
     constraint_weights <- rep(1, length(long_names))
+  }
+
+  # Pass through control parameters specified by the user, but fnscale needs to
+  # be -1 to turn this into a maximization problem
+  if (!is.na(control_params)) {
+    control_params$fnscale <- -1
+  }
+  else {
+    control_params <- list(fnscale = -1)
   }
 
   # Perform optimization
@@ -68,7 +126,7 @@ optimize_weights <- function(input_file, bias_file=NA,
     calculate_log_likelihood,
     data=data,
     bias_params=bias_params,
-    control=list(fnscale = -1),
+    control=control_params,
     lower=rep(0, length(constraint_weights)),
     # The default upper bound is Inf, but the function we're optimizing
     # can't be evaluated at Inf. This results in the optimizer finding
@@ -88,7 +146,9 @@ calculate_log_likelihood <- function(constraint_weights,
   ll = 0
   # Sum of likelihoods of each datum
   for (tableau in data) {
-    tableau_likelihood <- calculate_tableau_likelihood(constraint_weights, tableau)
+    tableau_likelihood <- calculate_tableau_likelihood(
+      constraint_weights, tableau
+    )
     ll <- ll + tableau_likelihood
   }
   # Minus the bias term
@@ -142,9 +202,10 @@ any_not_na <- function(...) {
 }
 
 # Function to load and validate bias parameters.
-process_bias_arguments <- function(bias_file=NA, mu_scalar=NA, mu_vector=NA,
-                                   sigma_scalar=NA, sigma_vector=NA,
-                                   num_constraints=NA) {
+process_bias_arguments <- function(bias_file = NA,
+                                   mu_scalar = NA, mu_vector = NA,
+                                   sigma_scalar = NA, sigma_vector=NA,
+                                   num_constraints = NA, sep = '\t') {
   if (any_not_na(bias_file)) {
     # Read bias parameters from provided file location
     if (any_not_na(mu_scalar, mu_vector, sigma_vector, sigma_vector)) {
@@ -153,7 +214,7 @@ process_bias_arguments <- function(bias_file=NA, mu_scalar=NA, mu_vector=NA,
         "Ignoring scalars/vectors and using parameters from file"
       )
     }
-    bias_params <- load_bias_file_otsoft(bias_file)
+    bias_params <- load_bias_file_otsoft(bias_file, sep = sep)
   } else if (any_not_na(mu_scalar, mu_vector) &
       any_not_na(sigma_scalar,sigma_vector)) {
     # Set bias parameters from provided scalars/vectors

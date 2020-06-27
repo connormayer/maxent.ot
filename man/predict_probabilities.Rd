@@ -2,10 +2,16 @@
 % Please edit documentation in R/predict.R
 \name{predict_probabilities}
 \alias{predict_probabilities}
-\title{Predict probabilities of candidates based on their violation profiles and
-constraint weights.}
+\title{Predict probabilities of OT candidates}
 \usage{
-predict_probabilities(test_file, constraint_weights, input_format = "otsoft")
+predict_probabilities(
+  test_file,
+  constraint_weights,
+  output_path = NA,
+  input_format = "otsoft",
+  in_sep = "\\t",
+  out_sep = "\\t"
+)
 }
 \arguments{
 \item{test_file}{The path to the input data file. This file contains one or
@@ -15,10 +21,20 @@ violations must be numeric.}
 
 \item{constraint_weights}{The constraint weights to use.}
 
+\item{output_path}{(optional) A string specifying the path to a file to
+which the output will be saved. If the file exists it will be overwritten.
+If this argument isn't provided, the output will not be written to a file.}
+
 \item{input_format}{(optional) A string specifying the format of the input
 files. Currently only otsoft-style formatting is supported. Note that this
 means a column containing frequencies must be present. However, these
 frequencies will be ignored.}
+
+\item{in_sep}{(optional) The delimiter used in the input file.
+Defaults to tabs.}
+
+\item{out_sep}{(optional) The delimiter used in the output files.
+Defaults to tabs.}
 }
 \value{
 A data table containing all the tableaux, with probabilities
