@@ -1,7 +1,9 @@
 #' Predict probabilities of OT candidates
 #'
 #' Predict probabilities of candidates based on their violation profiles and
-#' constraint weights. For each input/output pair in the provided, file this
+#' constraint weights.
+#'
+#' For each input/output pair in the provided, file this
 #' will calculate the probability of that output given the input form and the
 #' provided weights. This is defined as
 #'
@@ -58,16 +60,19 @@ predict_probabilities <- function(test_file, constraint_weights,
   }
 
   output <- data.table::data.table()
+  output <- rbind(output, data.frame(matrix(c("", "", "", unlist(constraint_weights), "", ""), nrow=length(1), byrow=T)))
 
   for (tableau in tableaux) {
     violations <- tableau[, 4:ncol(tableau)]
     log_probs <- calculate_tableau_probabilities(constraint_weights, violations)
     probs <- exp(log_probs)
+    observed_probs <- tableau[,3] / sum(tableau[,3])
     tableau <- cbind(tableau, probs)
-    output <- rbind(output, tableau)
+    tableau <- cbind(tableau, observed_probs)
+    output <- rbind(output, tableau, use.names=FALSE)
   }
 
-  names(output) <- c(c(c("UR", "SR", "Freq"), unlist(long_names)), "prob")
+  names(output) <- c(c(c("UR", "SR", "Freq"), unlist(long_names)), "Predicted Probability", "Observed Probability")
 
   if (!is.na(output_path)) {
     write.table(output, file=output_path, sep=out_sep, row.names = FALSE)

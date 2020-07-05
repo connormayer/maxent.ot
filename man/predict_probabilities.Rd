@@ -42,11 +42,13 @@ assigned to each candidate.
 }
 \description{
 Predict probabilities of candidates based on their violation profiles and
-constraint weights. For each input/output pair in the provided, file this
-will calculate the probability of that output given the input form and the
-provided weights. This is defined as
+constraint weights.
 }
 \details{
+For each input/output pair in the provided, file this
+will calculate the probability of that output given the input form and the
+provided weights. This is defined as
+
 \deqn{P(y|x; w) = \frac{1}{Z_w(x)}\exp(\sum_{k=1}^{m}{w_k f_k(y, x)})}
 
 where \eqn{f_k(y, x)} is the number of violatons of constraint \eqn{k}

@@ -70,10 +70,11 @@
 #' @param in_sep (optional) The delimiter used in the input files. Defaults to
 #'   tabs.
 #' @param control_params (optional) A named list of control parameters that
-#'   will be passed to the optim function. See documentation of that function
+#'   will be passed to the `optim` function. See documentation of that function
 #'   for details. Note that some parameter settings may interfere with
 #'   optimization. The parameter `fnscale` will be overwritten to `-1` if
 #'   specified, since this must be treated as a maximization problem.
+#' @param upper_bound (optional) The maximum value for constraint weights.
 #'
 #' @return A named vector containing optimized constraint weights.
 #'
@@ -89,11 +90,11 @@
 optimize_weights <- function(input_file, bias_file = NA,
                              mu_scalar = NA, mu_vector = NA,
                              sigma_scalar = NA, sigma_vector = NA,
-                             input_format = 'otsoft', sep = '\t',
-                             control_params = NA) {
+                             input_format = 'otsoft', in_sep = '\t',
+                             control_params = NA, upper_bound = 100) {
 
   # Organize our inputs
-  input <- load_data_otsoft(input_file)
+  input <- load_data_otsoft(input_file, sep = in_sep)
   long_names <- input[[1]]
   short_names <- input[[2]]
   data <- input[[3]]
@@ -121,27 +122,112 @@ optimize_weights <- function(input_file, bias_file = NA,
   }
 
   # Perform optimization
-  best <- optim(
-    constraint_weights,
-    calculate_log_likelihood,
-    data=data,
-    bias_params=bias_params,
-    control=control_params,
-    lower=rep(0, length(constraint_weights)),
-    # The default upper bound is Inf, but the function we're optimizing
-    # can't be evaluated at Inf. This results in the optimizer finding
-    # non-optimal weights, so we pass in a large finite value instead.
-    upper=rep(2^64, length(constraint_weights)),
-    method="L-BFGS-B"
+  best <- tryCatch({
+    optim(
+      constraint_weights,
+      calculate_log_likelihood_helper,
+      data=data,
+      bias_params=bias_params,
+      control=control_params,
+      lower=rep(0, length(constraint_weights)),
+      # The default upper bound is Inf, but the function we're optimizing
+      # can't be evaluated at Inf. This results in the optimizer finding
+      # non-optimal weights, so we pass in a large finite value instead.
+      upper=rep(upper_bound, length(constraint_weights)),
+      method="L-BFGS-B"
+    )
+  },
+  error=function(cond){
+      if (cond$message == "L-BFGS-B needs finite values of 'fn'") {
+        message("\nThis error indicates that the likelihood function has ",
+                "returned a non-finite value because the constraint ",
+                "weights have become too large. You can resolve this by ",
+                "passing in a lower upper bound on maximum weights using ",
+                "the `upper_bound' argument, or by introducing a stronger ",
+                "bias towards lower weights by manipulating the mu and sigma ",
+                "parameters.")
+      }
+      stop(cond)
+    }
   )
+  print(best)
   out_weights <- best[[1]]
   names(out_weights) <- long_names
   return(out_weights)
 }
 
+#' Calculate log likelihood of data set
+#'
+#' Calculates the log likelihood of a set of tableaux given a set of constraint
+#' weights and optional biases. This is calculated using the same equations
+#' described in the documentation for `optimize_weights`, but it simply uses
+#' the provided constraint weights rather than finding optimal ones.
+#'
+#' If no bias parameters are specified (either the `bias_file` argument or some
+#' combination of the scalar/vector mu/sigma parameters), optimization will be
+#' done without the bias term.
+#'
+#' @param input_file The path to the input data file. This file contains one or
+#'   more OT tableaux consisting of mappings between underlying and surface
+#'   forms with observed frequency and violation profiles. Constraint
+#'   violations must be numeric.
+#' @param bias_file (optional) The path to the file containing mus and sigma
+#'   for constraint biases. If this argument is provided, the scalar and vector
+#'   mu and sigma arguments will be ignored.
+#' @param mu_scalar (optional) A single scalar value that will serve as the mu
+#'   for each constraint in the bias term. Constraint weights will also be
+#'   initialized to this value. This value will not be used if either
+#'   `bias_file` or `mu_vector` are provided.
+#' @param mu_vector (optional) A vector of mus for each constraint in the bias
+#'   term. The length of this vector must equal the number of constraints in
+#'   the input file. If `bias_file` is provided, this argument will be
+#'   ignored. If this argument is provided, `mu_scalar` will be ignored.
+#' @param sigma_scalar (optional) A single scalar value that will serve as the
+#'   sigma for each constraint in the bias term. This value will not be used if
+#'   either `bias_file` or `sigma_vector` are provided.
+#' @param sigma_vector (optional) A vector of sigmas for each constraint in the
+#'   bias term. The length of this vector must equal the number of constraints
+#'   in the input file. If `bias_file` is provided, this argument will be ignored.
+#'   If this argument is provided, `sigma_scalar` will be ignored.
+#' @param input_format (optional) A string specifying the format of the input
+#'   files. Currently only OTSoft-style formatting is supported.
+#' @param in_sep (optional) The delimiter used in the input files. Defaults to
+#'   tabs.
+#'
+#' @return The log likelihood of the data set.
+#'
+#' @examples
+#'   optimize_weights('my_tableaux.csv')
+#'   optimize_weights('my_tableaux.csv', 'my_biases.csv')
+#'   optimize_weights('my_tableaux.csv', mu_vector = c(1, 2), sigma_vector = c(100, 200))
+#'   optimize_weights('my_tableaux.csv', mu_scalar = 0, sigma_scalar = 1000)
+#'   optimize_weights('my_tableaux.csv', mu_vector = c(1, 2), sigma_scalar = 1000)
+#'   optimize_weights('my_tableau.csv, control_params=list(maxit = 500))
+#'
+#' @export
+calculate_log_likelihood <- function(constraint_weights, input_file,
+                                     bias_file = NA,
+                                     mu_scalar = NA, mu_vector = NA,
+                                     sigma_scalar = NA, sigma_vector = NA,
+                                     input_format = 'otsoft', in_sep = '\t') {
+  # Organize our inputs
+  input <- load_data_otsoft(input_file, sep = in_sep)
+  long_names <- input[[1]]
+  short_names <- input[[2]]
+  data <- input[[3]]
+  num_constraints <- length(long_names)
+  bias_params <- process_bias_arguments(
+    bias_file, mu_scalar, mu_vector, sigma_scalar, sigma_vector,
+    num_constraints
+  )
+
+  ll <- calculate_log_likelihood_helper(constraint_weights, data, bias_params)
+  return(ll)
+}
+
 # Calculate the log likelihood of the data given the current constraint weights
 # and bias parameters. This is the function that is optimized.
-calculate_log_likelihood <- function(constraint_weights,
+calculate_log_likelihood_helper <- function(constraint_weights,
                                      data, bias_params=NA) {
   ll = 0
   # Sum of likelihoods of each datum

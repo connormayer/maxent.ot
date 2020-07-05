@@ -12,8 +12,9 @@ optimize_weights(
   sigma_scalar = NA,
   sigma_vector = NA,
   input_format = "otsoft",
-  sep = "\\t",
-  control_params = NA
+  in_sep = "\\t",
+  control_params = NA,
+  upper_bound = 100
 )
 }
 \arguments{
@@ -48,14 +49,16 @@ If this argument is provided, \code{sigma_scalar} will be ignored.}
 \item{input_format}{(optional) A string specifying the format of the input
 files. Currently only OTSoft-style formatting is supported.}
 
+\item{in_sep}{(optional) The delimiter used in the input files. Defaults to
+tabs.}
+
 \item{control_params}{(optional) A named list of control parameters that
-will be passed to the optim function. See documentation of that function
+will be passed to the \code{optim} function. See documentation of that function
 for details. Note that some parameter settings may interfere with
 optimization. The parameter \code{fnscale} will be overwritten to \code{-1} if
 specified, since this must be treated as a maximization problem.}
 
-\item{in_sep}{(optional) The delimiter used in the input files. Defaults to
-tabs.}
+\item{upper_bound}{(optional) The maximum value for constraint weights.}
 }
 \value{
 A named vector containing optimized constraint weights.
