@@ -76,7 +76,12 @@
 #'   specified, since this must be treated as a maximization problem.
 #' @param upper_bound (optional) The maximum value for constraint weights.
 #'
-#' @return A named vector containing optimized constraint weights.
+#' @return An object with the following named attributes:
+#'         * `weights`: the optimal constraint weights
+#'         * `log_lik`: the log likelihood of the data under the discovered
+#'           weights
+#'         * `k`: the number of constraints
+#'         * `n`: the number of data points in the training set
 #'
 #' @examples
 #'   optimize_weights('my_tableaux.csv')
@@ -95,9 +100,10 @@ optimize_weights <- function(input_file, bias_file = NA,
 
   # Organize our inputs
   input <- load_data_otsoft(input_file, sep = in_sep)
-  long_names <- input[[1]]
-  short_names <- input[[2]]
-  data <- input[[3]]
+  long_names <- input$full_names
+  short_names <- input$abbr_names
+  data <- input$candidate_entries
+  n <- input$n
   num_constraints <- length(long_names)
   bias_params <- process_bias_arguments(
     bias_file, mu_scalar, mu_vector, sigma_scalar, sigma_vector,
@@ -153,7 +159,13 @@ optimize_weights <- function(input_file, bias_file = NA,
   print(best)
   out_weights <- best[[1]]
   names(out_weights) <- long_names
-  return(out_weights)
+  out_object <- list(
+    weights = out_weights,
+    loglik = best$value,
+    k = length(out_weights),
+    n = n
+  )
+  return(out_object)
 }
 
 #' Calculate log likelihood of data set

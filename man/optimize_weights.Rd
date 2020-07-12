@@ -61,7 +61,12 @@ specified, since this must be treated as a maximization problem.}
 \item{upper_bound}{(optional) The maximum value for constraint weights.}
 }
 \value{
-A named vector containing optimized constraint weights.
+An object with the following named attributes:
+* \code{weights}: the optimal constraint weights
+* \code{log_lik}: the log likelihood of the data under the discovered
+weights
+* \code{k}: the number of constraints
+* \code{n}: the number of data points in the training set
 }
 \description{
 Optimizes constraint weights given a data set and optional biases. If no

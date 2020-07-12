@@ -12,7 +12,9 @@ load_data_otsoft <- function(infile, sep = "\t") {
     cumsum(1:nrow(in.dt) %in% which(in.dt[,1] != ""))
   )
   candidate_entries <- candidate_entries[2:length(candidate_entries)]
-  return(list(full_names, abbr_names, candidate_entries))
+  n <- sum(in.dt[,3], na.rm = TRUE)
+  return(list(full_names = full_names, abbr_names = abbr_names,
+              candidate_entries = candidate_entries, n=n))
 }
 
 # Loads bias file in OTSoft format
