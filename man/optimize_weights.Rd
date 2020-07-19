@@ -14,7 +14,8 @@ optimize_weights(
   input_format = "otsoft",
   in_sep = "\\t",
   control_params = NA,
-  upper_bound = 100
+  upper_bound = 100,
+  model_name = NA
 )
 }
 \arguments{
@@ -59,10 +60,13 @@ optimization. The parameter \code{fnscale} will be overwritten to \code{-1} if
 specified, since this must be treated as a maximization problem.}
 
 \item{upper_bound}{(optional) The maximum value for constraint weights.}
+
+\item{model_name}{(optional) A name for the model. If not provided, the file
+name will be used.}
 }
 \value{
 An object with the following named attributes:
-* \code{weights}: the optimal constraint weights
+* \code{weights}: A named list of the optimal constraint weights
 * \code{log_lik}: the log likelihood of the data under the discovered
 weights
 * \code{k}: the number of constraints
