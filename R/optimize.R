@@ -75,9 +75,10 @@
 #'   optimization. The parameter `fnscale` will be overwritten to `-1` if
 #'   specified, since this must be treated as a maximization problem.
 #' @param upper_bound (optional) The maximum value for constraint weights.
-#'
+#' @param model_name (optional) A name for the model. If not provided, the file
+#'   name will be used.
 #' @return An object with the following named attributes:
-#'         * `weights`: the optimal constraint weights
+#'         * `weights`: A named list of the optimal constraint weights
 #'         * `log_lik`: the log likelihood of the data under the discovered
 #'           weights
 #'         * `k`: the number of constraints
@@ -89,14 +90,15 @@
 #'   optimize_weights('my_tableaux.csv', mu_vector = c(1, 2), sigma_vector = c(100, 200))
 #'   optimize_weights('my_tableaux.csv', mu_scalar = 0, sigma_scalar = 1000)
 #'   optimize_weights('my_tableaux.csv', mu_vector = c(1, 2), sigma_scalar = 1000)
-#'   optimize_weights('my_tableau.csv, control_params=list(maxit = 500))
+#'   optimize_weights('my_tableau.csv, control_params = list(maxit = 500))
 #'
 #' @export
 optimize_weights <- function(input_file, bias_file = NA,
                              mu_scalar = NA, mu_vector = NA,
                              sigma_scalar = NA, sigma_vector = NA,
                              input_format = 'otsoft', in_sep = '\t',
-                             control_params = NA, upper_bound = 100) {
+                             control_params = NA, upper_bound = 100,
+                             model_name = NA) {
 
   # Organize our inputs
   input <- load_data_otsoft(input_file, sep = in_sep)
@@ -109,6 +111,11 @@ optimize_weights <- function(input_file, bias_file = NA,
     bias_file, mu_scalar, mu_vector, sigma_scalar, sigma_vector,
     num_constraints
   )
+
+  # If no model name provided, use filename sans extension
+  if (is.na(model_name)) {
+    model_name <- tools::file_path_sans_ext(basename(input_file))
+  }
 
   # If mus aren't provided, initialize all weights to 1
   # TODO: Does initializing contraints to the mus make sense?
@@ -156,14 +163,15 @@ optimize_weights <- function(input_file, bias_file = NA,
       stop(cond)
     }
   )
-  print(best)
   out_weights <- best[[1]]
   names(out_weights) <- long_names
   out_object <- list(
+    name = model_name,
     weights = out_weights,
     loglik = best$value,
     k = length(out_weights),
-    n = n
+    n = n,
+    bias_params = bias_params
   )
   return(out_object)
 }
