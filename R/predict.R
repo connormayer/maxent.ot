@@ -48,9 +48,9 @@ predict_probabilities <- function(test_file, constraint_weights,
 
   if (input_format == "otsoft") {
     input <- load_data_otsoft(test_file, in_sep)
-    long_names <- input[[1]]
-    short_names <- input[[2]]
-    tableaux <- input[[3]]
+    long_names <- input$full_names
+    short_names <- input$abbr_names
+    data <- input$data
   } else {
     stop(sprintf("Invalid input format %s", input_format))
   }
@@ -68,17 +68,26 @@ predict_probabilities <- function(test_file, constraint_weights,
     )
   )
 
-  for (tableau in tableaux) {
-    violations <- tableau[, 4:ncol(tableau)]
-    log_probs <- calculate_tableau_probabilities(
-      constraint_weights, violations
-    )
-    probs <- exp(log_probs)
-    observed_probs <- tableau[,3] / sum(tableau[,3])
-    tableau <- cbind(tableau, probs)
-    tableau <- cbind(tableau, observed_probs)
-    output <- rbind(output, tableau, use.names=FALSE)
-  }
+  # Build ourselves a matrix for efficient computation
+  # Pre-alocate space
+  data_matrix <- matrix(0L, nrow = nrow(data), ncol = ncol(data) + 2)
+  # Map URs to integers
+  data_matrix[,1] <- as.integer(as.factor(data[,1]))
+  # Set the violation profiles
+  data_matrix[,2:(ncol(data_matrix) - 3)] <- data.matrix(data[,3:ncol(data)])
+  # Replace empty cells with 0
+  data_matrix[is.na(data_matrix)] <- 0
+
+  # Calculate probabilities
+  data_matrix <- calculate_probabilities(constraint_weights, data_matrix)
+  # Unlog them
+  data_matrix[, ncol(data_matrix) - 1] <- exp(data_matrix[, ncol(data_matrix) - 1])
+  # Calculate predicted probabilities
+  data_matrix[, ncol(data_matrix)] <- apply(data_matrix, 1, normalize_row, data_matrix, 2)
+  data_matrix <- data_matrix[, -(ncol(data_matrix) - 2)]
+
+  output_sub <- cbind(data[, 1:2], data_matrix[,2:ncol(data_matrix)])
+  output <- rbind(output, output_sub, use.names = FALSE)
 
   names(output) <- c(c(c("UR", "SR", "Freq"), unlist(long_names)),
                      "Predicted Probability", "Observed Probability")

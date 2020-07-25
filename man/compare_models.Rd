@@ -98,9 +98,9 @@ the constraints in the smaller model are a strict subset of the
 constraints in the larger model. This function will verify this to some
 extent based on the number and names of constraints.
 \item The Akaike Information Criterion adjusted for small sample sizes
-(\code{aic_c}) and the Bayesian Information Criterion rely on sample sizes
-in their calculations. The same size for a data set is defined as the
-sum of the column of surface form frequencies. If you want to apply
+(\code{aic_c}) and the Bayesian Information Criterion (\code{bic}) rely on sample
+sizes in their calculations. The same size for a data set is defined as
+the sum of the column of surface form frequencies. If you want to apply
 these methods, it is important that the values in the column are token
 counts, not relative frequencies. Applying these methods to relative
 frequencies, which effectively ignore sample size, will produce invalid
