@@ -59,22 +59,13 @@ predict_probabilities <- function(test_file, constraint_weights,
     stop("Constraint weights must be non-negative")
   }
 
-  output <- data.table::data.table()
-  output <- rbind(
-    output,
-    data.frame(
-      matrix(c("", "", "", unlist(constraint_weights), "", ""),
-             nrow=length(1), byrow=T)
-    )
-  )
-
   # Build ourselves a matrix for efficient computation
-  # Pre-alocate space
+  # Pre-allocate space
   data_matrix <- matrix(0L, nrow = nrow(data), ncol = ncol(data) + 2)
   # Map URs to integers
   data_matrix[,1] <- as.integer(as.factor(data[,1]))
   # Set the violation profiles
-  data_matrix[,2:(ncol(data_matrix) - 3)] <- data.matrix(data[,3:ncol(data)])
+  data_matrix[,2:(ncol(data_matrix) - 3)] <- apply(as.matrix(data[,3:ncol(data)]), 2, as.numeric)
   # Replace empty cells with 0
   data_matrix[is.na(data_matrix)] <- 0
 
@@ -86,8 +77,7 @@ predict_probabilities <- function(test_file, constraint_weights,
   data_matrix[, ncol(data_matrix)] <- apply(data_matrix, 1, normalize_row, data_matrix, 2)
   data_matrix <- data_matrix[, -(ncol(data_matrix) - 2)]
 
-  output_sub <- cbind(data[, 1:2], data_matrix[,2:ncol(data_matrix)])
-  output <- rbind(output, output_sub, use.names = FALSE)
+  output <- cbind(data[, 1:2], data_matrix[,2:ncol(data_matrix)])
 
   names(output) <- c(c(c("UR", "SR", "Freq"), unlist(long_names)),
                      "Predicted Probability", "Observed Probability")
