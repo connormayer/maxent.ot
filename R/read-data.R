@@ -4,20 +4,25 @@ load_data_otsoft <- function(infile, sep = "\t", encoding = 'unknown') {
     infile, header = FALSE, sep = sep, fill = TRUE, encoding = encoding
   )
 
+  utils::write.table(in.dt, file='unmodified_full.csv', sep=',', row.names = FALSE)
+
   # TODO: Some validation of format?
   full_names <- in.dt[1, 4:ncol(in.dt)]
   abbr_names <- in.dt[2, 4:ncol(in.dt)]
-  data <- in.dt[3:nrow(in.dt),]
-  data[,1] <- fill_the_blanks(data[,1])
+  in_data <- in.dt[3:nrow(in.dt),]
+  in_data[,1] <- fill_the_blanks(in_data[,1])
+
+  utils::write.table(in.dt, file='filled_data.csv', sep=',', row.names = FALSE)
+
   # candidate_rows <- which(in.dt$V1 != "")
   # candidate_entries <- split(
   #   in.dt,
   #   cumsum(1:nrow(in.dt) %in% which(in.dt[,1] != ""))
   # )
   # candidate_entries <- candidate_entries[2:length(candidate_entries)]
-  n <- sum(data[,3], na.rm = TRUE)
+  n <- sum(in_data[,3], na.rm = TRUE)
   return(list(full_names = full_names, abbr_names = abbr_names,
-              data = data, n=n))
+              data = in_data, n=n))
 }
 
 # Loads bias file in OTSoft format
@@ -29,8 +34,8 @@ load_bias_file_otsoft <- function(infile, sep = "\t") {
 }
 
 fill_the_blanks <- function(x, missing = ""){
-  rle <- rle(as.character(x))
-  empty <- which(rle$value == missing)
-  rle$values[empty] <- rle$value[empty - 1]
-  inverse.rle(rle)
+  enc <- base::rle(as.character(x))
+  empty <- which(enc$value == missing)
+  enc$values[empty] <- enc$values[empty - 1]
+  base::inverse.rle(enc)
 }

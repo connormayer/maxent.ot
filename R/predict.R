@@ -60,8 +60,6 @@ predict_probabilities <- function(test_file, constraint_weights,
     stop("Constraint weights must be non-negative")
   }
 
-  write.table(data, file='loaded_input.csv', sep=',', row.names = FALSE)
-
   # Build ourselves a matrix for efficient computation
   # Pre-allocate space
   data_matrix <- matrix(0L, nrow = nrow(data), ncol = ncol(data) + 2)
@@ -72,27 +70,19 @@ predict_probabilities <- function(test_file, constraint_weights,
   # Replace empty cells with 0
   data_matrix[is.na(data_matrix)] <- 0
 
-  write.table(data_matrix, file='no_probabilities.csv', sep=',', row.names = FALSE)
-
   # Calculate probabilities
   data_matrix <- calculate_probabilities(constraint_weights, data_matrix)
   # Unlog them
   data_matrix[, ncol(data_matrix) - 1] <- exp(data_matrix[, ncol(data_matrix) - 1])
 
-  write.table(data_matrix, file='unnormalized_probabilities.csv', sep=',', row.names = FALSE)
-
   # Calculate predicted probabilities
   data_matrix[, ncol(data_matrix)] <- apply(data_matrix, 1, normalize_row, data_matrix, 2)
   data_matrix <- data_matrix[, -(ncol(data_matrix) - 2)]
-
-  write.table(data_matrix, file='normalized_probabilities.csv', sep=',', row.names = FALSE)
 
   output <- cbind(data[, 1:2], data_matrix[,2:ncol(data_matrix)])
 
   names(output) <- c(c(c("UR", "SR", "Freq"), unlist(long_names)),
                      "Predicted Probability", "Observed Probability")
-
-  write.table(data_matrix, file='final.csv', sep=',', row.names = FALSE)
 
   if (!is.na(output_path)) {
     write.table(output, file=output_path, sep=out_sep, row.names = FALSE)
