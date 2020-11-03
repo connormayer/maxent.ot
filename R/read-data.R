@@ -12,7 +12,7 @@ load_data_otsoft <- function(infile, sep = "\t", encoding = 'unknown') {
   in_data <- in.dt[3:nrow(in.dt),]
   in_data[,1] <- fill_the_blanks(in_data[,1])
 
-  utils::write.table(in.dt, file='filled_data.csv', sep=',', row.names = FALSE)
+  utils::write.table(in_data, file='filled_data.csv', sep=',', row.names = FALSE)
 
   # candidate_rows <- which(in.dt$V1 != "")
   # candidate_entries <- split(
