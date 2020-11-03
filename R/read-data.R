@@ -1,6 +1,8 @@
 # Loads tableaux in OTSoft format
-load_data_otsoft <- function(infile, sep = "\t") {
-  in.dt <- data.table::fread(infile, header = FALSE, sep = sep, fill = TRUE)
+load_data_otsoft <- function(infile, sep = "\t", encoding = 'unknown') {
+  in.dt <- data.table::fread(
+    infile, header = FALSE, sep = sep, fill = TRUE, encoding = encoding
+  )
 
   # TODO: Some validation of format?
   full_names <- in.dt[1, 4:ncol(in.dt)]
