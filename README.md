@@ -12,8 +12,8 @@ data, and compare the fit of different models using a variety of
 metrics. This package is still in development, and is being prepared for
 submission to CRAN.
 
-The authors of this package are [Connor Mayer](cjmayer@uci.edu) and [Kie
-Zuraw](kie@ucla.edu).
+The authors of this package are [Connor Mayer](http://connormayer.com)
+and [Kie Zuraw](https://linguistics.ucla.edu/people/zuraw/).
 
 ## Installation
 
