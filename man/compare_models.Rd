@@ -10,114 +10,162 @@ compare_models(..., method = "lrt")
 \item{...}{Two or more models objects to be compared. These objects should
 be in the same format as the objects returned by the \code{optimize_weights}
 function. Note that the likelihood ratio test applies to exactly two
-models, which the other comparison methods can be applied to arbitrarily
+models, while the other comparison methods can be applied to arbitrarily
 many models.}
 
-\item{method}{The method of comparison to use. This currently includes:
-* \code{lrt}: The likelihood ratio test. This method can only be applied to a
-maximum of two models, and the parameters of these models (i.e.) their
-constraints \emph{must be in a strict subset/superset relationship.} If
-your models do not meet these requirements, you should use a different
-metod.\preformatted{  The likelihood ratio is calculated as follows:
-
-   \deqn{LR = 2(LL_2 - LL_1)}
-
-  where \eqn{LL_2} is log likelihood of the model with more parameters.
-  A p-value is calculated by conducting a chi-squared test with
-  \eqn{X^2 = LR} and the degrees of freedom set to the difference in
-  number of parameters between the two models. This p-value tells us
-  whether the difference in likelihood between the two models is
-  significant (i.e., whether the extra parameters in the full model
-  are justified by the increase in model fit).
-* `aic`: The Akaike Information Criterion. This is calculated as follows
-  for each model:
-
-  \deqn{AIC = 2k - 2LL}
-
-  where \eqn{k} is the number of model parameters and LL is the model's
-  log likelihood.
-* `aic_c`: The Akaike Information Criterion corrected for small sample
-  This is calculated as follows:
-
-  \deqn{AIC_c = 2k - 2LL + \frac{2k^2 + 2k}{n - k - 1}}
-
-  where \eqn{n} is the number of samples an the other parameters are
-  identical to those used in the AIC calculation. As \eqn{n} approaches
-  infinity, this final term converges to 0. Please see the note earlier
-  in this functions documentation for information about sample sizes.
-* `bic`: The Bayesian Information Criterion.` This is calculated as
-  follows:
-
-  \deqn{BIC = k\ln(n) - 2LL}
-
-  As with `aic_c`, this calculation relies on the number of samples.
-  Please see the discussion on sample sizes earlier in the documentation
-  of this function before using this method.
-}}
+\item{method}{The method of comparison to use. This currently includes \code{lrt}
+(likelihood ratio test), \code{aic} (Akaike Information Criterion), \code{aic_c}
+(Akaike Information Criterion adjusted for small sample sizes), and \code{bic}
+(Bayesian Information Criterion).}
 }
 \value{
 A data frame containing information about the comparison. The
 contents and size of this data frame vary depending on the method used.
-* \code{lrt}: A data frame with a single row and the following columns:
-+ \code{description}: the names of the two models being compared. The
-name  of the model with more parameters will be first.
-+ \code{chi_sq}: the chi-squared value calculated during the test,
-+ \code{k_delta}: the difference in parameters between the two models
-used as degrees of freedom in the chi-squared test
-+ \code{p_value} the p-value calculated by the test
-* \code{aic}: A data frame with as many rows as there were models passed
-in. The models are sorted in descending order of AIC (i.e., best
+\itemize{
+\item{\code{lrt}: }{ A data frame with a single row and the following columns:
+\itemize{
+\item{\code{description}:}{ the names of the two models being compared.
+The name of the model with more parameters will be first.}
+\item{\code{chi_sq}: }{ the chi-squared value calculated during the test.}
+\item{\code{k_delta}: }{ the difference in parameters between the two
+models used as degrees of freedom in the chi-squared test.}
+\item{\code{p_value}: }{ the p-value calculated by the test}}
+}
+\item{\code{aic}: }{ A data frame with as many rows as there were models
+passed in. The models are sorted in descending order of AIC (i.e., best
 first). This data frame has the following columns:
-+ \code{model}: The name of the model
-+ \code{k}: The number of parameters
-+ \code{aic}: The model's AIC value
-+ \code{aic.wt}: The model's AIC weight: this reflects the relative
+\itemize{
+\item{\code{model}: }{ The name of the model.}
+\item{\code{k}: }{ The number of parameters.}
+\item{\code{aic}: }{ The model's AIC value.}
+\item{\code{aic.wt}: }{ The model's AIC weight: this reflects the relative
 likelihood (or conditional probability) that this model is the
-"best" model in the set.
-+ \code{cum.wt}: The cumulative sum of AIC weights up to and including
-this model.
-+ \code{ll}: The log likelihood of this model.
-* \code{aicc}: The data frame returned here is analogous to the structure
-of the AIC dataframe, with AICc values replacing AICs and accordingly
-modified column names. There is one additional column:
-+ \code{n}: The number of samples in the data the model is fit to.
-* \code{bic}: The data frame returned here is analogous to the structure of
-the AIC and AICc data frames. Like the AICc data frame, it contains
-the \code{n} column.
+"best" model in the set.}
+\item{\code{cum.wt}: }{ The cumulative sum of AIC weights up to and
+including this model.}
+\item{\code{ll}: }{ The log likelihood of this model.}
+}
+}
+\item{\code{aicc}: }{ The data frame returned here is analogous to the
+structure of the AIC data frame, with AICc values replacing AICs and
+accordingly modified column names. There is one additional column:
+\itemize{
+\item{\code{n}: }{ The number of samples in the data the model is fit to.}
+}
+}
+\item{\code{bic}: }{ The data frame returned here is analogous to the
+structure of the AIC and AICc data frames. Like the AICc data frame,
+it contains the \code{n} column.
+}
+}
 }
 \description{
-Compares two or more fitted models to determine which provides the best fit
-to the data, using a variety of methods.
+Compares two or more model fit to the same data set to determine which
+provides the best fit, using a variety of methods.
 }
 \details{
+The available comparison methods are
+\itemize{
+\item{\strong{lrt}: }{ The likelihood ratio test. This method can be applied to a
+maximum of two models, and the parameters of these models (i.e., their
+constraints) \emph{must be in a strict subset/superset relationship.} If your
+models do not meet these requirements, you should use a different method.
+
+The likelihood ratio is calculated as follows:
+
+\deqn{LR = 2(LL_2 - LL_1)}
+
+where \eqn{LL_2} is log likelihood of the model with more parameters. A
+p-value is calculated by conducting a chi-squared test with \eqn{X^2 = LR}
+and the degrees of freedom set to the difference in number of parameters
+between the two models. This p-value tells us whether the difference in
+likelihood between the two models is significant (i.e., whether the extra
+parameters in the full model are justified by the increase in model fit).}
+
+\item{\strong{aic}: }{ The Akaike Information Criterion. This is calculated as
+follows for each model:
+
+\deqn{AIC = 2k - 2LL}
+
+where \eqn{k} is the number of model parameters (i.e., constraints) and LL
+is the model's log likelihood.}
+
+\item{\strong{aic_c}: }{ The Akaike Information Criterion corrected for small sample
+sizes. This is calculated as follows:
+
+\deqn{AIC_c = 2k - 2LL + \frac{2k^2 + 2k}{n - k - 1}}
+
+where \eqn{n} is the number of samples and the other parameters are
+identical to those used in the AIC calculation. As \eqn{n} approaches
+infinity, the final term converges to 0, and so this equation becomes
+equivalent to AIC. Please see the note below for information about sample
+sizes.}
+
+\item{\strong{bic}: }{ The Bayesian Information Criterion. This is calculated as
+follows:
+
+\deqn{BIC = k\ln(n) - 2LL}
+
+As with \code{aic_c}, this calculation relies on the number of samples. Please
+see the discussion on sample sizes below before using this method.}
+}
+
 A few caveats for several of the comparison methods:
 \itemize{
-\item The likelihood ratio test (\code{lrt}) method applies to exactly two models,
-and assumes that the parameters of these models are \emph{nested}: that is,
-the constraints in the smaller model are a strict subset of the
+\item The likelihood ratio test (\code{lrt}) method applies to exactly two
+models, and assumes that the parameters of these models are \emph{nested}:
+that is, the constraints in the smaller model are a strict subset of the
 constraints in the larger model. This function will verify this to some
 extent based on the number and names of constraints.
 \item The Akaike Information Criterion adjusted for small sample sizes
 (\code{aic_c}) and the Bayesian Information Criterion (\code{bic}) rely on sample
-sizes in their calculations. The same size for a data set is defined as
+sizes in their calculations. The sample size for a data set is defined as
 the sum of the column of surface form frequencies. If you want to apply
 these methods, it is important that the values in the column are token
 counts, not relative frequencies. Applying these methods to relative
 frequencies, which effectively ignore sample size, will produce invalid
 results.
-\item TODO: What about comparing models with different biases?
 }
 
-The \code{aic}, \code{aicc}, and \code{bic} comparison methods return raw AIC/AICc/BIC
-values as well as weights corresponding to these values.These weights
+The \code{aic}, \code{aic_c}, and \code{bic} comparison methods return raw AIC/AICc/BIC
+values as well as weights corresponding to these values. These weights
 are calculated similarly for each model:
 
 \deqn{W_i = \frac{\exp(-0.5 \delta_i)}{\sum_{j=1}^{m}{\exp(-0.5 \delta_j)}}}
 
-where \eqn{\delta_i} is the difference in score (AIC, AICc, BIC) between model
-\eqn{i} and the model with the best score and \eqn{m} is the number of models
-being compared. These weights provide the relative likelihood or conditional
-probability of this model being the best model (by whatever definition of
-"best" is assumed by the measurement type) given the data and the selection
-of models it is being compared to.
+where \eqn{\delta_i} is the difference in score (AIC, AICc, BIC) between
+model \eqn{i} and the model with the best score, and \eqn{m} is the number of
+models being compared. These weights provide the relative likelihood or
+conditional probability of this model being the best model (by whatever
+definition of "best" is assumed by the measurement type) given the data and
+the selection of models it is being compared to.
+}
+\examples{
+  # Get paths to toy data files
+  # This file has two constraints
+  data_file_small <- system.file(
+      "extdata", "sample_data_file.txt", package = "maxent.ot"
+  )
+  # This file has three constraints
+  data_file_large <- system.file(
+      "extdata", "sample_data_file_2.txt", package = "maxent.ot"
+  )
+
+  # Fit weights to both data sets with no biases
+  small_model <- optimize_weights(data_file_small)
+  large_model <- optimize_weights(data_file_large)
+
+  # Compare models using likelihood ratio test. This is appropriate here
+  # because the constraints are nested.
+  compare_models(small_model, large_model, method='lrt')
+
+  # Compare models using AIC
+  compare_models(small_model, large_model, method='aic')
+
+  # Compare models using AICc
+  compare_models(small_model, large_model, method='aic_c')
+
+  # Compare models using BIC
+  compare_models(small_model, large_model, method='bic')
+
 }

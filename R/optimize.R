@@ -1,46 +1,60 @@
-# A few constants
+# Constants
 DEFAULT_WEIGHT <- 1
+DEFAULT_UPPER_BOUND <- 1000
 
-#' Optimize maxent OT constraint weights
+#' Optimize MaxEnt OT constraint weights
 #'
 #' Optimizes constraint weights given a data set and optional biases. If no
-#' bias arguments are provided, the bias term will not be included in the
+#' bias arguments are provided, the bias term(s) will not be included in the
 #' optimization.
 #'
-#' By default, this function optimizes the log likelihood of the training data
+#' By default, this function maximizes the log likelihood of the training data
 #' by changing the values of \eqn{w}, the vector of constraint weights. The log
-#' likelihood of the training data is
+#' likelihood of the training data \eqn{D} is
 #'
-#' \deqn{LL_w(D) = \sum_{i=1}^{n}{\ln L_w(x)}
+#' \deqn{LL_w(D) = \sum_{i=1}^{n}{\ln P(y_i|x_i; w)}
 #' - \sum_{k=1}^{m}{\frac{(w_k - \mu_k)^2}{2\sigma_k^2}}}
 #'
-#' where \eqn{w_k} is the weight of constraint \eqn{k}, and \eqn{\mu_k} and
-#' \eqn{\sigma_k} parameterize a normal distribution that serves as a
-#' prior bias for \eqn{w_k}.
+#' The first term in this equation calculates the likelihood of the training
+#' data under the weights \eqn{w}. \eqn{n} is the number of data points
+#' (i.e., the sample size or the sum of the frequency column in the input),
+#' \eqn{x_i} is the input form of the \eqn{i}th data point, and \eqn{y_i} is
+#' the observed surface form corresponding to \eqn{x_i}. \eqn{P(y_i|x_i; w)}
+#' represents the probability of realizing underlying \eqn{x_i} as surface
+#' \eqn{y_i} given weights \eqn{w}. This probability is defined as
 #'
-#' \eqn{L_(x)} is the likelihood of a single tableau whose input is the
-#' underlying form \eqn{x}. \eqn{L_(x)} is defined as
+#' \deqn{P(y_i|x_i; w) = \frac{1}{Z_w(x_i)}\exp(\sum_{k=1}^{m}{w_k f_k(y_i, x_i)})}
 #'
-#' \deqn{L_w(x) = \prod_{y\in \mathcal{Y}(x)}{\nu(y)P(y|x; w)}}
-#'
-#' where \eqn{\mathcal{Y}(x)} is the set of observed surface realizations of
-#' \eqn{x}, \eqn{\nu(y)} is the number of observed tokens of surface form
-#' \eqn{y}, and \eqn{P(y|x; w)} is the probability of realizing underlying
-#' \eqn{x} as surface \eqn{y} given the constraint weighting \eqn{w}. This
-#' probability is defined as
-#'
-#' \deqn{P(y|x; w) = \frac{1}{Z_w(x)}\exp(\sum_{k=1}^{m}{w_k f_k(y, x)})}
-#'
-#' where \eqn{f_k(y, x)} is the number of violatons of constraint \eqn{k}
-#' incurred by mapping underlying \eqn{x} to surface \eqn{y}, and \eqn{Z(x)}
+#' where \eqn{f_k(y_i, x_i)} is the number of violations of constraint \eqn{k}
+#' incurred by mapping underlying \eqn{x_i} to surface \eqn{y_i}. \eqn{Z_w(x_i)}
 #' is a normalization term defined as
 #'
-#' \deqn{Z(x) = \sum_{y\in \mathcal{Y}(x)}{\exp(\sum_{k=1}^{m}{w_k f_k(y, x)})}}
+#' \deqn{Z(x_i) = \sum_{y\in\mathcal{Y}(x_i)}{\exp(\sum_{k=1}^{m}{w_k f_k(y, x_i)})}}
 #'
-#' Optimization is done using the `optim` function from the R-core statistics
-#' library. By default it uses `L-BFGS-B` optimization, which is a quasi-Newton
-#' method that allows upper and lower bounds on variables. Constraint weights
-#' are restricted to finite, non-negative values.
+#' where \eqn{\mathcal{Y}(x_i)} is the set of observed surface realizations of
+#' input \eqn{x_i}.
+#'
+#' The second term of the equation for calculating log likelihood is the bias
+#' term, where where \eqn{w_k} is the weight of constraint \eqn{k}, and
+#' \eqn{\mu_k} and \eqn{\sigma_k} parameterize a normal distribution that
+#' serves as a prior for the value of \eqn{w_k}. Values of \eqn{w_k} that
+#' deviate from \eqn{\mu_k} decrease the log likelihood function proportionally
+#' to \eqn{\sigma_k}: lower values of \eqn{\sigma_k} penalize deviations from
+#' \eqn{\mu_k} more severely.
+#'
+#' A general bias with \eqn{\mu_k = 0} for all \eqn{k} is commonly used as a
+#' form of simple regularization to prevent overfitting (see, e.g., Goldwater
+#' and Johnson 2003). Bias terms have also been used to model proposed
+#' phonological learning biases; see for example Wilson (2006), White (2013),
+#' and Mayer (2021, Ch. 4). The choice of \eqn{\sigma} depends on the sample
+#' size. As the number of data points increases, \eqn{\sigma} must decrease in
+#' order for the effect of the bias to remain constant: specifically,
+#' \eqn{n\sigma^2} must be held constant, where \eqn{n} is the number of tokens.
+#'
+#' Optimization is done using the \link[stats]{optim} function from the R-core
+#' statistics library. By default it uses `L-BFGS-B` optimization, which is a
+#' quasi-Newtonian method that allows upper and lower bounds on variables.
+#' Constraint weights are restricted to finite, non-negative values.
 #'
 #' If no bias parameters are specified (either the `bias_file` argument or some
 #' combination of the scalar/vector mu/sigma parameters), optimization will be
@@ -52,7 +66,9 @@ DEFAULT_WEIGHT <- 1
 #'   violations must be numeric.
 #' @param bias_file (optional) The path to the file containing mus and sigma
 #'   for constraint biases. If this argument is provided, the scalar and vector
-#'   mu and sigma arguments will be ignored.
+#'   mu and sigma arguments will be ignored. Each row in this file should be the
+#'   name of the constraint, followed by the mu, followed by the sigma
+#'   (separated by whatever the relevant separator is; default is tabs).
 #' @param mu_scalar (optional) A single scalar value that will serve as the mu
 #'   for each constraint in the bias term. Constraint weights will also be
 #'   initialized to this value. This value will not be used if either
@@ -69,38 +85,64 @@ DEFAULT_WEIGHT <- 1
 #'   in the input file. If `bias_file` is provided, this argument will be ignored.
 #'   If this argument is provided, `sigma_scalar` will be ignored.
 #' @param input_format (optional) A string specifying the format of the input
-#'   files. Currently only OTSoft-style formatting is supported.
+#'   files. Currently only OTSoft-style formatting is supported. Defaults to
+#'   'otsoft'.
 #' @param in_sep (optional) The delimiter used in the input files. Defaults to
 #'   tabs.
 #' @param control_params (optional) A named list of control parameters that
-#'   will be passed to the `optim` function. See documentation of that function
-#'   for details. Note that some parameter settings may interfere with
-#'   optimization. The parameter `fnscale` will be overwritten to `-1` if
-#'   specified, since this must be treated as a maximization problem.
+#'   will be passed to the \link[stats]{optim} function. See the documentation
+#'   of that function for details. Note that some parameter settings may
+#'   interfere with optimization. The parameter `fnscale` will be overwritten
+#'   with `-1` if specified, since this must be treated as a maximization
+#'   problem.
 #' @param upper_bound (optional) The maximum value for constraint weights.
+#'   Defaults to 1000.
 #' @param model_name (optional) A name for the model. If not provided, the file
 #'   name will be used.
 #' @return An object with the following named attributes:
-#'         * `weights`: A named list of the optimal constraint weights
-#'         * `log_lik`: the log likelihood of the data under the discovered
+#' \itemize{
+#'         \item `weights`: A named list of the optimal constraint weights
+#'         \item `log_lik`: the log likelihood of the data under the discovered
 #'           weights
-#'         * `k`: the number of constraints
-#'         * `n`: the number of data points in the training set
-#'
+#'         \item `k`: the number of constraints
+#'         \item `n`: the number of data points in the training set
+#' }
 #' @examples
-#'   optimize_weights('my_tableaux.csv')
-#'   optimize_weights('my_tableaux.csv', 'my_biases.csv')
-#'   optimize_weights('my_tableaux.csv', mu_vector = c(1, 2), sigma_vector = c(100, 200))
-#'   optimize_weights('my_tableaux.csv', mu_scalar = 0, sigma_scalar = 1000)
-#'   optimize_weights('my_tableaux.csv', mu_vector = c(1, 2), sigma_scalar = 1000)
-#'   optimize_weights('my_tableau.csv, control_params = list(maxit = 500))
+#'   # Get paths to toy data and bias files.
+#'   data_file <- system.file(
+#'       "extdata", "sample_data_file.txt", package = "maxent.ot"
+#'   )
+#'   bias_file <- system.file(
+#'       "extdata", "sample_bias_file.txt", package = "maxent.ot"
+#'   )
+#'
+#'   # Fit weights to data with no biases
+#'   optimize_weights(data_file)
+#'
+#'   # Fit weights with biases specified in file
+#'   optimize_weights(data_file, bias_file)
+#'
+#'   # Fit weights with biases specified in vector form
+#'   optimize_weights(
+#'       data_file, mu_vector = c(1, 2), sigma_vector = c(100, 200)
+#'   )
+#'
+#'   # Fit weights with biases specified as scalars
+#'   optimize_weights(data_file, mu_scalar = 0, sigma_scalar = 1000)
+#'
+#'   # Fit weights with mix of scalar and vector biases
+#'   optimize_weights(data_file, mu_vector = c(1, 2), sigma_scalar = 1000)
+#'
+#'   # Pass additional arguments to optim function
+#'   optimize_weights(data_file, control_params = list(maxit = 500))
 #'
 #' @export
 optimize_weights <- function(input_file, bias_file = NA,
                              mu_scalar = NA, mu_vector = NA,
                              sigma_scalar = NA, sigma_vector = NA,
                              input_format = 'otsoft', in_sep = '\t',
-                             control_params = NA, upper_bound = 100,
+                             control_params = NA,
+                             upper_bound = DEFAULT_UPPER_BOUND,
                              model_name = NA) {
 
   # Organize our inputs
@@ -121,7 +163,7 @@ optimize_weights <- function(input_file, bias_file = NA,
   }
 
   # If mus aren't provided, initialize all weights to 1
-  # TODO: Does initializing contraints to the mus make sense?
+  # TODO: Does initializing constraints to the mus make sense?
   if (any_not_na(bias_params)) {
     constraint_weights <- bias_params$mus
   } else {
@@ -137,19 +179,22 @@ optimize_weights <- function(input_file, bias_file = NA,
     control_params <- list(fnscale = -1)
   }
 
+  # Convert strings in violation profiles to integers
+  data[, 3:ncol(data)] <- lapply(data[, 3:ncol(data)], as.numeric)
+
   # Build ourselves a matrix for efficient computation
-  # Pre-alocate space
+  # Pre-allocate space
   data_matrix <- matrix(0L, nrow = nrow(data), ncol = ncol(data) + 2)
   # Map URs to integers
-  data_matrix[,1] <- as.integer(as.factor(data[,1]))
+  data_matrix[, 1] <- as.integer(as.factor(data[, 1]))
   # Set the violation profiles
-  data_matrix[,2:(ncol(data_matrix) - 3)] <- data.matrix(data[,3:ncol(data)])
+  data_matrix[, 2:(ncol(data_matrix) - 3)] <- data.matrix(data[, 3:ncol(data)])
   # Replace empty cells with 0
   data_matrix[is.na(data_matrix)] <- 0
 
   # Perform optimization
   best <- tryCatch({
-    optim(
+    stats::optim(
       constraint_weights,
       calculate_log_likelihood_helper,
       data=data_matrix,
@@ -198,9 +243,9 @@ calculate_log_likelihood_helper <- function(constraint_weights,
   log_prob_ix <- ncol(data) - 1
   lik_ix <- log_prob_ix + 1
 
-  # Caluclate log likelihood of data
+  # Calculate log likelihood of data
   data <- calculate_probabilities(constraint_weights, data)
-  ll <- sum(data[,freq_ix] * data[, log_prob_ix])
+  ll <- sum(data[, freq_ix] * data[, log_prob_ix])
 
   # Minus the bias term
   if (any_not_na(bias_params)) {
@@ -212,20 +257,21 @@ calculate_log_likelihood_helper <- function(constraint_weights,
 
 # Calculate probabilities for all candidates based on current constraint
 # weights
-calculate_probabilities <- function(constraint_weights, data) {
+calculate_probabilities <- function(constraint_weights, data,
+                                    temperature = DEFAULT_TEMPERATURE) {
   freq_ix <- 2
   harm_ix <- ncol(data) - 2
   log_prob_ix <- harm_ix + 1
 
   data[, harm_ix] <- data[, (freq_ix + 1):(harm_ix - 1)] %*% constraint_weights
-  data[, harm_ix] <- exp(1)^-data[, harm_ix]
+  data[, harm_ix] <- exp(-data[, harm_ix] / temperature)
   data[, log_prob_ix] <- log(apply(data, 1, normalize_row, data, harm_ix))
   return(data)
 }
 
 # Helper function that applies Z normalization
 normalize_row <- function(row, m, col_num) {
-  return(row[col_num] / sum(m[m[,1] == row[1],][,col_num]))
+  return(row[col_num] / sum(m[m[, 1] == row[1],][, col_num]))
 }
 
 # Calculates the bias term in the optimized function.
