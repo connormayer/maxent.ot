@@ -140,6 +140,7 @@ DEFAULT_UPPER_BOUND <- 1000
 optimize_weights <- function(input_file, bias_file = NA,
                              mu_scalar = NA, mu_vector = NA,
                              sigma_scalar = NA, sigma_vector = NA,
+                             penalty_func = NA,
                              input_format = 'otsoft', in_sep = '\t',
                              control_params = NA,
                              upper_bound = DEFAULT_UPPER_BOUND,
@@ -179,7 +180,7 @@ optimize_weights <- function(input_file, bias_file = NA,
     control_params <- list(fnscale = -1)
   }
 
-  # Convert strings in violation profiles to integers
+  # Convert strings in violation profiles to numbers
   data[, 3:ncol(data)] <- lapply(data[, 3:ncol(data)], as.numeric)
 
   # Build ourselves a matrix for efficient computation
@@ -199,6 +200,7 @@ optimize_weights <- function(input_file, bias_file = NA,
       calculate_log_likelihood_helper,
       data=data_matrix,
       bias_params=bias_params,
+      penalty_func=penalty_func,
       control=control_params,
       lower=rep(0, length(constraint_weights)),
       # The default upper bound is Inf, but the function we're optimizing
@@ -237,7 +239,7 @@ optimize_weights <- function(input_file, bias_file = NA,
 # Calculate the log likelihood of the data given the current constraint weights
 # and bias parameters. This is the function that is optimized.
 calculate_log_likelihood_helper <- function(constraint_weights,
-                                     data, bias_params=NA) {
+                                     data, bias_params=NA, penalty_func=NA) {
   # Set a few column indexes
   freq_ix <- 2
   log_prob_ix <- ncol(data) - 1
@@ -251,6 +253,10 @@ calculate_log_likelihood_helper <- function(constraint_weights,
   if (any_not_na(bias_params)) {
     bias_term <- calculate_bias(bias_params, constraint_weights)
     ll <- ll - bias_term
+  }
+
+  if (!is.na(penalty_func)) {
+    ll <- ll - penalty_func(constraint_weights)
   }
   return(ll)
 }
