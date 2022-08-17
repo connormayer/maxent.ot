@@ -263,7 +263,7 @@ calculate_probabilities <- function(constraint_weights, data,
   harm_ix <- ncol(data) - 2
   log_prob_ix <- harm_ix + 1
 
-  data[, harm_ix] <- data[, (freq_ix + 1):(harm_ix - 1)] %*% constraint_weights
+  data[, harm_ix] <- data[, (freq_ix + 1):(harm_ix - 1)] %*% matrix(constraint_weights)
   data[, harm_ix] <- exp(-data[, harm_ix] / temperature)
   data[, log_prob_ix] <- log(apply(data, 1, normalize_row, data, harm_ix))
   return(data)
