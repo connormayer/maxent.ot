@@ -193,7 +193,7 @@ compare_models <- function(..., method='lrt') {
       description = paste(full_model$name, sub_model$name, sep="~"),
       chi_sq = chi_sq_val,
       k_delta = k,
-      p_value = stats::pchisq(chi_sq_val, k)
+      p_value = stats::pchisq(chi_sq_val, k, lower.tail=FALSE)
     )
   } else {
     result <- get_scores(models, method)

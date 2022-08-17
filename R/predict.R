@@ -139,7 +139,7 @@ predict_probabilities <- function(test_file, constraint_weights,
   output <- cbind(data[, 1:2], data_matrix[, 2:ncol(data_matrix)])
 
   # Calculate error
-  error <- output[, 6] - output[, 7]
+  error <- output[, (ncol(output)-1)] - output[, (ncol(output))]
   output <- cbind(output, error)
 
   names(output) <- c(c(c("UR", "SR", "Freq"), unlist(long_names)),
