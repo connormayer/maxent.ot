@@ -95,7 +95,7 @@ monte_carlo <- function (data_file) {
   # Get total number of trials
   num_trial <- max(data_file[,ncol(data_file)-2])
 
-  #
+  # For each trial, pick 1 SR response
   for (i in 1:num_trial) {
     # Get row indices of all trials with 'Trial id' == i
     id_vec <- which(data_file$'Trial id' == i)
@@ -118,14 +118,36 @@ monte_carlo <- function (data_file) {
   return(simulated_resp_file)
 }
 
-# TODO: biggest function that calls on smaller helper fns
+# Learns constraint weights for multiple randomly generated SR responses
+# TODO: support writing output to a .txt file?
+monte_carlo_weights <- function(prob_file, response_file, num_simul, input_format = "otsoft",
+                                in_sep = "\t", output_path = NA, out_sep = "\t") {
 
-# Create file that conditions over trial
-# prob_per_trial_file <- cdnProb_trial(prob_file, response_file)
+  # Create file that calculates conditional probability over trial
+  cdnProb_file <- cdnProb_trial(prob_file, response_file, input_format = "otsoft",
+                                in_sep = "\t", output_path = NA, out_sep = "\t")
 
-# Start looping below
-# simulated_resp_file <- monte_carlo()
+  # Initialize data frame to store learned weights
+  num_feats <- ncol(cdnProb_file)-6
+  output <- matrix(nrow = num_simul, ncol = num_feats)
 
+  # Learn weights for each simulation
+  for (i in 1:num_simul) {
 
-# Learn weights
-# output <- optimize_weights_fromDF <- optimize_weights_fromDF(simulated_resp_file)
+    # Create a simulated response file
+    simul_resp_file <- monte_carlo(cdnProb_file)
+
+    # Learn weights for simulated response
+    # TODO: input_format something other than "otsoft"? & model name
+    # TODO: learn weights from "optimize_weights" rather than "optimize_weights_fromDF" once input format is fixed
+    curr_model <- optimize_weights_fromDF(simul_resp_file, model_name = "curr_model")
+
+    # Record learned weights
+    output[i,] <- curr_model$weights
+  }
+
+  # Put in names of constraints
+  colnames(output) <- colnames(simul_resp_file)[4:ncol(simul_resp_file)]
+
+  return(output)
+}
