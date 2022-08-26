@@ -4,26 +4,22 @@
 #' Describe function here
 #'
 
+# TODO: get optimize_weights() to work with an input file that is a matrix (here)
+# in addition to also working with .txt files (only file that is currently supported)
+# nb: currently i'm using optimize_weights_fromDF that works with matrix input-type.
 
+cdnProb_trial <- function (prob_file) {
 
-cdnProb_trial <- function (prob_file, response_file, input_format = "otsoft",
-                           in_sep = "\t", output_path = NA, out_sep = "\t") {
-  # Prepare response_file
-  input <- load_data_otsoft(response_file, sep = in_sep)
-  long_names <- input$full_names
-  short_names <- input$abbr_names
-  data <- input$data
-  n <- input$n
+  # Prepare response_file: data_matrix
+  # Drop last two columns (observed prob & error)
+  data_matrix <- prob_file[, -(ncol(prob_file)-1):-(ncol(prob_file))]
 
-  data_matrix <- matrix(0L, nrow = nrow(data), ncol = ncol(data) +
-                          2)
-  data_matrix[, 1] <- as.integer(as.factor(data[, 1]))
-  data_matrix[, 4:(ncol(data_matrix) - 2)] <- apply(as.matrix(data[,
-                                                                   4:ncol(data)]), 2, as.numeric)
-  data_matrix[is.na(data_matrix)] <- 0
+  # Insert a new column for Conditional prob over trial
+  data_matrix["Pred p(SR|trial)"] <- 0
+  # Insert a new column for Trial id
+  data_matrix["Trial id"] <- 0
 
-
-  # Record trial_id in second-last column of output
+  # Record trial_id in last column of data_matrix
   trial_id <- 0
   curr_ur <- ""
   sr_ls <- list()
@@ -31,61 +27,51 @@ cdnProb_trial <- function (prob_file, response_file, input_format = "otsoft",
   for (i in 1:nrow(prob_file)) {
 
     # If still the same trial
-    # Record current trial_id in output 2nd last column of output
-    # Either new UR
+    # Conditions: same UR, SR is is the list of SRs associated with this UR
     if (prob_file[i, 1] == curr_ur && (prob_file[i, 2] %in% sr_ls)) {
-      data_matrix[i, (ncol(data_matrix)-1)] <- trial_id
-      #data_matrix[i, 1] <- trial_id    # Put trial_id in 1st column if using normalize row
+      # Record current trial_id in output last column of output
+      data_matrix[i, ncol(data_matrix)] <- trial_id
 
-      # This row begins a new trial
-    } else {
+      # Else: This row begins a new trial
       # Current trial needs a new trial_id
+    } else {
       trial_id = trial_id + 1
       # Record current trial_id in output file
-      data_matrix[i, (ncol(data_matrix)-1)] <- trial_id
-      #data_matrix[i, 1] <- trial_id    # Put trial_id in 1st column if using normalize row
+      data_matrix[i, ncol(data_matrix)] <- trial_id
 
-      # Store new UR of current trial
+      # Store new UR of current trial in curr_ur
       curr_ur <- prob_file[i, 1]
-      # Start a new list of SRs for current trial
+      # Start a new list of SRs for current trial in sr_ls
       sr_ls <- list(prob_file[i, 2])
 
       # Track following rows that belong to the same trial
       next_row <- i+1
-      # Such rows have the same UR and different SRs
-      while (next_row <= nrow(data) && prob_file[next_row, 1] == curr_ur && !(prob_file[next_row, 2] %in% sr_ls)) {
+      # Conditions: such rows have the same UR and different SRs
+      while (next_row <= nrow(prob_file) && prob_file[next_row, 1] == curr_ur && !(prob_file[next_row, 2] %in% sr_ls)) {
         # Add alternative SR options to SR list
         sr_ls <- append(sr_ls, prob_file[next_row, 2])
+        # Move on to following row
+        next_row <- next_row+1
       }
     }
   }
 
-  # Add conditional prob over UR in a new last column
-  data_matrix <- cbind(data_matrix, prob_file[, "Predicted Probability"])
-
   # Record probability conditioned on trial in "new" 2nd last column of output
   data_matrix[, (ncol(data_matrix)-1)] <- apply(data_matrix, 1,
-                                                normalize_trial, data_matrix, ncol(data_matrix))
+                                                normalize_trial, data_matrix, (ncol(data_matrix)-2))
 
   # Change observed frequencies to 0
   data_matrix[, 3] <- 0
 
-  # Put row and column names back in
-  output <- cbind(data[, 1:2], data_matrix[, 3:ncol(data_matrix)])
-  names(output) <- c(c(c("UR", "SR", "Freq"), unlist(long_names)),
-                     "Trial id", "Conditional prob over trial", "Conditional prob over UR")
-  # Write to output file if desired
-  if (!is.na(output_path)) {
-    utils::write.table(output, file = output_path, sep = out_sep,
-                       row.names = FALSE)
-  }
+  # Change name of "Predicted Probability" to "Pred p(SR|UR)"
+  colnames(data_matrix)[colnames(data_matrix) == "Predicted Probability"] <- "Pred p(SR|UR)"
 
-  return(output)
+  return(data_matrix)
 }
 
 # Helper function that applies normalization over trial
 normalize_trial <- function (row, m, col_num) {
-  return(row[col_num]/sum(m[m[, (ncol(m)-2)] == row[(ncol(m)-2)], ][, col_num]))
+  return(as.numeric(row[col_num])/sum(m[m[, ncol(m)] == row[ncol(m)], ][, col_num]))
 }
 
 # Function that creates 1 simulated response based on probabilities conditioned over trial
@@ -120,12 +106,10 @@ monte_carlo <- function (data_file) {
 
 # Learns constraint weights for multiple randomly generated SR responses
 # TODO: support writing output to a .txt file?
-monte_carlo_weights <- function(prob_file, response_file, num_simul, input_format = "otsoft",
-                                in_sep = "\t", output_path = NA, out_sep = "\t") {
+monte_carlo_weights <- function(prob_file, num_simul, output_path = NA, out_sep = "\t") {
 
   # Create file that calculates conditional probability over trial
-  cdnProb_file <- cdnProb_trial(prob_file, response_file, input_format = "otsoft",
-                                in_sep = "\t", output_path = NA, out_sep = "\t")
+  cdnProb_file <- cdnProb_trial(prob_file)
 
   # Initialize data frame to store learned weights
   num_feats <- ncol(cdnProb_file)-6
@@ -148,6 +132,12 @@ monte_carlo_weights <- function(prob_file, response_file, num_simul, input_forma
 
   # Put in names of constraints
   colnames(output) <- colnames(simul_resp_file)[4:ncol(simul_resp_file)]
+
+  # Write to output file if desired
+  if (!is.na(output_path)) {
+    utils::write.table(output, file = output_path, sep = out_sep,
+                       row.names = FALSE)
+  }
 
   return(output)
 }
