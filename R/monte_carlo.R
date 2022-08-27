@@ -10,31 +10,40 @@
 
 cdnProb_trial <- function (prob_file) {
 
-  # Prepare response_file: data_matrix
-  # Drop last two columns (observed prob & error)
-  data_matrix <- prob_file[, -(ncol(prob_file)-1):-(ncol(prob_file))]
+  # # Prepare response_file: data_matrix
+  # # Drop last two columns (observed prob & error)
+  # data_matrix <- prob_file[, -(ncol(prob_file)-1):-(ncol(prob_file))]
+  #
+  # # Insert a new column for Conditional prob over trial
+  # data_matrix["Pred p(SR|trial)"] <- 0
+  # # Insert a new column for Trial id
+  # data_matrix["Trial id"] <- 0
 
-  # Insert a new column for Conditional prob over trial
-  data_matrix["Pred p(SR|trial)"] <- 0
-  # Insert a new column for Trial id
-  data_matrix["Trial id"] <- 0
+  # Build ourselves a matrix for efficient computation
+  # Pre-allocate space
+  data_matrix <- matrix(0L, nrow = nrow(prob_file), ncol = ncol(prob_file))
+  # Port over the violation profiles and p(SR|UR)
+  data_matrix[, 1:(ncol(data_matrix) - 2)] <- data.matrix(prob_file[, 1:(ncol(prob_file) - 2)])
+  # Replace empty cells with 0
+  data_matrix[is.na(data_matrix)] <- 0
 
   # Record trial_id in last column of data_matrix
   trial_id <- 0
   curr_ur <- ""
   sr_ls <- list()
 
+  # For each row
   for (i in 1:nrow(prob_file)) {
 
-    # If still the same trial
+    # If still the same trial as previous row
     # Conditions: same UR, SR is is the list of SRs associated with this UR
     if (prob_file[i, 1] == curr_ur && (prob_file[i, 2] %in% sr_ls)) {
-      # Record current trial_id in output last column of output
+      # Record current trial_id
       data_matrix[i, ncol(data_matrix)] <- trial_id
 
       # Else: This row begins a new trial
-      # Current trial needs a new trial_id
     } else {
+      # Current trial needs a new trial_id
       trial_id = trial_id + 1
       # Record current trial_id in output file
       data_matrix[i, ncol(data_matrix)] <- trial_id
@@ -46,6 +55,7 @@ cdnProb_trial <- function (prob_file) {
 
       # Track following rows that belong to the same trial
       next_row <- i+1
+      # While the following rows belong to the same trial as row i
       # Conditions: such rows have the same UR and different SRs
       while (next_row <= nrow(prob_file) && prob_file[next_row, 1] == curr_ur && !(prob_file[next_row, 2] %in% sr_ls)) {
         # Add alternative SR options to SR list
@@ -63,15 +73,25 @@ cdnProb_trial <- function (prob_file) {
   # Change observed frequencies to 0
   data_matrix[, 3] <- 0
 
-  # Change name of "Predicted Probability" to "Pred p(SR|UR)"
-  colnames(data_matrix)[colnames(data_matrix) == "Predicted Probability"] <- "Pred p(SR|UR)"
+  # Re-introduce UR & SR characters
+  output <- cbind(prob_file[, 1:2], data_matrix[, 3:ncol(data_matrix)])
 
-  return(data_matrix)
+  # Column names
+  # Port over column names from prob_file
+  names(output) <- colnames(prob_file)
+  # Change "Predicted Probability" to "Pred p(SR|UR)"
+  colnames(output)[colnames(output) == "Predicted Probability"] <- "Pred p(SR|UR)"
+  # Change "Observed Probability" to "Pred p(SR|trial)"
+  colnames(output)[colnames(output) == "Observed Probability"] <- "Pred p(SR|trial)"
+  # Change "Error" to "Trial id"
+  colnames(output)[colnames(output) == "Error"] <- "Trial id"
+
+  return(output)
 }
 
 # Helper function that applies normalization over trial
 normalize_trial <- function (row, m, col_num) {
-  return(as.numeric(row[col_num])/sum(m[m[, ncol(m)] == row[ncol(m)], ][, col_num]))
+  return(row[col_num]/sum(m[m[, ncol(m)] == row[ncol(m)], ][, col_num]))
 }
 
 # Function that creates 1 simulated response based on probabilities conditioned over trial
@@ -79,7 +99,7 @@ normalize_trial <- function (row, m, col_num) {
 monte_carlo <- function (data_file) {
 
   # Get total number of trials
-  num_trial <- max(data_file[,ncol(data_file)-2])
+  num_trial <- max(data_file[,ncol(data_file)])
 
   # For each trial, pick 1 SR response
   for (i in 1:num_trial) {
@@ -105,7 +125,7 @@ monte_carlo <- function (data_file) {
 }
 
 # Learns constraint weights for multiple randomly generated SR responses
-# TODO: support writing output to a .txt file?
+# TODO: To support bias params in future?
 monte_carlo_weights <- function(prob_file, num_simul, output_path = NA, out_sep = "\t") {
 
   # Create file that calculates conditional probability over trial
