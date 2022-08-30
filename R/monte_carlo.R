@@ -107,7 +107,7 @@ monte_carlo <- function (data_file) {
     id_vec <- which(data_file$'Trial id' == i)
 
     # Get conditional prob over trial for all trials in id_vec
-    prob_vec <- data_file[id_vec, 'Conditional prob over trial']
+    prob_vec <- data_file[id_vec, 'Pred p(SR|trial)']
 
     # Randomly pick 1 SR according to conditional prob
     # Currently only 1 random draw per trial
