@@ -1,0 +1,6 @@
+			Constraint1	Constraint2	Constraint3
+			C1	C2	C3
+Input1	Output1-1	1	1	0	1
+	Output1-2	1	0	1	0
+Input2	Output2-1	1	0	0	1
+	Output2-2	0	0	1	0

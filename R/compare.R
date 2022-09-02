@@ -186,6 +186,15 @@ compare_models <- function(..., method='lrt') {
            "of those in the larger model. Models must be nested to ",
            "apply the likelihood ratio test.")
     }
+
+    if ((full_model$loglik - sub_model$loglik) < 0) {
+      stop("The larger model produces a worse fit to data than the ",
+           "smaller model despite having more parameters available ",
+           "to adjust model fit. There is no justification to include ",
+           "the additional constraints.",
+           "The likelihood ratio test is irrelevant.")
+    }
+
     chi_sq_val <- 2 * (full_model$loglik - sub_model$loglik)
     k <- full_model$k - sub_model$k
 
@@ -317,7 +326,16 @@ calculate_aic <- function(model) {
 
 # Helper function that calculates AICc for a single model
 calculate_aic_c <- function(model) {
-  value <- calculate_aic(model) + (2 * model$k^2 + 2 * model$k) / (model$n - model$k - 1)
+
+  # If 3rd term's denominator is -ve
+  if ((model$n - model$k - 1) < 0) {
+    # Replace with 0
+    value <- calculate_aic(model) + (2 * model$k^2 + 2 * model$k) / 0
+  }
+  # Else use actual value for 3rd term's denominator
+  else {
+    value <- calculate_aic(model) + (2 * model$k^2 + 2 * model$k) / (model$n - model$k - 1)
+  }
   return(value)
 }
 
