@@ -1,12 +1,6 @@
-# Constants
-
-
 #' Describe function here
 #'
 
-# TODO: get optimize_weights() to work with an input file that is a matrix (here)
-# in addition to also working with .txt files (only file that is currently supported)
-# nb: currently i'm using optimize_weights_fromDF that works with matrix input-type.
 
 cdnProb_trial <- function (prob_file) {
 
@@ -125,8 +119,14 @@ monte_carlo <- function (data_file) {
 }
 
 # Learns constraint weights for multiple randomly generated SR responses
-# TODO: To support bias params in future?
-monte_carlo_weights <- function(prob_file, num_simul, output_path = NA, out_sep = "\t") {
+monte_carlo_weights <- function(prob_file, num_simul,
+                                bias_file = NA,
+                                mu_scalar = NA, mu_vector = NA,
+                                sigma_scalar = NA, sigma_vector = NA,
+                                penalty_func = NA,
+                                output_path = NA, out_sep = "\t",
+                                control_params = NA,
+                                upper_bound = DEFAULT_UPPER_BOUND) {
 
   # Create file that calculates conditional probability over trial
   cdnProb_file <- cdnProb_trial(prob_file)
@@ -142,9 +142,15 @@ monte_carlo_weights <- function(prob_file, num_simul, output_path = NA, out_sep 
     simul_resp_file <- monte_carlo(cdnProb_file)
 
     # Learn weights for simulated response
-    # TODO: input_format something other than "otsoft"? & model name
-    # TODO: learn weights from "optimize_weights" rather than "optimize_weights_fromDF" once input format is fixed
-    curr_model <- optimize_weights_fromDF(simul_resp_file, model_name = "curr_model")
+    curr_model <- optimize_weights(simul_resp_file,
+                                   bias_file = NA,
+                                   mu_scalar = NA, mu_vector = NA,
+                                   sigma_scalar = NA, sigma_vector = NA,
+                                   penalty_func = NA,
+                                   input_format = 'df',
+                                   control_params = NA,
+                                   upper_bound = DEFAULT_UPPER_BOUND,
+                                   model_name = "curr_model")
 
     # Record learned weights
     output[i,] <- curr_model$weights

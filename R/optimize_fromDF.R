@@ -154,19 +154,21 @@ optimize_weights_fromDF <- function(input_file, bias_file = NA,
   # TODO: Some validation of format?
   full_names <- colnames(input_file)[4:ncol(input_file)]
   abbr_names <- colnames(input_file)[4:ncol(input_file)]  # For now. Might remove later
+
+  # Unnecessary since df would have all URs filled out already
   # Replace empty cells in a column with the closest cell above that is not empty
-  fill_the_blanks <- function(x, missing = ""){
-    enc <- base::rle(as.character(x))
-    empty <- which(enc$value == missing)
-    enc$values[empty] <- enc$values[empty - 1]
-    base::inverse.rle(enc)
-  }
+  # fill_the_blanks <- function(x, missing = ""){
+  #   enc <- base::rle(as.character(x))
+  #   empty <- which(enc$value == missing)
+  #   enc$values[empty] <- enc$values[empty - 1]
+  #   base::inverse.rle(enc)
+  # }
 
 
 
   # old: in_data <- input_file[3:nrow(input_file),]
   in_data <- input_file
-  in_data[,1] <- fill_the_blanks(in_data[,1])
+  # in_data[,1] <- fill_the_blanks(in_data[,1])
 
   n <- sum(in_data[,3], na.rm = TRUE)
 

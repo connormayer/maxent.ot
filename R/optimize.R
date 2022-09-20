@@ -147,16 +147,29 @@ optimize_weights <- function(input_file, bias_file = NA,
                              model_name = NA) {
 
   # Organize our inputs
-  input <- load_data_otsoft(input_file, sep = in_sep)
-  long_names <- input$full_names
-  short_names <- input$abbr_names
-  data <- input$data
-  n <- input$n
-  num_constraints <- length(long_names)
-  bias_params <- process_bias_arguments(
-    bias_file, mu_scalar, mu_vector, sigma_scalar, sigma_vector,
-    num_constraints
-  )
+  # If input_file is a dataframe
+  if (input_format == 'df') {
+    long_names <- colnames(input_file)[4:ncol(input_file)]
+    data <- input_file
+    n <- sum(data[,3], na.rm = TRUE)
+    num_constraints <- length(long_names)
+    bias_params <- process_bias_arguments(
+      bias_file, mu_scalar, mu_vector, sigma_scalar, sigma_vector,
+      num_constraints
+    )
+  } else {
+    # Else: default -- input_file is a .txt file with the ot-soft format
+    input <- load_data_otsoft(input_file, sep = in_sep)
+    long_names <- input$full_names
+    short_names <- input$abbr_names
+    data <- input$data
+    n <- input$n
+    num_constraints <- length(long_names)
+    bias_params <- process_bias_arguments(
+      bias_file, mu_scalar, mu_vector, sigma_scalar, sigma_vector,
+      num_constraints
+    )
+  }
 
   # If no model name provided, use filename sans extension
   if (is.na(model_name)) {
