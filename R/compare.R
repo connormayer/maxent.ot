@@ -102,7 +102,7 @@
 #'         \item{`p_value`: }{ the p-value calculated by the test}}
 #'     }
 #'     \item{`aic`: }{ A data frame with as many rows as there were models
-#'       passed in. The models are sorted in descending order of AIC (i.e., best
+#'       passed in. The models are sorted in ascending order of AIC (i.e., best
 #'       first). This data frame has the following columns:
 #'       \itemize{
 #'         \item{`model`: }{ The name of the model.}

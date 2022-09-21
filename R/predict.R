@@ -10,14 +10,14 @@ DEFAULT_TEMPERATURE <- 1
 #' will calculate the probability of that output given the input form and the
 #' provided weights. This probability is defined as
 #'
-#' \deqn{P(y|x; w) = \frac{1}{Z_w(x)}\exp(\sum_{k=1}^{m}{w_k f_k(y, x)})}
+#' \deqn{P(y|x; w) = \frac{1}{Z_w(x)}\exp(-\sum_{k=1}^{m}{w_k f_k(y, x)})}
 #'
 #' where \eqn{f_k(y, x)} is the number of violations of constraint \eqn{k}
 #' incurred by mapping underlying \eqn{x} to surface \eqn{y}, \eqn{w_k} is the
 #' weight associated with constraint \eqn{k}, and  \eqn{Z_w(x)} is a
 #' normalization term defined as
 #'
-#' \deqn{Z_w(x) = \sum_{y\in\mathcal{Y}(x)}{\exp(\sum_{k=1}^{m}{w_k f_k(y, x)})}}
+#' \deqn{Z_w(x) = \sum_{y\in\mathcal{Y}(x)}{\exp(-\sum_{k=1}^{m}{w_k f_k(y, x)})}}
 #'
 #' where \eqn{\mathcal{Y}(x)} is the set of all output candidates for input
 #' \eqn{x}.
@@ -31,10 +31,10 @@ DEFAULT_TEMPERATURE <- 1
 #' If the temperature parameter \eqn{T} is specified, \eqn{P(y|x; w)} is
 #' calculated as
 #'
-#' \deqn{\frac{1}{Z_w(x)}\exp(\sum_{k=1}^{m}{(w_k f_k(y, x)})/T)} and
+#' \deqn{\frac{1}{Z_w(x)}\exp(-\sum_{k=1}^{m}{(w_k f_k(y, x)})/T)} and
 #' \eqn{Z_w(x)} is similarly calculated as
 #'
-#' \deqn{\sum_{y\in \mathcal{Y}(x)}{\exp(\sum_{k=1}^{m}{(w_k f_k(y, x))/T})}}
+#' \deqn{\sum_{y\in \mathcal{Y}(x)}{\exp(-\sum_{k=1}^{m}{(w_k f_k(y, x))/T})}}
 #'
 #' Larger values of \eqn{T} move the predicted probabilities of output
 #' candidates for a particular input towards equality with one another. For
