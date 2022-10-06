@@ -15,13 +15,14 @@ DEFAULT_UPPER_BOUND <- 1000
 #' \deqn{LL_w(D) = \sum_{i=1}^{n}{\ln P(y_i|x_i; w)}
 #' - \sum_{k=1}^{m}{\frac{(w_k - \mu_k)^2}{2\sigma_k^2}}}
 #'
-#' The first term in this equation calculates the likelihood of the training
-#' data under the weights \eqn{w}. \eqn{n} is the number of data points
-#' (i.e., the sample size or the sum of the frequency column in the input),
-#' \eqn{x_i} is the input form of the \eqn{i}th data point, and \eqn{y_i} is
-#' the observed surface form corresponding to \eqn{x_i}. \eqn{P(y_i|x_i; w)}
-#' represents the probability of realizing underlying \eqn{x_i} as surface
-#' \eqn{y_i} given weights \eqn{w}. This probability is defined as
+#' The first term in this equation calculates the natural logarithm of the
+#' likelihood of the training data under the weights \eqn{w}. \eqn{n} is the
+#' number of data points (i.e., the sample size or the sum of the frequency
+#' column in the input),\eqn{x_i} is the input form of the \eqn{i}th data
+#' point, and \eqn{y_i} is the observed surface form corresponding to
+#' \eqn{x_i}.\eqn{P(y_i|x_i; w)} represents the probability of realizing
+#' underlying \eqn{x_i} as surface \eqn{y_i} given weights \eqn{w}. This
+#' probability is defined as
 #'
 #' \deqn{P(y_i|x_i; w) = \frac{1}{Z_w(x_i)}\exp(-\sum_{k=1}^{m}{w_k f_k(y_i, x_i)})}
 #'

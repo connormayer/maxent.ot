@@ -156,15 +156,6 @@ monte_carlo_weights <- function(pred_prob, num_simul,
 # Function that calculates conditional probability of output given trial
 cdnProb_trial <- function (pred_prob) {
 
-  # # Prepare response_file: data_matrix
-  # # Drop last two columns (observed prob & error)
-  # data_matrix <- pred_prob[, -(ncol(pred_prob)-1):-(ncol(pred_prob))]
-  #
-  # # Insert a new column for Conditional prob over trial
-  # data_matrix["Pred p(SR|trial)"] <- 0
-  # # Insert a new column for Trial id
-  # data_matrix["Trial id"] <- 0
-
   # Build ourselves a matrix for efficient computation
   # Pre-allocate space
   data_matrix <- matrix(0L, nrow = nrow(pred_prob), ncol = ncol(pred_prob))
