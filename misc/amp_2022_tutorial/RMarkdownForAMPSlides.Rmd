@@ -1,0 +1,120 @@
+---
+title: "maxent.ot package demo"
+author: "Connor Mayer and Kie Zuraw"
+date: "10/21/2022"
+output: html_document
+---
+
+# Introduction
+
+This presentation will present a brief tutorial on the `maxent.ot` R package we're currently developing. We will show you how to:
+
+* Read tableaux in OTSoft format into R
+* Fit a Maximum Entropy OT grammar to the data and evaluate its predictions
+* Compare how well different models (i.e., different constraint sets) fit a dataset
+* Add in bias/regularization terms to constrain learning
+
+# The data
+
+In this presentation we will walk you through an analysis of a simple, fabricated dataset that represents a French-speaking child's acquisition of onset consonant clusters, based loosely on Rose (2002). For this imaginary child:
+
+* cluster simplification is more likely in unstressed syllables
+  + e.g. /gry.'o/ vs. /'grav/
+* cluster simplification is more likely for s-stop than for stop-liquid
+  + e.g. /'stad/ vs. /'grav/
+
+We plot the overall pattern below:
+
+```{r plot, echo=FALSE}
+#Create the data frame
+simplification <- data.frame(cluster_type=c("ST","TR","ST","TR"),  stress=c("stressed","stressed","unstressed","unstressed"), simplification_rate=c(0.6,0.4,0.9,0.7))
+
+barplot(simplification$simplification_rate, ylab="simplification rate", xlab="cluster type", col=c("blue","blue","gold","gold"), ylim=c(0,1))
+axis(1, at = c(0.7, 1.9, 3.1, 4.3), labels = c("s-stop", "stop-liq", "s-stop", "stop-liq"))
+legend("topright", fill=c("blue","gold"), legend=c("stressed", "unstressed"))
+
+```
+
+# Loading the library
+
+The first step is to load the maxent.ot library. This needs to be installed from Github since it's not (yet) an official CRAN package.
+
+```{r results=FALSE, message=FALSE, warning=FALSE}
+install.packages("devtools", repos = "http://cran.us.r-project.org")
+devtools::install_github("connormayer/maxent.ot")
+
+# If installation has been successful, this should work
+library(maxent.ot)
+```
+
+# Tableau format
+
+We'll start with a tableau that contains two simple constraints. It's obvious that these constraints can't capture the influences of stress and sonority, but this will let us look at the input data format and set the stage for some model comparison.
+
+* <span style="font-variant:small-caps;">Max</span>: Don't delete segments.
+* <span style="font-variant:small-caps;">*Complex</span>: No complex onsets.
+
+Tableaux must be represented in OTSoft format (https://linguistics.ucla.edu/people/hayes/otsoft/). Here's what this looks like. It's not important which separator is used (commas, tabs, etc).
+
+```{r, echo=FALSE, warning=FALSE}
+library(flextable) 
+tableau <- flextable(read.csv("amp_demo_grammar_base.csv", header=FALSE))
+tableau <- delete_part(tableau, part='header')
+border_remove(tableau)
+```
+
+The first three columns are unlabeled:
+
+* Column 1: The input names. Note that multiple candidates for the same input are indicated by blank values in this column.
+* Column 2: Candidate forms.
+* Column 3: Number of observations for each candidate. Note that these must be counts rather than proportions for the model comparison to be valid.
+
+The remaining columns correspond to the individual constraints and their violations by each candidate.
+
+# Fitting a MaxEnt grammar and examining its predictions
+
+Fitting a MaxEnt grammar in its most basic form involves computing numeric weights for each constraint that get the model's predictions as close to the observed frequencies in the data. We won't talk about how this fitting is done, but see Hayes and Wilson (2008) for a nice description.
+
+We can fit weights using the `optimize_weights` function. In its simplest application, `optimize_weights` takes a single argument, which is the path to the OTSoft file. The `in_sep` argument defines the separator used in the input file. This defaults to tabs (which are the separator used in OTSoft traditionally), but we've used commas here.
+```{r}
+base_file <- "amp_demo_grammar_base.csv"
+base_model <- optimize_weights(base_file, in_sep=',')
+
+# Get the weights of each constraint
+base_model$weights
+
+# Get the log likelihood assigned to the training data under these weights
+base_model$loglik
+
+# Get the number of free parameters (i.e. number of constraints)
+base_model$k
+
+# Get the number of data points
+base_model$n
+```
+
+## Evaluating model predictions
+
+We can calculate the predictions of a fitted model on some data set using the `predict_probabilities` function. This takes two arguments: the data file, which has the same format as above, and a set of weights. Here we'll use this to get the predicted frequencies for the training data set, but you can also use this on new data provided it uses the same constraints as your trained model.
+```{r, R.options = list(width = 400)}
+
+predict_probabilities(base_file, base_model$weights, in_sep=',')
+```
+
+We can use `predict_probabilities` to evaluate how well our model generalizes to new data. We can also use it to evaluate the predictions our model makes about the training data, and identify data points that it is particularly bad at accounting for.
+
+Only the three final columns are new here:
+
+* Predicted Probability: The predicted probability of each candidate form under the model.
+* Observed Probability: The observed probability in the data.
+* Error: The difference between predicted and observed probability. This can be useful for identifying cases that the model does particularly badly on.
+
+Above we can see that it assigns probabilities without considering stress or sonority. This suggests our model might do better if we add some additional constraints.
+
+## Adding in Max-stressed
+
+## Adding in Max-stop
+
+# Model comparison
+
+# Adding in bias
