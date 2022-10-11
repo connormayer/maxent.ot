@@ -5,6 +5,15 @@ date: "10/21/2022"
 output: html_document
 ---
 
+<style type="text/css">
+.main-container {
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+
 # Introduction
 
 This presentation will present a brief tutorial on the `maxent.ot` R package we're currently developing. We will show you how to:
@@ -113,7 +122,83 @@ Above we can see that it assigns probabilities without considering stress or son
 
 ## Adding in Max-stressed
 
-## Adding in Max-stop
+Let's try adding a new constraint that specifically penalizes deleting segments from stressed syllables. 
+
+* <span style="font-variant:small-caps;">Max-Stressed</span>: Don't delete segments from stressed syllables.
+
+Our updated tableau looks like this:
+
+```{r, echo=FALSE, warning=FALSE}
+tableau <- flextable(read.csv("amp_demo_grammar_stressed.csv", header=FALSE))
+tableau <- delete_part(tableau, part='header')
+border_remove(tableau)
+```
+
+Let's fit a new model to it:
+
+```{r}
+stressed_file <- "amp_demo_grammar_stressed.csv"
+stressed_model <- optimize_weights(stressed_file, in_sep=',')
+
+# Get the weights of each constraint
+stressed_model$weights
+
+# Get the log likelihood assigned to the training data under these weights
+stressed_model$loglik
+
+# Get the number of free parameters (i.e. number of constraints)
+stressed_model$k
+
+# Get the number of data points
+stressed_model$n
+```
+
+And now let's look at the predictions it makes:
+
+```{r, R.options = list(width = 400)}
+predict_probabilities(stressed_file, stressed_model$weights, in_sep=',')
+```
+
+This model does a better job of differentiating between frequency of deletion in stressed vs. unstressed syllables, but it doesn't get us the effects of sonority. Let's add one more constraint. 
+
+## Adding in SSP
+
+The last constraint we'll add penalizes onsets that violate the Sonority Sequencing Principle: in this case [sp] onsets.
+
+* <span style="font-variant:small-caps;">SSP</span>: Don't violate the SSP.
+
+Our final tableau looks like this:
+
+```{r, echo=FALSE, warning=FALSE}
+tableau <- flextable(read.csv("amp_demo_grammar_full.csv", header=FALSE))
+tableau <- delete_part(tableau, part='header')
+border_remove(tableau)
+```
+
+Let's fit a new model to it:
+
+```{r}
+full_file <- "amp_demo_grammar_full.csv"
+full_model <- optimize_weights(full_file, in_sep=',')
+
+# Get the weights of each constraint
+full_model$weights
+
+# Get the log likelihood assigned to the training data under these weights
+full_model$loglik
+
+# Get the number of free parameters (i.e. number of constraints)
+full_model$k
+
+# Get the number of data points
+full_model$n
+```
+
+And now let's look at the predictions it makes:
+
+```{r, R.options = list(width = 1000)}
+predict_probabilities(full_file, full_model$weights, in_sep=',')
+```
 
 # Model comparison
 
