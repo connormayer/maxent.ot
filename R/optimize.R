@@ -141,7 +141,6 @@ DEFAULT_UPPER_BOUND <- 1000
 optimize_weights <- function(input_file, bias_file = NA,
                              mu_scalar = NA, mu_vector = NA,
                              sigma_scalar = NA, sigma_vector = NA,
-                             penalty_func = NA,
                              input_format = 'otsoft', in_sep = '\t',
                              control_params = NA,
                              upper_bound = DEFAULT_UPPER_BOUND,
@@ -211,10 +210,9 @@ optimize_weights <- function(input_file, bias_file = NA,
   best <- tryCatch({
     stats::optim(
       constraint_weights,
-      calculate_log_likelihood_helper,
+      objective_func,
       data=data_matrix,
       bias_params=bias_params,
-      penalty_func=penalty_func,
       control=control_params,
       lower=rep(0, length(constraint_weights)),
       # The default upper bound is Inf, but the function we're optimizing
@@ -242,7 +240,7 @@ optimize_weights <- function(input_file, bias_file = NA,
   out_object <- list(
     name = model_name,
     weights = out_weights,
-    loglik = best$value,
+    loglik = calculate_log_likelihood(out_weights, data_matrix),
     k = length(out_weights),
     n = n,
     bias_params = bias_params
@@ -250,10 +248,7 @@ optimize_weights <- function(input_file, bias_file = NA,
   return(out_object)
 }
 
-# Calculate the log likelihood of the data given the current constraint weights
-# and bias parameters. This is the function that is optimized.
-calculate_log_likelihood_helper <- function(constraint_weights,
-                                     data, bias_params=NA, penalty_func=NA) {
+calculate_log_likelihood <- function(constraint_weights, data) {
   # Set a few column indexes
   freq_ix <- 2
   log_prob_ix <- ncol(data) - 1
@@ -263,15 +258,19 @@ calculate_log_likelihood_helper <- function(constraint_weights,
   data <- calculate_probabilities(constraint_weights, data)
   ll <- sum(data[, freq_ix] * data[, log_prob_ix])
 
+  return(ll)
+}
+
+# This is the function that is optimized.
+objective_func <- function(constraint_weights, data, bias_params=NA) {
+  ll <- calculate_log_likelihood(constraint_weights, data)
+
   # Minus the bias term
   if (any_not_na(bias_params)) {
     bias_term <- calculate_bias(bias_params, constraint_weights)
     ll <- ll - bias_term
   }
 
-  if (!is.na(penalty_func)) {
-    ll <- ll - penalty_func(constraint_weights)
-  }
   return(ll)
 }
 
