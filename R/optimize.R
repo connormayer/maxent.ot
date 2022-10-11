@@ -15,27 +15,28 @@ DEFAULT_UPPER_BOUND <- 1000
 #' \deqn{LL_w(D) = \sum_{i=1}^{n}{\ln P(y_i|x_i; w)}
 #' - \sum_{k=1}^{m}{\frac{(w_k - \mu_k)^2}{2\sigma_k^2}}}
 #'
-#' The first term in this equation calculates the likelihood of the training
-#' data under the weights \eqn{w}. \eqn{n} is the number of data points
-#' (i.e., the sample size or the sum of the frequency column in the input),
-#' \eqn{x_i} is the input form of the \eqn{i}th data point, and \eqn{y_i} is
-#' the observed surface form corresponding to \eqn{x_i}. \eqn{P(y_i|x_i; w)}
-#' represents the probability of realizing underlying \eqn{x_i} as surface
-#' \eqn{y_i} given weights \eqn{w}. This probability is defined as
+#' The first term in this equation calculates the natural logarithm of the
+#' likelihood of the training data under the weights \eqn{w}. \eqn{n} is the
+#' number of data points (i.e., the sample size or the sum of the frequency
+#' column in the input),\eqn{x_i} is the input form of the \eqn{i}th data
+#' point, and \eqn{y_i} is the observed surface form corresponding to
+#' \eqn{x_i}.\eqn{P(y_i|x_i; w)} represents the probability of realizing
+#' underlying \eqn{x_i} as surface \eqn{y_i} given weights \eqn{w}. This
+#' probability is defined as
 #'
-#' \deqn{P(y_i|x_i; w) = \frac{1}{Z_w(x_i)}\exp(\sum_{k=1}^{m}{w_k f_k(y_i, x_i)})}
+#' \deqn{P(y_i|x_i; w) = \frac{1}{Z_w(x_i)}\exp(-\sum_{k=1}^{m}{w_k f_k(y_i, x_i)})}
 #'
 #' where \eqn{f_k(y_i, x_i)} is the number of violations of constraint \eqn{k}
 #' incurred by mapping underlying \eqn{x_i} to surface \eqn{y_i}. \eqn{Z_w(x_i)}
 #' is a normalization term defined as
 #'
-#' \deqn{Z(x_i) = \sum_{y\in\mathcal{Y}(x_i)}{\exp(\sum_{k=1}^{m}{w_k f_k(y, x_i)})}}
+#' \deqn{Z(x_i) = \sum_{y\in\mathcal{Y}(x_i)}{\exp(-\sum_{k=1}^{m}{w_k f_k(y, x_i)})}}
 #'
 #' where \eqn{\mathcal{Y}(x_i)} is the set of observed surface realizations of
 #' input \eqn{x_i}.
 #'
 #' The second term of the equation for calculating log likelihood is the bias
-#' term, where where \eqn{w_k} is the weight of constraint \eqn{k}, and
+#' term, where \eqn{w_k} is the weight of constraint \eqn{k}, and
 #' \eqn{\mu_k} and \eqn{\sigma_k} parameterize a normal distribution that
 #' serves as a prior for the value of \eqn{w_k}. Values of \eqn{w_k} that
 #' deviate from \eqn{\mu_k} decrease the log likelihood function proportionally
@@ -147,16 +148,29 @@ optimize_weights <- function(input_file, bias_file = NA,
                              model_name = NA) {
 
   # Organize our inputs
-  input <- load_data_otsoft(input_file, sep = in_sep)
-  long_names <- input$full_names
-  short_names <- input$abbr_names
-  data <- input$data
-  n <- input$n
-  num_constraints <- length(long_names)
-  bias_params <- process_bias_arguments(
-    bias_file, mu_scalar, mu_vector, sigma_scalar, sigma_vector,
-    num_constraints
-  )
+  # If input_file is a dataframe
+  if (input_format == 'df') {
+    long_names <- colnames(input_file)[4:ncol(input_file)]
+    data <- input_file
+    n <- sum(data[,3], na.rm = TRUE)
+    num_constraints <- length(long_names)
+    bias_params <- process_bias_arguments(
+      bias_file, mu_scalar, mu_vector, sigma_scalar, sigma_vector,
+      num_constraints
+    )
+  } else {
+    # Else: default -- input_file is a .txt file with the ot-soft format
+    input <- load_data_otsoft(input_file, sep = in_sep)
+    long_names <- input$full_names
+    short_names <- input$abbr_names
+    data <- input$data
+    n <- input$n
+    num_constraints <- length(long_names)
+    bias_params <- process_bias_arguments(
+      bias_file, mu_scalar, mu_vector, sigma_scalar, sigma_vector,
+      num_constraints
+    )
+  }
 
   # If no model name provided, use filename sans extension
   if (is.na(model_name)) {

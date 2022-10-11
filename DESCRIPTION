@@ -21,7 +21,10 @@ RoxygenNote: 7.1.1
 Imports:
   data.table
 Suggests: 
+    rmarkdown,
+    knitr,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 URL: http://connormayer.com/maxent_ot.html
 BugReports: https://github.com/connormayer/maxent.ot/issues
+VignetteBuilder: knitr

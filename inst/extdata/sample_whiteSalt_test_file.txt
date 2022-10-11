@@ -1,0 +1,6 @@
+			*V[-cont]V	*V[-voi]V	*Map(b-v)	*Map(p-v)
+			Mk1	Mk2	Mp1	Mp2
+VpV	VpV	0.05	1	1	0	0
+	VvV	0.95	0	0	0	1
+VbV	VbV	0.27	1	0	0	0
+	VvV	0.73	0	0	1	0
