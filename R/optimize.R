@@ -38,10 +38,13 @@ DEFAULT_UPPER_BOUND <- 1000
 #' The second term of the equation for calculating log likelihood is the bias
 #' term, where \eqn{w_k} is the weight of constraint \eqn{k}, and
 #' \eqn{\mu_k} and \eqn{\sigma_k} parameterize a normal distribution that
-#' serves as a prior for the value of \eqn{w_k}. Values of \eqn{w_k} that
-#' deviate from \eqn{\mu_k} decrease the log likelihood function proportionally
-#' to \eqn{\sigma_k}: lower values of \eqn{\sigma_k} penalize deviations from
-#' \eqn{\mu_k} more severely.
+#' serves as a prior for the value of \eqn{w_k}. \eqn{\mu_k} specifies the mean
+#' of this distribution (the expected weight of constraint \eqn{k} before seeing
+#' any data) and \eqn{sigma_k} reflects certainty in this value: lower values of
+#' \eqn{\sigma_k} penalize deviations from \eqn{\mu_k} more severely, and thus
+#' require greater amounts of data to move \eqn{w_k} away from \eqn{mu_k}. While
+#' increasing \eqn{\sigma_k} will improve the fit to the training data, it may
+#' result in overfitting, particularly for small datasets.
 #'
 #' A general bias with \eqn{\mu_k = 0} for all \eqn{k} is commonly used as a
 #' form of simple regularization to prevent overfitting (see, e.g., Goldwater

@@ -49,11 +49,12 @@ legend("topright", fill=c("blue","gold"), legend=c("stressed", "unstressed"))
 The first step is to load the maxent.ot library. This needs to be installed from Github since it's not (yet) an official CRAN package.
 
 ```{r results=FALSE, message=FALSE, warning=FALSE}
-install.packages("devtools", repos = "http://cran.us.r-project.org")
-devtools::install_github("connormayer/maxent.ot")
-
-# If installation has been successful, this should work
-library(maxent.ot)
+if (!require(devtools)) {
+  install.packages("devtools", repos = "http://cran.us.r-project.org")
+}
+if (!require(maxent.ot)) {
+  devtools::install_github("connormayer/maxent.ot")
+}
 ```
 
 # Tableau format
@@ -200,6 +201,43 @@ And now let's look at the predictions it makes:
 predict_probabilities(full_file, full_model$weights, in_sep=',')
 ```
 
+Now we're doing pretty well! The model's predicted frequencies capture the qualitative behavior of the observed data quite closely.
+
 # Model comparison
 
+Which of the models we've fit above is the 'best' model? We've qualitatively decided that the full model best reflects the patterns in the data, but how can we quantify this?
+
+One approach is to simply compare the log likelihood scores the models assign to the data.
+
+```{r}
+base_model$loglik
+stressed_model$loglik
+full_model$loglik
+```
+
+Higher log likelihoods correspond to greater probability, so the full model is best in the sense that it msot accurately predicts the patterns in the data. However, just looking at the log likelihood doesn't take into account the _complexity_ of each model: the base model has two constraints, the stress model has three, and the full model has four. 
+Adding more parameters that can be fitted to the data will generally reduce the log likelihood. We want to know whether each new parameter gets us enough 'bang for our buck': is the increase in log likelihood worth the extra complexity of the model?
+
+`maxent.ot` implements several commonly used model comparisons. We won't define these in detail here, but simply show how they can be deployed in `maxent.ot`.
+
+* The Likelihood Ratio Test (LRT): This is restricted to comparison between _pairs_ of models with _nested_ constraints: that is, where the constraints of one model are a subset of the constraints of the other.
+* The Akaike Information Criterion (AIC)
+* AIC with correction for small sample sizes (AICc)
+* Bayesian Information Criterion (BIC)
+
+Let's compare our models using the BIC.
+```{r}
+compare_models(base_model, stressed_model, full_model, method='bic')
+```
+
+Lower values of BIC indicate greater preference for a model, and differences of > 7 or so are considered to be meaningful. These results tell us that the extra complexity of the two constraints we added is acceptable because of the better fit to the data.
+
+Let's look at a case where the extra complexity of an added constraint doesn't buy us enough to be worth it. 
+
+```{r}
+sketchy_model <- optimize_weights("amp_demo_grammar_overfit.csv", in_sep=',')
+predict_probabilities("amp_demo_grammar_overfit.csv", sketchy_model$weights, in_sep=',')
+compare_models(base_model, stressed_model, full_model, sketchy_model, method='bic')
+compare_models(full_model, sketchy_model)
+```
 # Adding in bias

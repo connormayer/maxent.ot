@@ -210,9 +210,9 @@ compare_models <- function(..., method='lrt') {
   return(result)
 }
 
-# Helper function that calculates AICs for a set of models, then calculates
-# AIC weights and deltas for the models, returning them in a data frame sorted
-# by AIC score.
+# Helper function that calculates AIC/AICc/BIC scores for a set of models, then
+# calculates weights and deltas for the models, returning them in a data frame
+# sorted by score.
 get_scores <- function(models, method='aic') {
   if (method == 'aic') {
     scores <- sapply(models, calculate_aic)
@@ -253,6 +253,7 @@ get_scores <- function(models, method='aic') {
       model = character(),
       k = integer(),
       aic = double(),
+      aic.delta = double(),
       aic.wt = double(),
       cum.wt = double(),
       ll = double()
@@ -263,6 +264,7 @@ get_scores <- function(models, method='aic') {
       k = integer(),
       n = integer(),
       aicc = double(),
+      aicc.delta = double(),
       aicc.wt = double(),
       cum.wt = double(),
       ll = double()
@@ -273,6 +275,7 @@ get_scores <- function(models, method='aic') {
       k = integer(),
       n = integer(),
       bic = double(),
+      bic.delta = double(),
       bic.wt = double(),
       cum.wt = double(),
       ll = double()
@@ -288,6 +291,7 @@ get_scores <- function(models, method='aic') {
         model = model$name,
         k = model$k,
         aic = model$score,
+        aic.delta = model$delta,
         aic.wt = model$weight,
         cum.wt = cumul_weight,
         ll = model$loglik
@@ -298,6 +302,7 @@ get_scores <- function(models, method='aic') {
         k = model$k,
         n = model$n,
         aicc = model$score,
+        aicc.delta = model$delta,
         aicc.wt = model$weight,
         cum.wt = cumul_weight,
         ll = model$loglik
@@ -308,6 +313,7 @@ get_scores <- function(models, method='aic') {
         k = model$k,
         n = model$n,
         bic = model$score,
+        bic.delta = model$delta,
         bic.wt = model$weight,
         cum.wt = cumul_weight,
         ll = model$loglik
