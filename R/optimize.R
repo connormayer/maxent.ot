@@ -8,11 +8,9 @@ DEFAULT_UPPER_BOUND <- 1000
 #' bias arguments are provided, the bias term(s) will not be included in the
 #' optimization.
 #'
-#' By default, this function maximizes the log likelihood of the training data
-#' by changing the values of \eqn{w}, the vector of constraint weights. The log
-#' likelihood of the training data \eqn{D} is
+#' The objective function \eqn{J_w(D)} that is optimized is defined as
 #'
-#' \deqn{LL_w(D) = \sum_{i=1}^{n}{\ln P(y_i|x_i; w)}
+#' \deqn{J_w(D) = \sum_{i=1}^{n}{\ln P(y_i|x_i; w)}
 #' - \sum_{k=1}^{m}{\frac{(w_k - \mu_k)^2}{2\sigma_k^2}}}
 #'
 #' The first term in this equation calculates the natural logarithm of the
@@ -35,8 +33,8 @@ DEFAULT_UPPER_BOUND <- 1000
 #' where \eqn{\mathcal{Y}(x_i)} is the set of observed surface realizations of
 #' input \eqn{x_i}.
 #'
-#' The second term of the equation for calculating log likelihood is the bias
-#' term, where \eqn{w_k} is the weight of constraint \eqn{k}, and
+#' The second term of the equation for calculating log likelihood is the optional
+#' bias term, where \eqn{w_k} is the weight of constraint \eqn{k}, and
 #' \eqn{\mu_k} and \eqn{\sigma_k} parameterize a normal distribution that
 #' serves as a prior for the value of \eqn{w_k}. \eqn{\mu_k} specifies the mean
 #' of this distribution (the expected weight of constraint \eqn{k} before seeing

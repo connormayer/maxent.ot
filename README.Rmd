@@ -23,8 +23,8 @@ sets, generate the predictions made by such models for novel data, and compare
 the fit of different models using a variety of metrics. This package is still in
 development, and is being prepared for submission to CRAN.
 
-The authors of this package are [Connor Mayer](http://connormayer.com) and 
-[Kie Zuraw](https://linguistics.ucla.edu/people/zuraw/).
+The authors of this package are [Connor Mayer](http://connormayer.com), 
+[Kie Zuraw](https://linguistics.ucla.edu/people/zuraw/), and [Adeline Tan](https://linguistics.ucla.edu/person/adeline-tan/).
 
 ## Installation
 
@@ -52,11 +52,11 @@ library(maxent.ot)
 # Get paths to input files.
 # This file has two constraints
 data_file_simple <- system.file(
-   "extdata", "sample_data_file.txt", package = "maxent.ot"
+   "extdata", "sample_data_file_small.txt", package = "maxent.ot"
 )
 # This file has three constraints
 data_file_complex <- system.file(
-   "extdata", "sample_data_file_2.txt", package = "maxent.ot"
+   "extdata", "sample_data_file_large.txt", package = "maxent.ot"
 )
 
 # Fit weights to both data sets with simple regularization

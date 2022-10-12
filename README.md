@@ -12,8 +12,9 @@ data, and compare the fit of different models using a variety of
 metrics. This package is still in development, and is being prepared for
 submission to CRAN.
 
-The authors of this package are [Connor Mayer](http://connormayer.com)
-and [Kie Zuraw](https://linguistics.ucla.edu/people/zuraw/).
+The authors of this package are [Connor Mayer](http://connormayer.com),
+[Kie Zuraw](https://linguistics.ucla.edu/people/zuraw/), and [Adeline
+Tan](https://linguistics.ucla.edu/person/adeline-tan/).
 
 ## Installation
 
@@ -44,11 +45,11 @@ library(maxent.ot)
 # Get paths to input files.
 # This file has two constraints
 data_file_simple <- system.file(
-   "extdata", "sample_data_file.txt", package = "maxent.ot"
+   "extdata", "sample_data_file_small.txt", package = "maxent.ot"
 )
 # This file has three constraints
 data_file_complex <- system.file(
-   "extdata", "sample_data_file_2.txt", package = "maxent.ot"
+   "extdata", "sample_data_file_large.txt", package = "maxent.ot"
 )
 
 # Fit weights to both data sets with simple regularization
@@ -61,8 +62,8 @@ complex_predictions <- predict_probabilities(data_file_complex, complex_model$we
 
 # Compare model fit to training data using the likelihood ratio test
 compare_models(simple_model, complex_model, method='lrt')
-#>                           description    chi_sq k_delta   p_value
-#> 1 sample_data_file_2~sample_data_file 0.1334752       1 0.2851443
+#>                                     description   chi_sq k_delta   p_value
+#> 1 sample_data_file_large~sample_data_file_small 1.269594       1 0.2598428
 ```
 
 <!--What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
