@@ -280,8 +280,7 @@ simple_model
 The object `simple_model` has 4 relevant named attributes:
 
 * `weights`: the trained weights for each constraint. This is a named list.
-* `loglik`: the log likelihood of the data under the trained weights minus the value of the bias term
-  + If no biases are used, then this value is exactly the log likelihood of the data under the trained weights
+* `loglik`: the log likelihood of the data under the trained weights 
 * `k`: the number of constraints
 * `n`: the number of data points in the training set
 
@@ -310,9 +309,9 @@ But first, let's gain a better understanding of how log likelihood guides traini
 ## 2.3 Fitting the model to data: Explained
 The `optimize_weights()` function implements a learner that adjusts constraint weights in order to fit the model.
 The learner's objective is to maximize the value of the objective function, and weight adjustments are made with this objective in mind.
-The objective function, $O(w)$, is composed of two terms:
+The objective function, $J(w)$, is composed of two terms:
 
-$$O(w) = LL_w(D) - B(w)$$
+$$J(w) = LL_w(D) - B(w)$$
 
 where $LL_w(D)$ is the log likelihood of training data $D$ under weights $w$, and $B(w)$ is the price to pay for choosing the particular vector of weights $w$.
 
@@ -324,19 +323,19 @@ The second term, $B(w)$, is used when we want to nudge the model towards particu
 Models with weights that are closer to the preferred ones pay a smaller price (smaller $B(w)$) than those with more aberrant weights.
 $B(w)$ ranges between zero and positive infinity.
 
-Higher values of $LL_w(D)$ and lower values of $B(w)$ both contribute to increasing the value of the objective function $O(w)$.
-Recall that the learner's objective is to arrive at as high a value of $O(w)$ as possible (it seeks to maximize the value of $O(w)$).
+Higher values of $LL_w(D)$ and lower values of $B(w)$ both contribute to increasing the value of the objective function $J(w)$.
+Recall that the learner's objective is to arrive at as high a value of $J(w)$ as possible (it seeks to maximize the value of $J(w)$).
 In other words, the learner adjusts weights towards weight values that: 
 
-(1) improve the model's match to the observed distribution: increase $LL_w(D)$
-(2) move weights closer to the preferred weight values: decrease $B(w)$
+(1) improve the model's match to the observed distribution: higher $LL_w(D)$
+(2) move weights closer to the preferred weight values: lower $B(w)$
 
 In the rest of this section, we discuss the log likelihood of data, $LL_w(D)$, in greater depth.
 We leave the discussion of $B(w)$ to &sect;3, where priors are introduced.
 
 
 ### 2.3.1 Defining log likelihood
-When no priors are used, maximizing the objective function $O(w)$ is equivalent to maximizing the log likelihood of training data $LL_w(D)$ alone.
+When no priors are used, maximizing the objective function $J(w)$ is equivalent to maximizing the log likelihood of training data $LL_w(D)$ alone.
 Since we've not used any priors so far, in all the preceding cases, the learner sought weights that maximized the log likelihood of training data.
 
 The log likelihood of the training data is:
@@ -371,14 +370,6 @@ The learner adjusts the weights with this goal in mind.
 ```{r, echo=FALSE, fig.cap="Table 1: Log likelihood of data under weights of M1 & M2.", out.width = '85%'}
 knitr::include_graphics("../man/figures/logLike_table.jpg")
 ```
-
-<!-- |Input|Output|Freq|Observed P(Output\|Input)|M1|M2| -->
-<!-- |:---|---|---:|---:|---:|---:| -->
-<!-- |Input1|Output1-1|1|.5|.5|.25| -->
-<!-- ||Output1-2|1|.5|.5|.75| -->
-<!-- |Input2|Output2-1|1|1|1|.5| -->
-<!-- ||Output2-2|0|0|0|.5| -->
-<!-- |logLike||||-1.386|-2.367| -->
 
 Let's imagine we have two models, *M1* & *M2*, whose weights (whatever they may be) produce the predicted distributions P(output|input) shown in the final two columns of *Table 1*.
 For ease of comparison, the observed relative frequencies are shown in the third-to-last column.
@@ -425,11 +416,11 @@ With its goal of maximizing the log likelihood of training data, the learner mov
 
 # 3 Fitting the model with priors: `optimize_weights()`
 
-Here's the general formula for the objective function, $O(w)$, repeated here for ease of reference:
+Here's the general formula for the objective function, $J(w)$, repeated here for ease of reference:
 
-$$O(w) = LL_w(D) - B(w)$$
+$$J(w) = LL_w(D) - B(w)$$
 
-In the previous section (&sect;2), we ignored the second term, so objective function, $O(w)$, depended solely upon the log likelihood of the training data under the current weights.
+In the previous section (&sect;2), we ignored the second term, so objective function, $J(w)$, depended solely upon the log likelihood of the training data under the current weights.
 In this section, we'll make use of the second term, $B(w)$.
 This term is also known by several names such as the "bias term", the "prior", and in special cases, the "regularization term".
 The bias term allows us to nudge the learner towards particular weights by introducing an added price to pay for weights that differ from the ones that the User specifies.
@@ -449,8 +440,8 @@ $$B(w) =  \Sigma_{k=1}^m \frac{(w_k - \mu_k)^2}{2\sigma_k^2}$$
   + $\sigma_k$: indicates tolerance for deviation from ideal weight, $\mu_k$
 
 Every constraint, $k$, whose weight $w_k$ differs from $\mu_k$ will thus incur an additional price that needs to be paid.
-This price is subtracted from the log likelihood ($LL_w(D)$), and thus makes the objective function, $O(w)$ smaller (notice the negative sign preceding the second term).
-Recall that the learner's goal is to maximize the objective function, $O(w)$ (*i.e.* get it as high as possible).
+This price is subtracted from the log likelihood ($LL_w(D)$), and thus makes the objective function, $J(w)$ smaller (notice the negative sign preceding the second term).
+Recall that the learner's goal is to maximize the objective function, $J(w)$ (*i.e.* get it as high as possible).
 The price to be paid depends upon two factors: (1) Distance from the ideal weight; (2) Tolerance for weight discrepancy.
 
 (1) Price to be paid increases as the distance from the ideal weight increases. 
@@ -468,9 +459,6 @@ This same weight discrepancy results in a higher price to pay in a model that ha
 More specifically, the value that is subtracted (*i.e.* price to pay) for constraint $k$ is inversely proportional to the square of the tolerance, all else being equal.
 $$ \text{value to be subtracted} \propto (\frac{1}{\sigma_k})^2$$
 
-The choice of $\sigma$ depends on the sample size. 
-As the number of data points increases, $\sigma$ must decrease in order for the effect of the bias to remain constant.
-Specifically, $n\sigma^2$ must be held constant, where $n$ is the number of tokens.
 In addition, if $\sigma$ is too small, the trained weights may barely move from the specified ideal ones. 
 If the User notices that their models don't appear to have learned anything (*i.e.* the trained weights appear to be the same as the specified ideal weights), it is advisable to increase $\sigma$ (*i.e.* increase the tolerance for weight discrepancy), so that weights may differ from the ideal ones without incurring too great a price.
 
@@ -647,60 +635,12 @@ In particular the price to be paid increased the further a constraint's weight w
 
 Notice also that the log likelihood of data under the weights of the regularized model is below the ceiling of $-1.386$ ($-1.945 < -1.386$):
 
-```{r}
-# Calculate log likelihood of regularized model trained with scalar biases
-
-# Use regularized model's weights to get predicted probabilities
-predict_regularizedModel <- predict_probabilities(
-  data_file, regularized_model$weights
-)
-
-# Retrieve just the predicted probabilities
-pred_probs_regM <- predict_regularizedModel[, 'Predicted Probability']
-
-# Calculate the actual log likelihood
-# Since only the first three data points are observed...
-# ...and each only occurs once...
-# ...this is a quick way to calculate log likelihood
-actual_logLike <- 0
-for (i in 1:3) {
-  actual_logLike = actual_logLike + log(as.numeric(pred_probs_regM[i]))
-}
-
-# The log likelihood is...
-print(
-  paste("The log likelihood of data under weights of regularized model is:", 
-        sprintf(actual_logLike, fmt = '%#.3f'))
-)
-```
-
-Be aware that since the regularized model uses the bias term, the objective function is no longer equivalent to the log likelihood.
-Both the log likelihood and the bias term now contribute to the objective function. 
-The bias term is the price to pay for having constraint weights that differ from the specified ideal weights.
-Since the trained weights (0.105 & 0.316) aren't at the ideal weights (0 & 0), the bias term must be larger than zero.
-So, we expect the value of the objective function to be smaller than the value of the log likelihood, since a price must be paid for these non-ideal weights.
-We can retrieve the value of the objective function like so:
-
 ```{r biasModelObjFn}
 # Get value of objective function for trained regularized model 
 regularized_model$loglik
 ```
+The regularized model provides a worse fit to the observed data than the unregularized model does; but the regularized model is probably able to better generalize to unseen data.
 
-Note that `loglik` returns the value of the objective function $O(w)$ (rather than the log likelihood $LL_w(D)$), despite its name.
-
-We can also calculate the value of the bias term $B(w)$:
-
-\begin{align}
-O(w) &= LL_w(D) - B(w) \\
-B(w) &= LL_w(D) - O(w)
-\end{align}
-
-``` {r}
-# Calculate value of the bias term for trained regularized model
-bias_term <- actual_logLike - regularized_model$loglik
-
-bias_term
-```
 
 **Retrieving the weight of 1 constraint**
 
@@ -722,6 +662,7 @@ print(paste("In the unbiased model, Constraint 1's  weight is:",
 print(paste("In the regularized model, Constraint 1's  weight is:", 
             sprintf(cons1_simpleBias, fmt = '%#.3f')))
 ```
+
 
 ## 3.4 Incorporating substantive effects
 
@@ -1137,17 +1078,17 @@ Next, we'll construct a data frame to easily compare the prediction probabilitie
 Notice that we can extract the predicted probabilities like so:
 ``` {r}
 # View predicted probability of t1_pred
-t1_pred[, 'Predicted Probability']
+t1_pred$predictions[, 'Predicted Probability']
 ```
 
 Now we'll create the data frame: 
 ```{r}
 # Select columns we want, and store them in lettered variables
-a <- t1_pred[, 'UR']
-b <- t1_pred[, 'SR']
-c <- t1_pred[, 'Predicted Probability']
-d <- t3_pred[, 'Predicted Probability']
-e <- t5_pred[, 'Predicted Probability']
+a <- t1_pred$predictions[, 'UR']
+b <- t1_pred$predictions[, 'SR']
+c <- t1_pred$predictions[, 'Predicted Probability']
+d <- t3_pred$predictions[, 'Predicted Probability']
+e <- t5_pred$predictions[, 'Predicted Probability']
 
 # Join variables to create data frame
 temperature_df <- data.frame(a, b, c, d, e)
@@ -1352,7 +1293,7 @@ Let's take a look at some of the predicted wug probabilities produced by *Gramma
 # Both predicted and observed probability are conditioned over URs
 # e.g. Observed probability in rows 3 & 4 don't sum to 1 
 # because the stem [étt] appears twice in this data set.
-head(hu_pred[, -4:-(ncol(hu_pred)-3)])
+head(hu_pred$predictions[, -4:-(ncol(hu_pred$predictions)-3)])
 
 # For curiosity's sake, let's compare:
 # With default temperature=1...
@@ -1360,7 +1301,7 @@ head(hu_pred[, -4:-(ncol(hu_pred)-3)])
 hu_pred_t1 <- predict_probabilities(
   hu_data, lex_wts, encoding = "UTF-8"
 )
-head(hu_pred_t1[, -4:-(ncol(hu_pred_t1)-3)])
+head(hu_pred_t1$predictions[, -4:-(ncol(hu_pred_t1$predictions)-3)])
 ```
 
 ### 5.3.5 Monte-carlo simulations based on the predicted probabilities above
@@ -1422,9 +1363,10 @@ The caution against duplicate UR entries highlighted in &sect;4.1 doesn't apply 
 The process took a long time to run so we performed only 500 (rather than 10,000) simulations.
 The Reader is invited to uncomment the code below if they would like to try running the `monte_carlo_weights()` function. 
 
-``` {r, eval=FALSE}
+``` {r}
 # Learn weights for 5 simulated wug tests
-# hu_simul_wts <- monte_carlo_weights(hu_pred, 5)
+#hu_simul_wts <- monte_carlo_weights(hu_pred, 2)
+#hu_simul_wts
 ```
 
 
@@ -1433,14 +1375,14 @@ Now that we have a distribution of idealized constraint weights for each of the 
 
 First, we'll have to fit a model to the human wug responses (*i.e.* produce *Grammar W*):
 
-``` {r}
+``` {r, eval=FALSE}
 # Fit model for human wug response
 human_wug_model <- optimize_weights(hu_data)
 ```
 
 Let's view the constraint weights of *Grammar W* in relation to the average idealized weights from the 500 *Grammar S*'s:
 
-``` {r}
+``` {r, eval=FALSE}
 # Weights trained on human wug response
 human_wt <- human_wug_model$weights
 
@@ -1459,7 +1401,7 @@ For example, USE_FRONT/bilabial__ has a lower weight when trained on human wug r
 
 The plots below visualize where the weights trained on human wug tests (blue vertical dashed line) fall in relation to the distribution of the weights trained on the simulated idealized wug tests (histogram).
 
-``` {r, echo=FALSE}
+``` {r, eval=FALSE}
 library(ggplot2)
 
 # Plot weights for the five unnatural constraints by looping through them
@@ -1499,7 +1441,7 @@ This function includes four comparison methods:
 * `lrt`: Likelihood ratio test. 
   + Compares two models. 
   + One model's constraints are a proper subset of the other's (*i.e.* nested models)
-  + chi-square test is performed to determine whether the additional constraints are necessary for the improvement in fit to training data.
+  + chi-squared test is performed to determine whether the additional constraints are necessary for the improvement in fit to training data.
 * `aic`: Akaike Information Criterion (AIC).
   + Any number of models can be compared.
   + No requirement that models be nested.
@@ -1660,6 +1602,7 @@ The data frame has the following columns:
   * `model`: The name of the model.
   * `k`: The number of constraints.
   * `aic`: The model's AIC score.
+  * `aic.delta`: The difference between the current model's AIC score and the AIC score of the "best" model.
   * `aic.wt`: The model's AIC weight: This reflects the relative likelihood (or conditional probability) that this model is the "best" model in the set.
   * `cum.wt`: The cumulative sum of AIC weights up to and including this model.
   * `ll`: The log likelihood of this model.
@@ -1691,9 +1634,10 @@ knitr::include_graphics("../man/figures/aicWeight_table.JPG")
 ```
 
 
-#### 6.2.3.1 AIC score distance, $\delta$
+#### 6.2.3.1 AIC score distance, $\delta$ (`aic.delta`)
 
-First, we'll calculate the difference in AIC score between model $i$ and the best model, $\delta_i$:
+First, we'll calculate the difference in AIC score between model $i$ and the best model, $\delta_i$. 
+This value shows up in the `aic.delta` column of the returned data frame.
 
 $$\delta_i = aic_i - aic_{best}$$
 where $aic_i$ is the AIC score of the $i^{th}$ model, and $aic_{best}$ is the AIC score of the best model.
