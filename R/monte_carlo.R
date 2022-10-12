@@ -29,22 +29,23 @@ DEFAULT_UPPER_BOUND <- 1000
 #'
 #' @section Why use this function?:
 #'
-#' This function gives us a way to estimate constraint weights via a Monte Carlo
-#' process.
-#' For example we might be interested in the effect of temperature on polarizing
-#' predicted probabilities, and the resulting constraint weights.
+#' This function gives us a way to estimate constraint weights via a Monte
+#' Carlo process.
+#' For example we might be interested in the effect of temperature on
+#' polarizing predicted probabilities, and the resulting constraint weights.
 #' This function can produce a distribution of constraint weights for the
-#' simulated polarized data, as well as a distribution of constraint weights for
-#' the simulated non-polarized ones, thereby allowing a comparison of the two.
+#' simulated polarized data, as well as a distribution of constraint weights
+#' for the simulated non-polarized ones, thereby allowing a comparison of the
+#' two.
 #'
 #' @param pred_prob A data frame with a column for predicted probabilities.
-#'   This object should be in the same format as the object returned by the
-#'   `predict_probabilities` function.
+#'   This object should be in the same format as the `predictions` attribute of
+#'   the object returned by the `predict_probabilities` function.
 #' @param num_simul The number of simulations to run.
 #' @param bias_file (optional) The path to the file containing mus and sigma
 #'   for constraint biases. If this argument is provided, the scalar and vector
-#'   mu and sigma arguments will be ignored. Each row in this file should be the
-#'   name of the constraint, followed by the mu, followed by the sigma
+#'   mu and sigma arguments will be ignored. Each row in this file should be
+#'   the name of the constraint, followed by the mu, followed by the sigma
 #'   (separated by whatever the relevant separator is; default is tabs).
 #' @param mu_scalar (optional) A single scalar value that will serve as the mu
 #'   for each constraint in the bias term. Constraint weights will also be
@@ -59,9 +60,8 @@ DEFAULT_UPPER_BOUND <- 1000
 #'   either `bias_file` or `sigma_vector` are provided.
 #' @param sigma_vector (optional) A vector of sigmas for each constraint in the
 #'   bias term. The length of this vector must equal the number of constraints
-#'   in the input file. If `bias_file` is provided, this argument will be ignored.
-#'   If this argument is provided, `sigma_scalar` will be ignored.
-#' @param penalty_func (optional) ???
+#'   in the input file. If `bias_file` is provided, this argument will be
+#'   ignored. If this argument is provided, `sigma_scalar` will be ignored.
 #' @param output_path (optional) A string specifying the path to a file to
 #'   which the output will be saved. If the file exists it will be overwritten.
 #'   If this argument isn't provided, the output will not be written to a file.
@@ -90,25 +90,25 @@ DEFAULT_UPPER_BOUND <- 1000
 #'   fit_model <- optimize_weights(data_file)
 #'
 #'   # Predict probabilities for the same input with temperature = 2
-#'   pred_df <- predict_probabilities(
+#'   pred_obj <- predict_probabilities(
 #'       data_file, fit_model$weights, temperature = 2
 #'   )
 #'
 #'  # Run 5 monte carlo simulations
 #'  # based on predicted probabilities when temperature = 2,
 #'  # and learn weights for these 5 simulated data sets
-#'  monte_carlo_weights(pred_df, 5)
+#'  monte_carlo_weights(pred_obj$predictions, 5)
 #'
 #'  # Save learned weights to a file
 #'  tmp_output <- tempfile()
-#'  monte_carlo_weights(pred_df, 5, output_path=tmp_output)
+#'  monte_carlo_weights(pred_obj$predictions, 5, output_path=tmp_output)
 #' @export
+
 # Learns constraint weights for multiple randomly generated SR responses
 monte_carlo_weights <- function(pred_prob, num_simul,
                                 bias_file = NA,
                                 mu_scalar = NA, mu_vector = NA,
                                 sigma_scalar = NA, sigma_vector = NA,
-                                penalty_func = NA,
                                 output_path = NA, out_sep = "\t",
                                 control_params = NA,
                                 upper_bound = DEFAULT_UPPER_BOUND) {
@@ -131,7 +131,6 @@ monte_carlo_weights <- function(pred_prob, num_simul,
                                    bias_file = NA,
                                    mu_scalar = NA, mu_vector = NA,
                                    sigma_scalar = NA, sigma_vector = NA,
-                                   penalty_func = NA,
                                    input_format = 'df',
                                    control_params = NA,
                                    upper_bound = DEFAULT_UPPER_BOUND,
