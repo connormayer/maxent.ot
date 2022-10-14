@@ -370,7 +370,7 @@ In other words, the learner seeks the weights that produce a distribution over t
 The learner adjusts the weights with this goal in mind.
 
 ```{r, echo=FALSE, fig.cap="Table 1: Log likelihood of M1's & M2's weights.", out.width = '85%'}
-knitr::include_graphics("../man/figures/logLike_table.jpg")
+knitr::include_graphics("../man/figures/logLike_table_2.jpg")
 ```
 
 Let's imagine we have two models, *M1* & *M2*, whose weights (whatever they may be) produce the predicted distributions P(output|input) shown in the final two columns of *Table 1*.
@@ -937,7 +937,12 @@ fit_model_a <- optimize_weights(data_file_a)
 predict_probabilities(data_file_a, fit_model_a$weights)
 ```
 
-The structure of the returned object is as follows:
+The returned object has two attributes:
+
+(1) `loglik`: The log likelihood
+(2) `predictions`: A prediction data frame
+
+The structure of the prediction data frame is as follows:
 
 * The first $n$ columns are essentially identical to the input file, where $n$ is the number of columns in the input file
 * Third-from-last column: Predicted probability
@@ -1018,9 +1023,9 @@ predict_probabilities(data_file_a, my_wts)
 
 
 ## 4.3 Save predictions to file
-The `predict_probabilities()` function provides the option of saving its returned object to a file.
+The `predict_probabilities()` function provides the option of saving the prediction data frame to a file.
 
-In the example below, we use the following optional arguments to save the predicted object:
+In the example below, we use the following optional arguments to save the prediction data frame:
 
 * `output_path`: path and file name
   + By specifying `"C:\\path\\to\\dir\\your_file_name.txt"`, the result is saved to the file `your_file_name.txt`, which will be in the directory `C:\path\to\dir`.
@@ -1314,7 +1319,7 @@ We've used *Grammar L* to generate predicted probabilities for wug suffixes at $
 Next, we use these probability distributions to guide our simulated subjects as they pick suffixes for wug stems.
 
 We use the function `monte_carlo_weights()` to simulate 500 groups of idealized Hungarian speakers picking suffixes for the wug stems.
-This function only requires two arguments: the prediction object (we use `hu_pred`), and the number of simulations.
+This function only requires two arguments: the prediction data frame (we use `hu_pred`), and the number of simulations.
 
 This function produces a complete wug test response by randomly choosing one suffix option for each trial in `hu_pred` based on the the predicted probabilities in `hu_pred`.
 (This function automatically converts predicted P(SR|UR) in `hu_pred` to predicted P(SR|trial).)
@@ -1359,10 +1364,10 @@ head(hu_500simul_wts)
 
 **Some housekeeping**
 
-Notice that duplicate UR entries are present in the prediction object `hu_pred`.
+Notice that duplicate UR entries are present in the prediction data frame `hu_pred`.
 This is because the set-up of the `monte_carlo_weights()` function crucially depends upon predicted P(SR|trial) in order to randomly give one SR in each trial a frequency of 1.
 Consecutive rows are considered to belong to the same trial if they have the same UR, but not a repeated SR.
-When creating your prediction object, it is important to ensure that trials are not collapsed into a single entry.
+When creating your prediction data frame, it is important to ensure that trials are not collapsed into a single entry.
 The caution against duplicate UR entries highlighted in &sect;4.1 doesn't apply here because the `Error` column of the `hu_pred` file isn't used by `monte_carlo_weights()`.
 
 The process took a long time to run so we performed only 500 (rather than 10,000) simulations.
