@@ -1371,7 +1371,7 @@ The Reader is invited to uncomment the code below if they would like to try runn
 
 ``` {r}
 # Learn weights for 5 simulated wug tests
-#hu_simul_wts <- monte_carlo_weights(hu_pred, 2)
+#hu_simul_wts <- monte_carlo_weights(hu_pred, 5)
 #hu_simul_wts
 ```
 
@@ -1381,14 +1381,14 @@ Now that we have a distribution of idealized constraint weights for each of the 
 
 First, we'll have to fit a model to the human wug responses (*i.e.* produce *Grammar W*):
 
-``` {r, eval=FALSE}
+``` {r}
 # Fit model for human wug response
 human_wug_model <- optimize_weights(hu_data)
 ```
 
 Let's view the constraint weights of *Grammar W* in relation to the average idealized weights from the 500 *Grammar S*'s:
 
-``` {r, eval=FALSE}
+``` {r}
 # Weights trained on human wug response
 human_wt <- human_wug_model$weights
 
@@ -1407,7 +1407,7 @@ For example, USE_FRONT/bilabial__ has a lower weight when trained on human wug r
 
 The plots below visualize where the weights trained on human wug tests (blue vertical dashed line) fall in relation to the distribution of the weights trained on the simulated idealized wug tests (histogram).
 
-``` {r, eval=FALSE}
+``` {r}
 library(ggplot2)
 
 # Plot weights for the five unnatural constraints by looping through them
