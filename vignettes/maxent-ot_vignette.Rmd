@@ -1571,11 +1571,10 @@ large_model_b <- optimize_weights(large_data_b)
 ```
 
 The program is unable to perform the likelihood ratio test, and will produce an error message.
-Uncomment the code and run the chunk below if you would like to see the error message.
 
-``` {r}
+``` {r, error=TRUE}
 # Compare models using the likelihood ratio test
-# compare_models(small_model, large_model_b, method='lrt')
+compare_models(small_model, large_model_b, method='lrt')
 ```
 
 
