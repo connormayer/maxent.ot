@@ -265,6 +265,8 @@ The Reader may notice that the input file is in fact prepared in an OTSoft-style
 
 ## 2.2 Finding weights to fit the model: No bias
 Now that we've familiarized ourselves with our data set, let's find a set of constraint weights that maximizes the probability of the data.
+By default, constraint weights are limited to finite non-negative values with an upper bound of $1000$.
+The User may modify the upper bound by specifying another value for the optional argument `upper_bound`.
 
 Using the function `optimize_weights()`, we'll train a model for the data set above, and store the result (our trained model) in the object `simple_model`:
 ```{r dataForSimpleCase}
@@ -409,13 +411,6 @@ For example, we can imagine the learner starting with the weights that produce a
 With its goal of finding weights that maximize the log likelihood, the learner moves to the weights of *M2*, and eventually arrives at the weights of *M1*, where training is halted and *M1*'s weights are the weights of the final trained model.
 
 
-### 2.3.3 The learning algorithm
-%%TODO: Do we want to explain the learning algo? L-BFGS? Or is this an overkill? Maybe just some light hill-climbing without the L-BFGS (though the package actually implements L-BFGS-B)?
-
-* Probably stuff from second-last para of manual goes here.
-* also include upper- and lower-bound info.
-
-
 # 3 Fitting the model with priors: `optimize_weights()`
 
 Here's the general formula for the objective function, $J(w)$, repeated here for ease of reference:
@@ -461,10 +456,11 @@ This same weight discrepancy results in a higher price to pay in a model that ha
 More specifically, the value that is subtracted (*i.e.* price to pay) for constraint $k$ is inversely proportional to the square of the tolerance, all else being equal.
 $$ \text{value to be subtracted} \propto (\frac{1}{\sigma_k})^2$$
 
-
-%%TODO: The trade-off between model fit \& bias
-
-In addition, if $\sigma$ is too small, the trained weights may barely move from the specified ideal ones. 
+Here's the equation for the objective function again:
+$$J(w) = LL(w|D) - B(w)$$
+When maximizing $J(w)$, there is generally a trade-off between model fit ($LL(w|D)$) and the bias term ($B(w)$), as the bias term pushes weights towards the ones specified by the User while the log likelihood pushes weights towards the ones that produce the best model fit. 
+The strength of the bias term is determined by $\sigma$.
+Specifically, if $\sigma$ is too small, the trained weights may barely move from the specified ideal ones. 
 If the User notices that their models don't appear to have learned anything (*i.e.* the trained weights appear to be the same as the specified ideal weights), it is advisable to increase $\sigma$ (*i.e.* increase the tolerance for weight discrepancy), so that weights may differ from the ideal ones without incurring too great a price.
 
 
@@ -922,7 +918,7 @@ The function `predict_probabilities()` requires at the very least, the following
 
 ## 4.1 Get predictions with trained weights
 Let's imagine that we want to make a prediction using the weights of a model that we've trained using `optimize_weights()`.
-If we've trained a model using `optimize_weights()` and stored the trained model in the object `fit_model`, we can specify the constraint weights by passing in the `weights` attribute of the model: `fit_model$weights`. 
+If we've trained a model using `optimize_weights()` and stored the trained model in the object `fit_model_a`, we can specify the constraint weights by passing in the `weights` attribute of the model: `fit_model_a$weights`. 
 
 ``` {r}
 # Get paths to toy data file 
