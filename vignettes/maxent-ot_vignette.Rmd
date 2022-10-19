@@ -1552,10 +1552,8 @@ An error message will be produced and no $X^2$-test will be performed if such a 
 We'll attempt to perform a likelihood ratio test on two non-nested models.
 We re-use small_data, which has constraints C1 & C3.
 We introduce a new data set, large_data_b, which has constraints C1, C2 & C4.
-The program is unable to perform the likelihood ratio test, and produces an error message.
-%%TODO: (Actually, this is a problem in the vignette, because it won't even knit to html when errors are produced. So I've set `eval=FALSE` for now.)
 
-``` {r eval=FALSE}
+``` {r}
 # Get paths to toy data files
 # This file has three constraints
 large_data_b <- system.file(
@@ -1570,9 +1568,14 @@ read.table(large_data_b, header=FALSE, sep='\t')
 
 # Fit weights to data set large_data_b 
 large_model_b <- optimize_weights(large_data_b)
+```
 
+The program is unable to perform the likelihood ratio test, and will produce an error message.
+Uncomment the code and run the chunk below if you would like to see the error message.
+
+``` {r}
 # Compare models using the likelihood ratio test
-compare_models(small_model, large_model_b, method='lrt')
+# compare_models(small_model, large_model_b, method='lrt')
 ```
 
 
