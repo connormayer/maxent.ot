@@ -85,39 +85,41 @@ bias arguments are provided, the bias term(s) will not be included in the
 optimization.
 }
 \details{
-By default, this function maximizes the log likelihood of the training data
-by changing the values of \eqn{w}, the vector of constraint weights. The log
-likelihood of the training data \eqn{D} is
+The objective function \eqn{J_w(D)} that is optimized is defined as
 
-\deqn{LL_w(D) = \sum_{i=1}^{n}{\ln P(y_i|x_i; w)}
+\deqn{J_w(D) = \sum_{i=1}^{n}{\ln P(y_i|x_i; w)}
 - \sum_{k=1}^{m}{\frac{(w_k - \mu_k)^2}{2\sigma_k^2}}}
 
-The first term in this equation calculates the likelihood of the training
-data under the weights \eqn{w}. \eqn{n} is the number of data points
-(i.e., the sample size or the sum of the frequency column in the input),
-\eqn{x_i} is the input form of the \eqn{i}th data point, and \eqn{y_i} is
-the observed surface form corresponding to \eqn{x_i}. \eqn{P(y_i|x_i; w)}
-represents the probability of realizing underlying \eqn{x_i} as surface
-\eqn{y_i} given weights \eqn{w}. This probability is defined as
+The first term in this equation calculates the natural logarithm of the
+likelihood of the training data under the weights \eqn{w}. \eqn{n} is the
+number of data points (i.e., the sample size or the sum of the frequency
+column in the input),\eqn{x_i} is the input form of the \eqn{i}th data
+point, and \eqn{y_i} is the observed surface form corresponding to
+\eqn{x_i}.\eqn{P(y_i|x_i; w)} represents the probability of realizing
+underlying \eqn{x_i} as surface \eqn{y_i} given weights \eqn{w}. This
+probability is defined as
 
-\deqn{P(y_i|x_i; w) = \frac{1}{Z_w(x_i)}\exp(\sum_{k=1}^{m}{w_k f_k(y_i, x_i)})}
+\deqn{P(y_i|x_i; w) = \frac{1}{Z_w(x_i)}\exp(-\sum_{k=1}^{m}{w_k f_k(y_i, x_i)})}
 
 where \eqn{f_k(y_i, x_i)} is the number of violations of constraint \eqn{k}
 incurred by mapping underlying \eqn{x_i} to surface \eqn{y_i}. \eqn{Z_w(x_i)}
 is a normalization term defined as
 
-\deqn{Z(x_i) = \sum_{y\in\mathcal{Y}(x_i)}{\exp(\sum_{k=1}^{m}{w_k f_k(y, x_i)})}}
+\deqn{Z(x_i) = \sum_{y\in\mathcal{Y}(x_i)}{\exp(-\sum_{k=1}^{m}{w_k f_k(y, x_i)})}}
 
 where \eqn{\mathcal{Y}(x_i)} is the set of observed surface realizations of
 input \eqn{x_i}.
 
-The second term of the equation for calculating log likelihood is the bias
-term, where where \eqn{w_k} is the weight of constraint \eqn{k}, and
+The second term of the equation for calculating log likelihood is the optional
+bias term, where \eqn{w_k} is the weight of constraint \eqn{k}, and
 \eqn{\mu_k} and \eqn{\sigma_k} parameterize a normal distribution that
-serves as a prior for the value of \eqn{w_k}. Values of \eqn{w_k} that
-deviate from \eqn{\mu_k} decrease the log likelihood function proportionally
-to \eqn{\sigma_k}: lower values of \eqn{\sigma_k} penalize deviations from
-\eqn{\mu_k} more severely.
+serves as a prior for the value of \eqn{w_k}. \eqn{\mu_k} specifies the mean
+of this distribution (the expected weight of constraint \eqn{k} before seeing
+any data) and \eqn{sigma_k} reflects certainty in this value: lower values of
+\eqn{\sigma_k} penalize deviations from \eqn{\mu_k} more severely, and thus
+require greater amounts of data to move \eqn{w_k} away from \eqn{mu_k}. While
+increasing \eqn{\sigma_k} will improve the fit to the training data, it may
+result in overfitting, particularly for small datasets.
 
 A general bias with \eqn{\mu_k = 0} for all \eqn{k} is commonly used as a
 form of simple regularization to prevent overfitting (see, e.g., Goldwater
