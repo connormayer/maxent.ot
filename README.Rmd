@@ -59,13 +59,20 @@ data_file_complex <- system.file(
    "extdata", "sample_data_file_large.txt", package = "maxent.ot"
 )
 
+
 # Fit weights to both data sets with simple regularization
 simple_model <- optimize_weights(data_file_simple, mu_scalar=0, sigma_scalar=10)
 complex_model <- optimize_weights(data_file_complex, mu_scalar=0, sigma_scalar=10)
 
+
 # Examine predicted probabilities of each model
+# Calculate predicted probabilities of each model
 simple_predictions <- predict_probabilities(data_file_simple, simple_model$weights)
 complex_predictions <- predict_probabilities(data_file_complex, complex_model$weights)
+# View the predicted probabilities of each model
+simple_predictions$predictions
+complex_predictions$predictions
+
 
 # Compare model fit to training data using the likelihood ratio test
 compare_models(simple_model, complex_model, method='lrt')
