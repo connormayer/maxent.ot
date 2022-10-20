@@ -71,8 +71,6 @@ DEFAULT_TEMPERATURE <- 1
 #'  to "unknown".
 #' @param temperature (optional) The temperature parameter, which should be a
 #'   real number \eqn{>= 1}. Defaults to 1.
-#' @return A data table containing all the tableaux, with probabilities
-#'   assigned to each candidate and errors.
 #' @return An object with the following named attributes:
 #' \itemize{
 #'         \item `log_lik`: the log likelihood of the data under the provided

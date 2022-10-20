@@ -8,9 +8,9 @@ DEFAULT_UPPER_BOUND <- 1000
 #' bias arguments are provided, the bias term(s) will not be included in the
 #' optimization.
 #'
-#' The objective function \eqn{J_w(D)} that is optimized is defined as
+#' The objective function \eqn{J(w)} that is optimized is defined as
 #'
-#' \deqn{J_w(D) = \sum_{i=1}^{n}{\ln P(y_i|x_i; w)}
+#' \deqn{J(w) = \sum_{i=1}^{n}{\ln P(y_i|x_i; w)}
 #' - \sum_{k=1}^{m}{\frac{(w_k - \mu_k)^2}{2\sigma_k^2}}}
 #'
 #' The first term in this equation calculates the natural logarithm of the
@@ -33,16 +33,17 @@ DEFAULT_UPPER_BOUND <- 1000
 #' where \eqn{\mathcal{Y}(x_i)} is the set of observed surface realizations of
 #' input \eqn{x_i}.
 #'
-#' The second term of the equation for calculating log likelihood is the optional
-#' bias term, where \eqn{w_k} is the weight of constraint \eqn{k}, and
+#' The second term of the equation for calculating the objective function is
+#' the optional bias term, where \eqn{w_k} is the weight of constraint \eqn{k}, and
 #' \eqn{\mu_k} and \eqn{\sigma_k} parameterize a normal distribution that
 #' serves as a prior for the value of \eqn{w_k}. \eqn{\mu_k} specifies the mean
-#' of this distribution (the expected weight of constraint \eqn{k} before seeing
-#' any data) and \eqn{sigma_k} reflects certainty in this value: lower values of
-#' \eqn{\sigma_k} penalize deviations from \eqn{\mu_k} more severely, and thus
-#' require greater amounts of data to move \eqn{w_k} away from \eqn{mu_k}. While
-#' increasing \eqn{\sigma_k} will improve the fit to the training data, it may
-#' result in overfitting, particularly for small datasets.
+#' of this distribution (the expected weight of constraint \eqn{k} before
+#' seeing any data) and \eqn{sigma_k} reflects certainty in this value: lower
+#' values of \eqn{\sigma_k} penalize deviations from \eqn{\mu_k} more severely,
+#' and thus require greater amounts of data to move \eqn{w_k} away from
+#' \eqn{mu_k}. While increasing \eqn{\sigma_k} will improve the fit to the
+#' training data, it may result in overfitting, particularly for small data
+#' sets.
 #'
 #' A general bias with \eqn{\mu_k = 0} for all \eqn{k} is commonly used as a
 #' form of simple regularization to prevent overfitting (see, e.g., Goldwater
