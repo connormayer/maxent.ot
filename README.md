@@ -4,6 +4,8 @@
 # maxent.ot
 
 <!-- badges: start -->
+
+[![DOI](https://zenodo.org/badge/272315147.svg)](https://zenodo.org/badge/latestdoi/272315147)
 <!-- badges: end -->
 
 This package allows you to fit Maximum Entropy Optimality Theory models
@@ -15,6 +17,12 @@ submission to CRAN.
 The authors of this package are [Connor Mayer](http://connormayer.com),
 [Kie Zuraw](https://linguistics.ucla.edu/people/zuraw/), and [Adeline
 Tan](https://linguistics.ucla.edu/person/adeline-tan/).
+
+## Citing maxent.ot
+
+If you publish work that uses `maxent.ot`, please cite this repository.
+
+    Mayer, C., Zuraw, K., & Tan, A. (2022). maxent.ot: A package for doing Maximum Entropy Optimality Theory in R (Version 0.1.0 [Computer software]. https://doi.org/10.5281/zenodo.7246367
 
 ## Installation
 
