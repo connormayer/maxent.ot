@@ -28,7 +28,12 @@ load_bias_file_otsoft <- function(infile, sep = "\t") {
 # Replace empty cells in a column with the closest cell above that is not empty
 fill_the_blanks <- function(x, missing = ""){
   enc <- base::rle(as.character(x))
-  empty <- which(enc$value == missing)
+  if (is.na(missing)) {
+    empty <- which(is.na(enc$value))
+  }
+  else {
+    empty <- which(enc$value == missing)
+  }
   enc$values[empty] <- enc$values[empty - 1]
   base::inverse.rle(enc)
 }

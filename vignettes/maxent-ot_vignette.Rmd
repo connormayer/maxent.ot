@@ -241,7 +241,8 @@ data_file <- system.file(
 )
 
 # Take a look at the structure of the sample data
-read.table(data_file, header=FALSE, sep='\t')
+data_table <- read.table(data_file, header=FALSE, sep='\t')
+data_table
 ```
 
 This data set has two tableaux: one for Input1 and another for Input2. 
@@ -260,8 +261,19 @@ The first & second rows are only used for Column 4 onward (*i.e.* constraints).
 Full constraint names are in the first row, while their shortened names are in the second. 
 Tableaux are inserted from the third row inwards.
 
-The data set is a tab-delimited `.txt` file.
-The Reader may notice that the input file is in fact prepared in an OTSoft-style format (Hayes, Tesar & Zuraw 2003).
+The data set is a tab-delimited `.txt` file. The input file is in OTSoft-style format (Hayes, Tesar & Zuraw 2003).
+
+Rather than using OTSoft format, you can also pass a data frame/data table/tibble directly into the `optimize_weights` function. The format in this case is a bit different.
+
+```{r}
+data_frame_file <- system.file(
+  "extdata", "sample_data_frame.csv", package = "maxent.ot"
+)
+
+data_frame <- read.csv(data_frame_file) 
+data_frame
+```
+Note that in this data frame the inputs column is completely specified and there is only a single row of constraint names. 
 
 ## 2.2 Finding weights to fit the model: No bias
 Now that we've familiarized ourselves with our data set, let's find a set of constraint weights that maximizes the probability of the data.
@@ -270,8 +282,14 @@ The User may modify the upper bound by specifying another value for the optional
 
 Using the function `optimize_weights()`, we'll train a model for the data set above, and store the result (our trained model) in the object `simple_model`:
 ```{r dataForSimpleCase}
-# Fit weights to data
+# Fit weights to data using file path
 simple_model <- optimize_weights(data_file)
+```
+
+You can also fit a model using a data frame as input.
+
+```{r}
+simple_model <- optimize_weights(data_frame)
 ```
 
 Let's take a closer look at our object `simple_model`:
@@ -931,6 +949,22 @@ fit_model_a <- optimize_weights(data_file_a)
 
 # Predict probabilities for the same input 
 predict_probabilities(data_file_a, fit_model_a$weights)
+```
+
+As with `optimize_weights`, you can also pass a data frame/data table/tibble into `predict_probabilities` instead of a file path.
+
+``` {r}
+# Get paths to toy data file 
+data_frame_file_a <- system.file(
+  "extdata", "sample_data_frame.csv", package="maxent.ot"
+)
+data_frame_a <- read.csv(data_frame_file_a)
+
+# Fit weights to data (no biases)
+fit_model_a <- optimize_weights(data_frame_a)
+
+# Predict probabilities for the same input 
+predict_probabilities(data_frame_a, fit_model_a$weights)
 ```
 
 The returned object has two attributes:
