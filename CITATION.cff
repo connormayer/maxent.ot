@@ -1,0 +1,23 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: ' maxent.ot: A package for doing Maximum Entropy Optimality Theory in R'
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Connor
+    family-names: Mayer
+    email: cjmayer@uci.edu
+    affiliation: 'University of California, Irvine'
+    orcid: 'https://orcid.org/0000-0003-2710-3475'
+  - given-names: Kie
+    family-names: Zuraw
+    email: kie@ucla.edu
+    affiliation: 'University of California, Los Angeles'
+  - given-names: Adeline
+    family-names: Tan
+    email: aderaetan@ucla.edu
+    affiliation: 'University of California, Los Angeles'
