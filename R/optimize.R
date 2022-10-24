@@ -63,10 +63,15 @@ DEFAULT_UPPER_BOUND <- 1000
 #' combination of the scalar/vector mu/sigma parameters), optimization will be
 #' done without the bias term.
 #'
-#' @param input_file The path to the input data file. This file contains one or
-#'   more OT tableaux consisting of mappings between underlying and surface
-#'   forms with observed frequency and violation profiles. Constraint
-#'   violations must be numeric.
+#' @param input The path to the input data file or a data frame/data table/tibble.
+#'   This should contain more OT tableaux consisting of
+#'   mappings between underlying and surface forms with observed frequency and
+#'   violation profiles. Constraint violations must be numeric.
+#'   If this is a file path, the file should be in OTSoft format.
+#'   For examples of OTSoft format, see inst/extdata/sample_data_file.txt.
+#'   For an example of the data frame format, see inst/extdata/sample_data_frame.txt.
+#'   You can read the latter file into a data frame using read.csv or into a tibble
+#'   using dplyr::read_csv.
 #' @param bias_file (optional) The path to the file containing mus and sigma
 #'   for constraint biases. If this argument is provided, the scalar and vector
 #'   mu and sigma arguments will be ignored. Each row in this file should be the
@@ -87,11 +92,8 @@ DEFAULT_UPPER_BOUND <- 1000
 #'   bias term. The length of this vector must equal the number of constraints
 #'   in the input file. If `bias_file` is provided, this argument will be ignored.
 #'   If this argument is provided, `sigma_scalar` will be ignored.
-#' @param input_format (optional) A string specifying the format of the input
-#'   files. Currently only OTSoft-style formatting is supported. Defaults to
-#'   'otsoft'.
 #' @param in_sep (optional) The delimiter used in the input files. Defaults to
-#'   tabs.
+#'   tabs. If a data frame is passed in, this argument is ignored.
 #' @param control_params (optional) A named list of control parameters that
 #'   will be passed to the \link[stats]{optim} function. See the documentation
 #'   of that function for details. Note that some parameter settings may
@@ -100,8 +102,11 @@ DEFAULT_UPPER_BOUND <- 1000
 #'   problem.
 #' @param upper_bound (optional) The maximum value for constraint weights.
 #'   Defaults to 1000.
+#' @param encoding (optional) The character encoding of the input file. Defaults
+#'  to "unknown".
 #' @param model_name (optional) A name for the model. If not provided, the file
-#'   name will be used.
+#'   name will be used if the input is a file path. If the input is a data frame
+#'   the name of the varible will be used.
 #' @return An object with the following named attributes:
 #' \itemize{
 #'         \item `weights`: A named list of the optimal constraint weights
@@ -118,9 +123,16 @@ DEFAULT_UPPER_BOUND <- 1000
 #'   bias_file <- system.file(
 #'       "extdata", "sample_bias_file.txt", package = "maxent.ot"
 #'   )
+#'   df_file <- system.file(
+#'       "extdata", "sample_data_frame.csv", package = "maxent.ot"
+#'   )
 #'
-#'   # Fit weights to data with no biases
+#'   # Fit weights to data file with no biases
 #'   optimize_weights(data_file)
+#'
+#'   # Fit weights to data frame with no biases
+#'   df <- read.csv(df_file)
+#'   optimize_weights(df)
 #'
 #'   # Fit weights with biases specified in file
 #'   optimize_weights(data_file, bias_file)
@@ -140,43 +152,40 @@ DEFAULT_UPPER_BOUND <- 1000
 #'   optimize_weights(data_file, control_params = list(maxit = 500))
 #'
 #' @export
-optimize_weights <- function(input_file, bias_file = NA,
+optimize_weights <- function(input, bias_file = NA,
                              mu_scalar = NA, mu_vector = NA,
                              sigma_scalar = NA, sigma_vector = NA,
-                             input_format = 'otsoft', in_sep = '\t',
-                             control_params = NA,
+                             in_sep = '\t', control_params = NA,
                              upper_bound = DEFAULT_UPPER_BOUND,
-                             model_name = NA) {
+                             encoding = 'unknown', model_name = NA) {
 
   # Organize our inputs
-  # If input_file is a dataframe
-  if (input_format == 'df') {
-    long_names <- colnames(input_file)[4:ncol(input_file)]
-    data <- input_file
+  # If input is a data frame
+  if (is.data.frame(input)) {
+    if (is.na(model_name)) {
+      # If no provided model name, use name of input variable
+      model_name <- toString(substitute(input))
+    }
+    long_names <- colnames(input)[4:ncol(input)]
+    data <- data.table::data.table(input)
+    data[,1] <- fill_the_blanks(data[,1], missing=NA)
     n <- sum(data[,3], na.rm = TRUE)
-    num_constraints <- length(long_names)
-    bias_params <- process_bias_arguments(
-      bias_file, mu_scalar, mu_vector, sigma_scalar, sigma_vector,
-      num_constraints
-    )
   } else {
     # Else: default -- input_file is a .txt file with the ot-soft format
-    input <- load_data_otsoft(input_file, sep = in_sep)
+    # If no model name provided, use filename sans extension
+    if (is.na(model_name)) {
+      model_name <- tools::file_path_sans_ext(basename(input))
+    }
+    input <- load_data_otsoft(input, sep = in_sep, encoding = encoding)
     long_names <- input$full_names
-    short_names <- input$abbr_names
     data <- input$data
     n <- input$n
-    num_constraints <- length(long_names)
-    bias_params <- process_bias_arguments(
-      bias_file, mu_scalar, mu_vector, sigma_scalar, sigma_vector,
-      num_constraints
-    )
   }
-
-  # If no model name provided, use filename sans extension
-  if (is.na(model_name)) {
-    model_name <- tools::file_path_sans_ext(basename(input_file))
-  }
+  num_constraints <- length(long_names)
+  bias_params <- process_bias_arguments(
+    bias_file, mu_scalar, mu_vector, sigma_scalar, sigma_vector,
+    num_constraints
+  )
 
   # If mus aren't provided, initialize all weights to 1
   # TODO: Does initializing constraints to the mus make sense?

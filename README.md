@@ -29,8 +29,12 @@ You can install the development version from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("connormayer/maxent.ot")
+if (!require(devtools)) {
+  install.packages("devtools", repos = "http://cran.us.r-project.org")
+}
+if (!require(maxent.ot)) {
+  devtools::install_github("connormayer/maxent.ot")
+}
 ```
 
 ## Example
