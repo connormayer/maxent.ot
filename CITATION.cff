@@ -21,3 +21,10 @@ authors:
     family-names: Tan
     email: aderaetan@ucla.edu
     affiliation: 'University of California, Los Angeles'
+version: 0.1.0
+identifiers:
+  - description: Initial pre-release version corresponding to AMP tutorial.
+    type: doi
+    value: "10.5281/zenodo.7246367"
+license: GNU General Public License v3.0
+repository-code: https://github.com/connormayer/maxent.ot/
