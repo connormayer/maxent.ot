@@ -1,0 +1,5 @@
+Input,Ouput,Frequency,Constraint1,Constraint2
+Input1,Output1-1,1,1,0
+Input1,Output1-2,1,0,1
+Input2,Output2-1,1,0,0
+Input2,Output2-2,0,0,1
