@@ -15,14 +15,14 @@ metrics. This package is still in development, and is being prepared for
 submission to CRAN.
 
 The authors of this package are [Connor Mayer](http://connormayer.com),
-[Kie Zuraw](https://linguistics.ucla.edu/people/zuraw/), and [Adeline
-Tan](https://linguistics.ucla.edu/person/adeline-tan/).
+[Adeline Tan](https://linguistics.ucla.edu/person/adeline-tan/), and
+[Kie Zuraw](https://linguistics.ucla.edu/people/zuraw/).
 
 ## Citing maxent.ot
 
 If you publish work that uses `maxent.ot`, please cite this repository.
 
-> `Mayer, C., Zuraw, K., & Tan, A. (2022). maxent.ot: A package for doing Maximum Entropy Optimality Theory in R (Version 0.1.0) [Computer software]. https://doi.org/10.5281/zenodo.7246367`
+> `Mayer, C., Tan, A., & Zuraw, K.(2022). maxent.ot: A package for doing Maximum Entropy Optimality Theory in R (Version 0.1.0) [Computer software]. https://doi.org/10.5281/zenodo.7246367`
 
 ## Installation
 
