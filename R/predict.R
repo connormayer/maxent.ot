@@ -114,15 +114,10 @@ predict_probabilities <- function(test_input, constraint_weights,
                                   in_sep = "\t", out_sep = '\t',
                                   encoding = 'unknown',
                                   temperature = DEFAULT_TEMPERATURE) {
-  if (is.data.frame(test_input)) {
-    long_names <- colnames(test_input)[4:ncol(test_input)]
-    data <- data.table::data.table(test_input)
-    data[,1] <- fill_the_blanks(data[,1], missing=NA)
-  } else {
-    input <- load_data_otsoft(test_input, in_sep, encoding = encoding)
-    long_names <- input$full_names
-    data <- input$data
-  }
+
+  processed_input <- load_input(test_input, sep = in_sep, encoding = encoding)
+  long_names <- processed_input$long_names
+  data <- processed_input$data
 
   if (any(constraint_weights < 0)) {
     stop("Constraint weights must be non-negative")

@@ -1,3 +1,33 @@
+load_input <- function(input, sep="\t", encoding = 'unknown', model_name=NA) {
+  if (is.data.frame(input)) {
+    if (is.na(model_name)) {
+      # If no provided model name, use name of input variable
+      model_name <- toString(substitute(input))
+    }
+    long_names <- colnames(input)[4:ncol(input)]
+    data <- data.table::data.table(input)
+    data[,1] <- fill_the_blanks(data[,1], missing=NA)
+    n <- sum(data[,3], na.rm = TRUE)
+  } else {
+    # Else: default -- input_file is a .txt file with the ot-soft format
+    # If no model name provided, use filename sans extension
+    if (is.na(model_name)) {
+      model_name <- tools::file_path_sans_ext(basename(input))
+    }
+    input <- load_data_otsoft(input, sep = sep, encoding = encoding)
+    long_names <- input$full_names
+    data <- input$data
+    n <- input$n
+  }
+  result = list(
+    data = data,
+    long_names = long_names,
+    n = n,
+    model_name = model_name
+  )
+  return(result)
+}
+
 # Loads tableaux in OTSoft format
 load_data_otsoft <- function(infile, sep = "\t", encoding = 'unknown') {
   in.dt <- data.table::fread(
