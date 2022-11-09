@@ -106,7 +106,7 @@ DEFAULT_UPPER_BOUND <- 1000
 #'  to "unknown".
 #' @param model_name (optional) A name for the model. If not provided, the file
 #'   name will be used if the input is a file path. If the input is a data frame
-#'   the name of the varible will be used.
+#'   the name of the variable will be used.
 #' @return An object with the following named attributes:
 #' \itemize{
 #'         \item `weights`: A named list of the optimal constraint weights
@@ -158,6 +158,12 @@ optimize_weights <- function(input, bias_file = NA,
                              in_sep = '\t', control_params = NA,
                              upper_bound = DEFAULT_UPPER_BOUND,
                              encoding = 'unknown', model_name = NA) {
+  if (is.data.frame(input)) {
+    if (is.na(model_name)) {
+      # If no provided model name, use name of input variable
+      model_name <- toString(substitute(input))
+    }
+  }
   processed_input <- load_input(
     input, sep = in_sep, encoding = encoding, model_name = model_name
   )

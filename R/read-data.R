@@ -1,9 +1,5 @@
 load_input <- function(input, sep="\t", encoding = 'unknown', model_name=NA) {
   if (is.data.frame(input)) {
-    if (is.na(model_name)) {
-      # If no provided model name, use name of input variable
-      model_name <- toString(substitute(input))
-    }
     long_names <- colnames(input)[4:ncol(input)]
     data <- data.table::data.table(input)
     data[,1] <- fill_the_blanks(data[,1], missing=NA)
@@ -17,6 +13,7 @@ load_input <- function(input, sep="\t", encoding = 'unknown', model_name=NA) {
     input <- load_data_otsoft(input, sep = sep, encoding = encoding)
     long_names <- input$full_names
     data <- input$data
+    colnames(data) <- c("Input", "Output", "Frequency", unlist(long_names))
     n <- input$n
   }
   result = list(
