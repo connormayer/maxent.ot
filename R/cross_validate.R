@@ -1,7 +1,23 @@
 
 #' Cross-validate bias parameters for constraint weights.
 #'
-#' Performs k-fold cross validation. TODO
+#' Performs k-fold cross-validation of a data set and a set of input bias
+#' parameters. Cross-validation allows the space of bias parameters to be
+#' searched to find the settings that best support generalization to unseen data.
+#'
+#' The cross-validation procedure is as follows:
+#'
+#' \enumerate{
+#'   \item Randomly divide the data into k partitions.
+#'   \item Iterate through every combination of mu and sigma specified in the
+#'     input arguments (see the documentation for the `grid_search` argument
+#'     for details on how this is done).
+#'   \item For each combination, for each of the k partitions, train a model
+#'     on the other (k-1) partitions using `optimize_weights` and then run
+#'     `predict_probabilities` on the remaining partition.
+#'   \item Record the mean log likelihood the models apply to the held-out
+#'     partitions.
+#' }
 #'
 #' @param input The path to the input data file or a dataframe/tibble.
 #'   This should contain more OT tableaux consisting of
@@ -25,11 +41,11 @@
 #' @param grid_search (optional) If TRUE, the Cartesian product of the values
 #'   in `mu_values` and `sigma_values` will be validated. For example, if
 #'   `mu_values = c(0, 1)` and `sigma_values = c(0.1, 1)`, cross-validation will
-#'   be done on the mu/sigma pairs `c(0, 0.1), c(0, 1), c(1, 0.1), c(1, 1)`. If
+#'   be done on the mu/sigma pairs `(0, 0.1), (0, 1), (1, 0.1), (1, 1)`. If
 #'   FALSE (default), cross-validation will be done on each pair of values at
 #'   the same indices in `mu_values` and `sigma_values`. For example, if
 #'   `mu_values = c(0, 1)` and `sigma_values = c(0.1, 1)`, cross-validation will
-#'   be done on the mu/sigma pairs `c(0, 0.1), c(1, 1)`.
+#'   be done on the mu/sigma pairs `(0, 0.1), (1, 1)`.
 #' @param output_path (optional) A string specifying the path to a file to
 #'   which the cross-validation results will be saved. If the file exists it
 #'   will be overwritten. If this argument isn't provided, the output will not
@@ -56,7 +72,7 @@
 #'   # Get paths to OTSoft file. Note that you can also pass dataframes into
 #'   # this function, as described in the documentation for `optimize`.
 #'   data_file <- system.file(
-#'       "extdata", "sample_hu_wug.txt", package = "maxent.ot"
+#'       "extdata", "amp_demo_grammar.csv", package = "maxent.ot"
 #'   )
 #'
 #'   # Define mu and sigma parameters to try
@@ -64,26 +80,27 @@
 #'   sigmas <- c(0.01, 0.1)
 #'
 #'   # Do 10-fold cross-validation
-#'   cross_validate(data_file, 10, mus, sigmas)
+#'   cross_validate(data_file, 10, mus, sigmas, in_sep=',')
 #'
 #'   # Do 10-fold cross-validation with grid search of parameters
-#'   cross_validate(data_file, 10, mus, sigmas, grid_search=TRUE)
+#'   cross_validate(data_file, 10, mus, sigmas, grid_search=TRUE, in_sep=',')
 #'
-#'   # You can also use vectors for some/all of the bias parameters.
-#' mus_v <- list(
-#'   c(0, 0, 0, 0, 0, 1, 1, 1, 1, 1),
-#'   c(1, 1, 1, 1, 1, 0, 0, 0, 0, 0)
-#' )
-#' sigmas_v <- list(
-#'   c(0.01, 0.01, 0.01, 0.01, 0.01, 0.1, 0.1, 0.1, 0.1, 0.1),
-#'   c(0.1, 0.1, 0.1, 0.1, 0.1, 0.01, 0.01, 0.01, 0.01, 0.01)
-#' )
+#'   # You can also use vectors/lists for some/all of the bias parameters to set
+#'   # separate biases for each constraint
+#'   mus_v <- list(
+#'     c(0, 0, 0, 0, 0, 1, 1, 1, 1, 1),
+#'     c(1, 1, 1, 1, 1, 0, 0, 0, 0, 0)
+#'   )
+#'   sigmas_v <- list(
+#'     c(0.01, 0.01, 0.01, 0.01, 0.01, 0.1, 0.1, 0.1, 0.1, 0.1),
+#'     c(0.1, 0.1, 0.1, 0.1, 0.1, 0.01, 0.01, 0.01, 0.01, 0.01)
+#'   )
 #'
-#' cross_validate(data, 10, mus_v, sigmas_v)
+#'   cross_validate(data_file, 10, mus_v, sigmas_v, in_sep=',')
 #'
 #'   # Save cross-validation results to a file
 #'   tmp_output <- tempfile()
-#'   cross_validate(data_file, 10, mus, sigmas, output_path=tmp_output)
+#'   cross_validate(data_file, 10, mus, sigmas, in_sep=',', output_path=tmp_output)
 #' @export
 cross_validate <- function(input, k, mu_values, sigma_values,
                            grid_search = FALSE, output_path = NA,
@@ -108,7 +125,7 @@ cross_validate <- function(input, k, mu_values, sigma_values,
     for (mu in mu_values) {
       for (sigma in sigma_values) {
         result_row <- do_validation(
-          k, data, partitions, mu, sigma, model_name, in_sep, control_params,
+          k, data, partitions, mu[[1]], sigma[[1]], model_name, in_sep, control_params,
           upper_bound
         )
         result_df <- rbind(result_df, result_row)
@@ -122,7 +139,7 @@ cross_validate <- function(input, k, mu_values, sigma_values,
 
     for (i in (1:length(mu_values))) {
       result_row <- do_validation(
-        k, data, partitions, mu_values[i], sigma_values[i], model_name, in_sep,
+        k, data, partitions, mu_values[[i]], sigma_values[[i]], model_name, in_sep,
         control_params, upper_bound
       )
       result_df <- rbind(result_df, result_row)
@@ -139,6 +156,7 @@ cross_validate <- function(input, k, mu_values, sigma_values,
 
 do_validation <- function(k, data, partitions, mu, sigma, model_name, in_sep,
                           control_params, upper_bound) {
+  # Performs cross-validation given a particular value of mu and sigma
   if (length(mu) > 1) {
     mu_scalar <- NA
     mu_vector <- unlist(mu)
@@ -158,9 +176,10 @@ do_validation <- function(k, data, partitions, mu, sigma, model_name, in_sep,
   log_liks <- c()
 
   for (hold_out in (1:k)) {
-    sprintf(
-      "Training paramers mu:%s, sigma:%s, fold number:%s", mu, sigma, hold_out
-    )
+    print(sprintf(
+      "Training paramers mu:%s, sigma:%s, fold number:%s", toString(mu),
+      toString(sigma), hold_out
+    ))
     training_data <- data
     training_data$Frequency <- 0
     test_data <- training_data
@@ -188,6 +207,7 @@ do_validation <- function(k, data, partitions, mu, sigma, model_name, in_sep,
 }
 
 populate_tableau <- function(tableau, tokens) {
+  # Fills in a tableau with token frequency counts
   tokens$count <- seq(nrow(tokens))
   counts <- aggregate(count ~ Input + Output, data = tokens, FUN = length)
   for (i in (1:nrow(counts))) {
@@ -198,6 +218,7 @@ populate_tableau <- function(tableau, tokens) {
 }
 
 partition_data <- function(data, k) {
+  # Divides data into k roughly equal partitions
   freq <- data$Frequency
   data_vals <- data[, 1:2]
 
