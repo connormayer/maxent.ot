@@ -31,9 +31,23 @@ load_data_otsoft <- function(infile, sep = "\t", encoding = 'unknown') {
     infile, header = FALSE, sep = sep, fill = TRUE, encoding = encoding
   )
 
-  # TODO: Some validation of format?
+  # Data should minimally have four columns: Input, Output, Frequency, and
+  # at least one constraint.
+  num_cols <- ncol(in.dt)
+  if (num_cols < 4) {
+    stop(sprintf("Input data only has %s columns: have you passed the
+                  correct separator character into `in_sep`? For example, if
+                  your data is comma separated, include the argument
+                  `in_sep=',' in your call to `optimize_weights`.", num_cols))
+  }
+
   full_names <- in.dt[1, 4:ncol(in.dt)]
   abbr_names <- in.dt[2, 4:ncol(in.dt)]
+
+  if (any(sapply(full_names, is.numeric)) | any(sapply(abbr_names, is.numeric))) {
+    stop("One or more of the constraint names is numeric. Have you forgotten
+          either the long names or abbreviated names row?")
+  }
 
   in_data <- in.dt[3:nrow(in.dt),]
   in_data[,1] <- fill_the_blanks(in_data[,1])

@@ -221,6 +221,14 @@ partition_data <- function(data, k) {
   # Divides data into k roughly equal partitions
   freq <- data$Frequency
   data_vals <- data[, 1:2]
+  n <- sum(freq)
+
+  if (n < k) {
+    stop(sprintf(
+      "Cannot divide %s data points into %s partitions: please choose a
+       a smaller value of k.", n, k
+    ))
+  }
 
   # Create one row per input token and shuffle them
   randomized_data <- data_vals[sample(rep(seq_len(nrow(data_vals)), freq)),]
