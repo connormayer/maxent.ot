@@ -4,7 +4,17 @@ author: "Connor Mayer, Kie Zuraw, and Adeline Tan"
 date: "10/21/2022"
 output: html_document
 ---
+<style type="text/css">
+.main-container {
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
 
+```{r set-options, echo=FALSE, cache=FALSE}
+options(width=1600)
+```
 
 ## Introduction
 

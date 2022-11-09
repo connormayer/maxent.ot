@@ -6,8 +6,8 @@ test_that("Basic predict_probabilities call", {
   predictions <- predict_probabilities(data_file, my_model$weights)
 
   expect_equal(
-    predictions$`Predicted Probability`,
-    c(0.5000115, 0.4999885, 0.9999993, 0.0000007),
-    tolerance=1e-6
+    predictions$predictions$`Predicted Probability`,
+    c(0.5, 0.5, 1, 0),
+    tolerance=1e-5
   )
 })

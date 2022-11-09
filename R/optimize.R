@@ -1,5 +1,5 @@
 # Constants
-DEFAULT_WEIGHT <- 1
+DEFAULT_WEIGHT <- 0
 DEFAULT_UPPER_BOUND <- 1000
 
 #' Optimize MaxEnt OT constraint weights
@@ -106,7 +106,7 @@ DEFAULT_UPPER_BOUND <- 1000
 #'  to "unknown".
 #' @param model_name (optional) A name for the model. If not provided, the file
 #'   name will be used if the input is a file path. If the input is a data frame
-#'   the name of the varible will be used.
+#'   the name of the variable will be used.
 #' @return An object with the following named attributes:
 #' \itemize{
 #'         \item `weights`: A named list of the optimal constraint weights
@@ -158,37 +158,27 @@ optimize_weights <- function(input, bias_file = NA,
                              in_sep = '\t', control_params = NA,
                              upper_bound = DEFAULT_UPPER_BOUND,
                              encoding = 'unknown', model_name = NA) {
-
-  # Organize our inputs
-  # If input is a data frame
   if (is.data.frame(input)) {
     if (is.na(model_name)) {
       # If no provided model name, use name of input variable
       model_name <- toString(substitute(input))
     }
-    long_names <- colnames(input)[4:ncol(input)]
-    data <- data.table::data.table(input)
-    data[,1] <- fill_the_blanks(data[,1], missing=NA)
-    n <- sum(data[,3], na.rm = TRUE)
-  } else {
-    # Else: default -- input_file is a .txt file with the ot-soft format
-    # If no model name provided, use filename sans extension
-    if (is.na(model_name)) {
-      model_name <- tools::file_path_sans_ext(basename(input))
-    }
-    input <- load_data_otsoft(input, sep = in_sep, encoding = encoding)
-    long_names <- input$full_names
-    data <- input$data
-    n <- input$n
   }
+  processed_input <- load_input(
+    input, sep = in_sep, encoding = encoding, model_name = model_name
+  )
+  long_names <- processed_input$long_names
+  data <- processed_input$data
+  n <- processed_input$n
+  model_name <- processed_input$model_name
+
   num_constraints <- length(long_names)
   bias_params <- process_bias_arguments(
     bias_file, mu_scalar, mu_vector, sigma_scalar, sigma_vector,
     num_constraints
   )
 
-  # If mus aren't provided, initialize all weights to 1
-  # TODO: Does initializing constraints to the mus make sense?
+  # If mus aren't provided, initialize all weights to 0
   if (any_not_na(bias_params)) {
     constraint_weights <- bias_params$mus
   } else {
