@@ -52,16 +52,19 @@ data_file_complex <- system.file(
    "extdata", "sample_data_file_large.txt", package = "maxent.ot"
 )
 
+
 # Fit weights to both data sets with simple regularization
 simple_model <- optimize_weights(data_file_simple, mu_scalar=0, sigma_scalar=10)
 complex_model <- optimize_weights(data_file_complex, mu_scalar=0, sigma_scalar=10)
 
+
 # Examine predicted probabilities of each model
-# Calculate predicted probabilities of each model
-simple_predictions <- predict_probabilities(data_file_simple, simple_model$weights)
-complex_predictions <- predict_probabilities(data_file_complex, complex_model$weights)
-# View the predicted probabilities of each model
-simple_predictions$predictions
+# Also displayed: log likelihood (of weights given prediction data)
+predict_probabilities(data_file_simple, simple_model$weights)
+#> $loglik
+#> [1] -2.079442
+#> 
+#> $predictions
 #>        UR        SR Freq Constraint1 Constraint3 Predicted Probability
 #> 1: Input1 Output1-1    1           1           1                   0.5
 #> 2: Input1 Output1-2    1           0           0                   0.5
@@ -72,7 +75,11 @@ simple_predictions$predictions
 #> 2:                  0.5   0.0
 #> 3:                  1.0  -0.5
 #> 4:                  0.0   0.5
-complex_predictions$predictions
+predict_probabilities(data_file_complex, complex_model$weights)
+#> $loglik
+#> [1] -1.444644
+#> 
+#> $predictions
 #>        UR        SR Freq Constraint1 Constraint2 Constraint3
 #> 1: Input1 Output1-1    1           1           0           1
 #> 2: Input1 Output1-2    1           0           1           0
