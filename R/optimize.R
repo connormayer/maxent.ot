@@ -212,6 +212,7 @@ optimize_weights <- function(input, bias_file = NA,
     stats::optim(
       constraint_weights,
       objective_func,
+      gr=calculate_gradient,
       data=data_matrix,
       bias_params=bias_params,
       control=control_params,
@@ -287,6 +288,112 @@ calculate_probabilities <- function(constraint_weights, data,
   data[, harm_ix] <- exp(-data[, harm_ix] / temperature)
   data[, log_prob_ix] <- log(apply(data, 1, normalize_row, data, harm_ix))
   return(data)
+}
+
+# Calculate gradients
+calculate_gradient <- function(constraint_weights,
+                               data,
+                               temperature=DEFAULT_TEMPERATURE,
+                               bias_params=NA){
+
+  # Gradients for log likelihood wrt each constraint
+  grad_ll <- calculate_grad_ll(constraint_weights, data, temperature)
+
+  # If there's a bias term
+  if (any_not_na(bias_params)) {
+    # Calculate gradients for bias term wrt each constraint
+    grad_bias <- calculate_grad_bias(bias_params, constraint_weights)
+    # Include bias contribution to gradient
+    grad <- grad_ll - grad_bias
+  } else {
+    # Else gradients consist solely of d(ll)/dCon
+    grad <- grad_ll
+  }
+
+  return(grad)
+}
+
+# Calculate gradients for log likelihood
+calculate_grad_ll <- function(constraint_weights,
+                              data,
+                              temperature){
+
+  # Get expected "feature activation" matrix
+  expt_mat <- expectation_mat(constraint_weights, data, temperature)
+
+  # Get feature matrix
+  feat_mat <- data[, 3:(ncol(data)-3)]
+
+  # Get frequency matrix
+  freq_mat <- data[, 2]
+
+  # Get gradients of log likelihood wrt constraints
+  # Produces a (1,n) matrix, where n is number of constraints
+  grad_ll <- t(freq_mat) %*% (expt_mat - feat_mat)
+  # Convert matrix to vector
+  grad_ll <- c(grad_ll)
+
+  return(grad_ll)
+}
+
+# Make expectation matrix
+expectation_mat <- function(constraint_weights,
+                            data,
+                            temperature){
+
+  # Get current log probabilities for all candidates
+  # This returns a matrix with:
+  # col1: UR's identified with indices (each unique UR is assigned a unique ix)
+  # col2: freq
+  # ncol(data_mat) - 1: log prob
+  # feature matrix: (ur_ix + 2):(log_prob_ix - 2)
+  data_mat <- calculate_probabilities(constraint_weights,
+                                      data,
+                                      temperature)
+
+  # Set a few column indices
+  ur_ix <- 1
+  log_prob_ix <- ncol(data_mat) - 1
+
+  # Initialize empty expected "feature activation" matrix
+  exp_mat <- matrix(0L, nrow=nrow(data_mat), ncol=ncol(data_mat)-5)
+
+  # For each row
+  for (i in 1:nrow(data_mat)){
+
+    # Get current UR's id
+    ur_id <- data_mat[i, 1]
+
+    # Get feature matrix for all URs that share the same UR id
+    # UR ids are in column 1
+    feat_mat <- data_mat[data_mat[, 1] == ur_id, (ur_ix + 2):(log_prob_ix - 2),
+                         drop=FALSE]
+
+    # Get probability matrix for candidates that share the same UR
+    prob_mat <- data_mat[data_mat[, 1] == ur_id, log_prob_ix,
+                         drop=FALSE]
+    # Convert from log probs to probs
+    prob_mat <- exp(prob_mat)
+
+    # Calculate row-matrix for expected "feature activation" for i-th candidate
+    # Store it in i-th row of expected "feature activation" matrix
+    exp_mat[i, ] <- t(prob_mat) %*% feat_mat
+  }
+
+  # Return matrix of expected "feature activation"
+  # Dimensions of matrix: (d, n)
+  # Where d=num of candidates & n=num of constraints
+  return(exp_mat)
+}
+
+# Calculate gradients for bias term
+calculate_grad_bias <- function(bias_params, constraint_weights) {
+  top <- constraint_weights - bias_params$mus
+  bottom <- bias_params$sigmas^2
+  grad_bias <- top / bottom
+
+  # Returns a n-length vector, where n=num of constraints
+  return(grad_bias)
 }
 
 # Helper function that applies Z normalization
