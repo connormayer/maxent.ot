@@ -64,13 +64,45 @@ data_file_complex <- system.file(
    "extdata", "sample_data_file_large.txt", package = "maxent.ot"
 )
 
+
 # Fit weights to both data sets with simple regularization
 simple_model <- optimize_weights(data_file_simple, mu_scalar=0, sigma_scalar=10)
 complex_model <- optimize_weights(data_file_complex, mu_scalar=0, sigma_scalar=10)
 
+
 # Examine predicted probabilities of each model
-simple_predictions <- predict_probabilities(data_file_simple, simple_model$weights)
-complex_predictions <- predict_probabilities(data_file_complex, complex_model$weights)
+# Also displayed: log likelihood (of weights given prediction data)
+predict_probabilities(data_file_simple, simple_model$weights)
+#> $loglik
+#> [1] -2.079442
+#> 
+#> $predictions
+#>        UR        SR Freq Constraint1 Constraint3 Predicted Probability
+#> 1: Input1 Output1-1    1           1           1                   0.5
+#> 2: Input1 Output1-2    1           0           0                   0.5
+#> 3: Input2 Output2-1    1           0           1                   0.5
+#> 4: Input2 Output2-2    0           0           0                   0.5
+#>    Observed Probability Error
+#> 1:                  0.5   0.0
+#> 2:                  0.5   0.0
+#> 3:                  1.0  -0.5
+#> 4:                  0.0   0.5
+predict_probabilities(data_file_complex, complex_model$weights)
+#> $loglik
+#> [1] -1.444644
+#> 
+#> $predictions
+#>        UR        SR Freq Constraint1 Constraint2 Constraint3
+#> 1: Input1 Output1-1    1           1           0           1
+#> 2: Input1 Output1-2    1           0           1           0
+#> 3: Input2 Output2-1    1           0           0           1
+#> 4: Input2 Output2-2    0           0           1           0
+#>    Predicted Probability Observed Probability       Error
+#> 1:            0.51385021                  0.5  0.01385021
+#> 2:            0.48614979                  0.5 -0.01385021
+#> 3:            0.94404417                  1.0 -0.05595583
+#> 4:            0.05595583                  0.0  0.05595583
+
 
 # Compare model fit to training data using the likelihood ratio test
 compare_models(simple_model, complex_model, method='lrt')
