@@ -14,8 +14,8 @@ DEFAULT_UPPER_BOUND <- 1000
 #' - \sum_{k=1}^{m}{\frac{(w_k - \mu_k)^2}{2\sigma_k^2}}}
 #'
 #' The first term in this equation calculates the natural logarithm of the
-#' likelihood of the training data under the weights \eqn{w}. \eqn{n} is the
-#' number of data points (i.e., the sample size or the sum of the frequency
+#' conditional likelihood of the training data under the weights \eqn{w}. \eqn{n}
+#' is the number of data points (i.e., the sample size or the sum of the frequency
 #' column in the input),\eqn{x_i} is the input form of the \eqn{i}th data
 #' point, and \eqn{y_i} is the observed surface form corresponding to
 #' \eqn{x_i}.\eqn{P(y_i|x_i; w)} represents the probability of realizing
