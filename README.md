@@ -27,8 +27,8 @@ If you publish work that uses `maxent.ot`, please cite this repository.
 ## Installation
 
 <!--You can install the released version of maxent.ot from [CRAN](https://CRAN.R-project.org) with:
-
-``` r
+  
+  ``` r
 install.packages("maxent.ot")
 ```
 -->
@@ -38,10 +38,10 @@ You can install the development version from
 
 ``` r
 if (!require(devtools)) {
-  install.packages("devtools", repos = "http://cran.us.r-project.org")
+install.packages("devtools", repos = "http://cran.us.r-project.org")
 }
 if (!require(maxent.ot)) {
-  devtools::install_github("connormayer/maxent.ot")
+devtools::install_github("connormayer/maxent.ot")
 }
 ```
 
@@ -57,37 +57,39 @@ library(maxent.ot)
 # Get paths to input files.
 # This file has two constraints
 data_file_simple <- system.file(
-   "extdata", "sample_data_file_small.txt", package = "maxent.ot"
+  "extdata", "sample_data_frame.csv", package = "maxent.ot"
 )
 # This file has three constraints
 data_file_complex <- system.file(
-   "extdata", "sample_data_file_large.txt", package = "maxent.ot"
+  "extdata", "sample_data_frame_large.csv", package = "maxent.ot"
 )
 
+# Read files into data frames
+df_simple <- read.csv(data_file_simple)
+df_complex <- read.csv(data_file_complex)
 
 # Fit weights to both data sets with simple regularization
-simple_model <- optimize_weights(data_file_simple, mu_scalar=0, sigma_scalar=10)
-complex_model <- optimize_weights(data_file_complex, mu_scalar=0, sigma_scalar=10)
-
+simple_model <- optimize_weights(df_simple, mu_scalar=0, sigma_scalar=10)
+complex_model <- optimize_weights(df_complex, mu_scalar=0, sigma_scalar=10)
 
 # Examine predicted probabilities of each model
 # Also displayed: log likelihood (of weights given prediction data)
-predict_probabilities(data_file_simple, simple_model$weights)
+predict_probabilities(df_simple, simple_model$weights)
 #> $loglik
-#> [1] -2.079442
+#> [1] -1.444645
 #> 
 #> $predictions
-#>        UR        SR Freq Constraint1 Constraint3 Predicted Probability
-#> 1: Input1 Output1-1    1           1           1                   0.5
-#> 2: Input1 Output1-2    1           0           0                   0.5
-#> 3: Input2 Output2-1    1           0           1                   0.5
-#> 4: Input2 Output2-2    0           0           0                   0.5
-#>    Observed Probability Error
-#> 1:                  0.5   0.0
-#> 2:                  0.5   0.0
-#> 3:                  1.0  -0.5
-#> 4:                  0.0   0.5
-predict_probabilities(data_file_complex, complex_model$weights)
+#>        UR        SR Freq Constraint1 Constraint2 Predicted Probability
+#> 1: Input1 Output1-1    1           1           0            0.51384754
+#> 2: Input1 Output1-2    1           0           1            0.48615246
+#> 3: Input2 Output2-1    1           0           0            0.94404279
+#> 4: Input2 Output2-2    0           0           1            0.05595721
+#>    Observed Probability       Error
+#> 1:                  0.5  0.01384754
+#> 2:                  0.5 -0.01384754
+#> 3:                  1.0 -0.05595721
+#> 4:                  0.0  0.05595721
+predict_probabilities(df_complex, complex_model$weights)
 #> $loglik
 #> [1] -1.444644
 #> 
@@ -98,36 +100,14 @@ predict_probabilities(data_file_complex, complex_model$weights)
 #> 3: Input2 Output2-1    1           0           0           1
 #> 4: Input2 Output2-2    0           0           1           0
 #>    Predicted Probability Observed Probability       Error
-#> 1:            0.51385021                  0.5  0.01385021
-#> 2:            0.48614979                  0.5 -0.01385021
-#> 3:            0.94404417                  1.0 -0.05595583
-#> 4:            0.05595583                  0.0  0.05595583
+#> 1:            0.51385019                  0.5  0.01385019
+#> 2:            0.48614981                  0.5 -0.01385019
+#> 3:            0.94404422                  1.0 -0.05595578
+#> 4:            0.05595578                  0.0  0.05595578
 
 
 # Compare model fit to training data using the likelihood ratio test
 compare_models(simple_model, complex_model, method='lrt')
-#>                                     description   chi_sq k_delta   p_value
-#> 1 sample_data_file_large~sample_data_file_small 1.269594       1 0.2598428
+#>            description       chi_sq k_delta   p_value
+#> 1 df_complex~df_simple 2.451046e-06       1 0.9987508
 ```
-
-<!--What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
-
-
-```r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
-```
-
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. You could also use GitHub Actions to re-render `README.Rmd` every time you push. An example workflow can be found here: <https://github.com/r-lib/actions/tree/master/examples>.
-
-You can also embed plots, for example:
-
-<img src="man/figures/README-pressure-1.png" width="100%" />
-
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN. -->

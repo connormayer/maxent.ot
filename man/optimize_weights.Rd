@@ -5,30 +5,47 @@
 \title{Optimize MaxEnt OT constraint weights}
 \usage{
 optimize_weights(
-  input_file,
-  bias_file = NA,
+  input,
+  bias_input = NA,
   mu_scalar = NA,
   mu_vector = NA,
   sigma_scalar = NA,
   sigma_vector = NA,
-  input_format = "otsoft",
-  in_sep = "\\t",
   control_params = NA,
   upper_bound = DEFAULT_UPPER_BOUND,
+  encoding = "unknown",
   model_name = NA
 )
 }
 \arguments{
-\item{input_file}{The path to the input data file. This file contains one or
-more OT tableaux consisting of mappings between underlying and surface
-forms with observed frequency and violation profiles. Constraint
-violations must be numeric.}
+\item{input}{The input data frame/data table/tibble. This should contain one
+or more OT tableaux consisting of mappings between underlying and surface
+forms with observed frequency and violation profiles. Constraint violations
+must be numeric.
 
-\item{bias_file}{(optional) The path to the file containing mus and sigma
-for constraint biases. If this argument is provided, the scalar and vector
-mu and sigma arguments will be ignored. Each row in this file should be the
-name of the constraint, followed by the mu, followed by the sigma
-(separated by whatever the relevant separator is; default is tabs).}
+For an example of the data frame format, see inst/extdata/sample_data_frame.csv.
+You can read this file into a data frame using read.csv or into a tibble
+using dplyr::read_csv.
+
+This function also supports the legacy OTSoft file format. You can use this
+format by passing in a file path string to the OTSoft file rather than a
+data frame.
+
+For examples of OTSoft format, see inst/extdata/sample_data_file.txt.}
+
+\item{bias_input}{(optional)
+A data frame/data table/tibble containing the bias mus and sigmas. Each row
+corresponds to an individual constraint, and consists of three columns:
+\code{Constraint}, which contains the constraint name, \code{Mu}, which contains the
+mu, and \code{Sigma}, which contains the sigma. If this argument is provided,
+the scalar and vector mu and sigma arguments will be ignored.
+Like the \code{input} argument, this function also supports the legacy OTSoft
+file format for this argument. In this case, \code{bias_input} should be a path
+to the bias parameters in OTSoft format.
+
+For examples of OTSoft bias format, see inst/extdata/sample_bias_file_otsoft.txt.
+Each row in this file should be the name of the constraint, followed by the
+mu, followed by the sigma (separated by tabs).}
 
 \item{mu_scalar}{(optional) A single scalar value that will serve as the mu
 for each constraint in the bias term. Constraint weights will also be
@@ -49,13 +66,6 @@ bias term. The length of this vector must equal the number of constraints
 in the input file. If \code{bias_file} is provided, this argument will be ignored.
 If this argument is provided, \code{sigma_scalar} will be ignored.}
 
-\item{input_format}{(optional) A string specifying the format of the input
-files. Currently only OTSoft-style formatting is supported. Defaults to
-'otsoft'.}
-
-\item{in_sep}{(optional) The delimiter used in the input files. Defaults to
-tabs.}
-
 \item{control_params}{(optional) A named list of control parameters that
 will be passed to the \link[stats]{optim} function. See the documentation
 of that function for details. Note that some parameter settings may
@@ -66,8 +76,12 @@ problem.}
 \item{upper_bound}{(optional) The maximum value for constraint weights.
 Defaults to 1000.}
 
-\item{model_name}{(optional) A name for the model. If not provided, the file
-name will be used.}
+\item{encoding}{(optional) The character encoding of the input file. Defaults
+to "unknown".}
+
+\item{model_name}{(optional) A name for the model. If not provided, the name
+of the variable will be used if the input is a data frame. If the input
+is a path to an OTSoft file, the filename will be used.}
 }
 \value{
 An object with the following named attributes:
@@ -85,9 +99,9 @@ bias arguments are provided, the bias term(s) will not be included in the
 optimization.
 }
 \details{
-The objective function \eqn{J_w(D)} that is optimized is defined as
+The objective function \eqn{J(w)} that is optimized is defined as
 
-\deqn{J_w(D) = \sum_{i=1}^{n}{\ln P(y_i|x_i; w)}
+\deqn{J(w) = \sum_{i=1}^{n}{\ln P(y_i|x_i; w)}
 - \sum_{k=1}^{m}{\frac{(w_k - \mu_k)^2}{2\sigma_k^2}}}
 
 The first term in this equation calculates the natural logarithm of the
@@ -110,16 +124,17 @@ is a normalization term defined as
 where \eqn{\mathcal{Y}(x_i)} is the set of observed surface realizations of
 input \eqn{x_i}.
 
-The second term of the equation for calculating log likelihood is the optional
-bias term, where \eqn{w_k} is the weight of constraint \eqn{k}, and
+The second term of the equation for calculating the objective function is
+the optional bias term, where \eqn{w_k} is the weight of constraint \eqn{k}, and
 \eqn{\mu_k} and \eqn{\sigma_k} parameterize a normal distribution that
 serves as a prior for the value of \eqn{w_k}. \eqn{\mu_k} specifies the mean
-of this distribution (the expected weight of constraint \eqn{k} before seeing
-any data) and \eqn{sigma_k} reflects certainty in this value: lower values of
-\eqn{\sigma_k} penalize deviations from \eqn{\mu_k} more severely, and thus
-require greater amounts of data to move \eqn{w_k} away from \eqn{mu_k}. While
-increasing \eqn{\sigma_k} will improve the fit to the training data, it may
-result in overfitting, particularly for small datasets.
+of this distribution (the expected weight of constraint \eqn{k} before
+seeing any data) and \eqn{sigma_k} reflects certainty in this value: lower
+values of \eqn{\sigma_k} penalize deviations from \eqn{\mu_k} more severely,
+and thus require greater amounts of data to move \eqn{w_k} away from
+\eqn{mu_k}. While increasing \eqn{\sigma_k} will improve the fit to the
+training data, it may result in overfitting, particularly for small data
+sets.
 
 A general bias with \eqn{\mu_k = 0} for all \eqn{k} is commonly used as a
 form of simple regularization to prevent overfitting (see, e.g., Goldwater
@@ -141,31 +156,32 @@ done without the bias term.
 }
 \examples{
   # Get paths to toy data and bias files.
-  data_file <- system.file(
-      "extdata", "sample_data_file.txt", package = "maxent.ot"
+  df_file <- system.file(
+      "extdata", "sample_data_frame.csv", package = "maxent.ot"
   )
   bias_file <- system.file(
-      "extdata", "sample_bias_file.txt", package = "maxent.ot"
+       "extdata", "sample_bias_data_frame.csv", package = "maxent.ot"
   )
-
   # Fit weights to data with no biases
-  optimize_weights(data_file)
+  tableaux_df <- read.csv(df_file)
+  optimize_weights(tableaux_df)
 
   # Fit weights with biases specified in file
-  optimize_weights(data_file, bias_file)
+  bias_df <- read.csv(bias_file)
+  optimize_weights(tableaux_df, bias_file)
 
   # Fit weights with biases specified in vector form
   optimize_weights(
-      data_file, mu_vector = c(1, 2), sigma_vector = c(100, 200)
+      tableaux_df, mu_vector = c(1, 2), sigma_vector = c(100, 200)
   )
 
   # Fit weights with biases specified as scalars
-  optimize_weights(data_file, mu_scalar = 0, sigma_scalar = 1000)
+  optimize_weights(tableaux_df, mu_scalar = 0, sigma_scalar = 1000)
 
   # Fit weights with mix of scalar and vector biases
-  optimize_weights(data_file, mu_vector = c(1, 2), sigma_scalar = 1000)
+  optimize_weights(tableaux_df, mu_vector = c(1, 2), sigma_scalar = 1000)
 
   # Pass additional arguments to optim function
-  optimize_weights(data_file, control_params = list(maxit = 500))
+  optimize_weights(tableaux_df, control_params = list(maxit = 500))
 
 }
