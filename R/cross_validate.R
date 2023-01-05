@@ -19,16 +19,20 @@
 #'     partitions.
 #' }
 #'
-#' @param input The path to the input data file or a dataframe/tibble.
-#'   This should contain more OT tableaux consisting of
-#'   mappings between underlying and surface forms with observed frequency and
-#'   violation profiles. Constraint violations must be numeric.
+#' @param input The input data frame/data table/tibble. This should contain one
+#'   or more OT tableaux consisting of mappings between underlying and surface
+#'   forms with observed frequency and violation profiles. Constraint violations
+#'   must be numeric.
 #'
-#'   If this is a file path, the file should be in OTSoft format.
-#'   For examples of OTSoft format, see inst/extdata/sample_data_file.txt.
-#'   For an example of the dataframe format, see inst/extdata/sample_data_frame.txt.
-#'   You can read the latter file into a dataframe using read.csv or into a tibble
+#'   For an example of the data frame format, see inst/extdata/sample_data_frame.csv.
+#'   You can read this file into a data frame using read.csv or into a tibble
 #'   using dplyr::read_csv.
+#'
+#'   This function also supports the legacy OTSoft file format. You can use this
+#'   format by passing in a file path string to the OTSoft file rather than a
+#'   data frame.
+#'
+#'   For examples of OTSoft format, see inst/extdata/sample_data_file.txt.
 #' @param k The number of folds to use in cross-validation.
 #' @param mu_values A vector or list of mu bias parameters to use in
 #'   cross-validation. Parameters may either be scalars, in which case the
@@ -50,8 +54,6 @@
 #'   which the cross-validation results will be saved. If the file exists it
 #'   will be overwritten. If this argument isn't provided, the output will not
 #'   be written to a file.
-#' @param in_sep (optional) The delimiter used in the input file.
-#'   Defaults to tabs.
 #' @param out_sep (optional) The delimiter used in the output files.
 #'   Defaults to tabs.
 #' @param encoding (optional) The character encoding of the input file. Defaults
@@ -74,16 +76,17 @@
 #'   data_file <- system.file(
 #'       "extdata", "amp_demo_grammar.csv", package = "maxent.ot"
 #'   )
+#'   tableaux_df <- read.csv(data_file)
 #'
 #'   # Define mu and sigma parameters to try
 #'   mus <- c(0, 1)
 #'   sigmas <- c(0.01, 0.1)
 #'
-#'   # Do 10-fold cross-validation
-#'   cross_validate(data_file, 10, mus, sigmas, in_sep=',')
+#'   # Do 2-fold cross-validation
+#'   cross_validate(tableaux_df, 2, mus, sigmas)
 #'
-#'   # Do 10-fold cross-validation with grid search of parameters
-#'   cross_validate(data_file, 10, mus, sigmas, grid_search=TRUE, in_sep=',')
+#'   # Do 2-fold cross-validation with grid search of parameters
+#'   cross_validate(tableaux_df, 2, mus, sigmas, grid_search=TRUE)
 #'
 #'   # You can also use vectors/lists for some/all of the bias parameters to set
 #'   # separate biases for each constraint
@@ -96,15 +99,15 @@
 #'     c(0.1, 0.1, 0.1, 0.1, 0.1, 0.01, 0.01, 0.01, 0.01, 0.01)
 #'   )
 #'
-#'   cross_validate(data_file, 10, mus_v, sigmas_v, in_sep=',')
+#'   cross_validate(tableaux_df, 2, mus_v, sigmas_v)
 #'
 #'   # Save cross-validation results to a file
 #'   tmp_output <- tempfile()
-#'   cross_validate(data_file, 10, mus, sigmas, in_sep=',', output_path=tmp_output)
+#'   cross_validate(tableaux_df, 2, mus, sigmas, output_path=tmp_output)
 #' @export
 cross_validate <- function(input, k, mu_values, sigma_values,
                            grid_search = FALSE, output_path = NA,
-                           in_sep = '\t', out_sep = ',', control_params = NA,
+                           out_sep = ',', control_params = NA,
                            upper_bound = DEFAULT_UPPER_BOUND,
                            encoding = 'unknown', model_name = NA) {
   if (is.data.frame(input)) {
@@ -114,7 +117,7 @@ cross_validate <- function(input, k, mu_values, sigma_values,
     }
   }
   processed_input <- load_input(
-    input, sep = in_sep, encoding = encoding, model_name = model_name
+    input, encoding = encoding, model_name = model_name
   )
   data <- processed_input$data
   model_name <- processed_input$model_name
@@ -125,7 +128,7 @@ cross_validate <- function(input, k, mu_values, sigma_values,
     for (mu in mu_values) {
       for (sigma in sigma_values) {
         result_row <- do_validation(
-          k, data, partitions, mu[[1]], sigma[[1]], model_name, in_sep, control_params,
+          k, data, partitions, mu[[1]], sigma[[1]], model_name, control_params,
           upper_bound
         )
         result_df <- rbind(result_df, result_row)
@@ -139,7 +142,7 @@ cross_validate <- function(input, k, mu_values, sigma_values,
 
     for (i in (1:length(mu_values))) {
       result_row <- do_validation(
-        k, data, partitions, mu_values[[i]], sigma_values[[i]], model_name, in_sep,
+        k, data, partitions, mu_values[[i]], sigma_values[[i]], model_name,
         control_params, upper_bound
       )
       result_df <- rbind(result_df, result_row)
@@ -154,7 +157,7 @@ cross_validate <- function(input, k, mu_values, sigma_values,
   return(result_df)
 }
 
-do_validation <- function(k, data, partitions, mu, sigma, model_name, in_sep,
+do_validation <- function(k, data, partitions, mu, sigma, model_name,
                           control_params, upper_bound) {
   # Performs cross-validation given a particular value of mu and sigma
   if (length(mu) > 1) {
@@ -193,7 +196,7 @@ do_validation <- function(k, data, partitions, mu, sigma, model_name, in_sep,
     m <- optimize_weights(
       training_tableau, mu_scalar = mu_scalar, mu_vector = mu_vector,
       sigma_scalar = sigma_scalar, sigma_vector = sigma_vector,
-      in_sep = in_sep, control_params = control_params, upper_bound = upper_bound
+      control_params = control_params, upper_bound = upper_bound
     )
     predictions <- predict_probabilities(test_tableau, m$weights)
     log_liks <- c(predictions$loglik, log_liks)

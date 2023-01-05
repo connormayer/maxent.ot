@@ -63,20 +63,34 @@ DEFAULT_UPPER_BOUND <- 1000
 #' combination of the scalar/vector mu/sigma parameters), optimization will be
 #' done without the bias term.
 #'
-#' @param input The path to the input data file or a data frame/data table/tibble.
-#'   This should contain more OT tableaux consisting of
-#'   mappings between underlying and surface forms with observed frequency and
-#'   violation profiles. Constraint violations must be numeric.
-#'   If this is a file path, the file should be in OTSoft format.
-#'   For examples of OTSoft format, see inst/extdata/sample_data_file.txt.
-#'   For an example of the data frame format, see inst/extdata/sample_data_frame.txt.
-#'   You can read the latter file into a data frame using read.csv or into a tibble
+#' @param input The input data frame/data table/tibble. This should contain one
+#'   or more OT tableaux consisting of mappings between underlying and surface
+#'   forms with observed frequency and violation profiles. Constraint violations
+#'   must be numeric.
+#'
+#'   For an example of the data frame format, see inst/extdata/sample_data_frame.csv.
+#'   You can read this file into a data frame using read.csv or into a tibble
 #'   using dplyr::read_csv.
-#' @param bias_file (optional) The path to the file containing mus and sigma
-#'   for constraint biases. If this argument is provided, the scalar and vector
-#'   mu and sigma arguments will be ignored. Each row in this file should be the
-#'   name of the constraint, followed by the mu, followed by the sigma
-#'   (separated by whatever the relevant separator is; default is tabs).
+#'
+#'   This function also supports the legacy OTSoft file format. You can use this
+#'   format by passing in a file path string to the OTSoft file rather than a
+#'   data frame.
+#'
+#'   For examples of OTSoft format, see inst/extdata/sample_data_file.txt.
+#' @param bias_input (optional)
+#'   A data frame/data table/tibble containing the bias mus and sigmas. Each row
+#'   corresponds to an individual constraint, and consists of three columns:
+#'   `Constraint`, which contains the constraint name, `Mu`, which contains the
+#'   mu, and `Sigma`, which contains the sigma. If this argument is provided,
+#'   the scalar and vector mu and sigma arguments will be ignored.
+
+#'   Like the `input` argument, this function also supports the legacy OTSoft
+#'   file format for this argument. In this case, `bias_input` should be a path
+#'   to the bias parameters in OTSoft format.
+#'
+#'   For examples of OTSoft bias format, see inst/extdata/sample_bias_file_otsoft.txt.
+#'   Each row in this file should be the name of the constraint, followed by the
+#'   mu, followed by the sigma (separated by tabs).
 #' @param mu_scalar (optional) A single scalar value that will serve as the mu
 #'   for each constraint in the bias term. Constraint weights will also be
 #'   initialized to this value. This value will not be used if either
@@ -92,8 +106,6 @@ DEFAULT_UPPER_BOUND <- 1000
 #'   bias term. The length of this vector must equal the number of constraints
 #'   in the input file. If `bias_file` is provided, this argument will be ignored.
 #'   If this argument is provided, `sigma_scalar` will be ignored.
-#' @param in_sep (optional) The delimiter used in the input files. Defaults to
-#'   tabs. If a data frame is passed in, this argument is ignored.
 #' @param control_params (optional) A named list of control parameters that
 #'   will be passed to the \link[stats]{optim} function. See the documentation
 #'   of that function for details. Note that some parameter settings may
@@ -104,9 +116,9 @@ DEFAULT_UPPER_BOUND <- 1000
 #'   Defaults to 1000.
 #' @param encoding (optional) The character encoding of the input file. Defaults
 #'  to "unknown".
-#' @param model_name (optional) A name for the model. If not provided, the file
-#'   name will be used if the input is a file path. If the input is a data frame
-#'   the name of the variable will be used.
+#' @param model_name (optional) A name for the model. If not provided, the name
+#'   of the variable will be used if the input is a data frame. If the input
+#'   is a path to an OTSoft file, the filename will be used.
 #' @return An object with the following named attributes:
 #' \itemize{
 #'         \item `weights`: A named list of the optimal constraint weights
@@ -117,45 +129,40 @@ DEFAULT_UPPER_BOUND <- 1000
 #' }
 #' @examples
 #'   # Get paths to toy data and bias files.
-#'   data_file <- system.file(
-#'       "extdata", "sample_data_file.txt", package = "maxent.ot"
-#'   )
-#'   bias_file <- system.file(
-#'       "extdata", "sample_bias_file.txt", package = "maxent.ot"
-#'   )
 #'   df_file <- system.file(
 #'       "extdata", "sample_data_frame.csv", package = "maxent.ot"
 #'   )
-#'
-#'   # Fit weights to data file with no biases
-#'   optimize_weights(data_file)
-#'
-#'   # Fit weights to data frame with no biases
-#'   df <- read.csv(df_file)
-#'   optimize_weights(df)
+#'   bias_file <- system.file(
+#'        "extdata", "sample_bias_data_frame.csv", package = "maxent.ot"
+#'   )
+
+#'   # Fit weights to data with no biases
+#'   tableaux_df <- read.csv(df_file)
+#'   optimize_weights(tableaux_df)
 #'
 #'   # Fit weights with biases specified in file
-#'   optimize_weights(data_file, bias_file)
+#'   bias_df <- read.csv(bias_file)
+#'   optimize_weights(tableaux_df, bias_file)
 #'
 #'   # Fit weights with biases specified in vector form
 #'   optimize_weights(
-#'       data_file, mu_vector = c(1, 2), sigma_vector = c(100, 200)
+#'       tableaux_df, mu_vector = c(1, 2), sigma_vector = c(100, 200)
 #'   )
 #'
 #'   # Fit weights with biases specified as scalars
-#'   optimize_weights(data_file, mu_scalar = 0, sigma_scalar = 1000)
+#'   optimize_weights(tableaux_df, mu_scalar = 0, sigma_scalar = 1000)
 #'
 #'   # Fit weights with mix of scalar and vector biases
-#'   optimize_weights(data_file, mu_vector = c(1, 2), sigma_scalar = 1000)
+#'   optimize_weights(tableaux_df, mu_vector = c(1, 2), sigma_scalar = 1000)
 #'
 #'   # Pass additional arguments to optim function
-#'   optimize_weights(data_file, control_params = list(maxit = 500))
+#'   optimize_weights(tableaux_df, control_params = list(maxit = 500))
 #'
 #' @export
-optimize_weights <- function(input, bias_file = NA,
+optimize_weights <- function(input, bias_input = NA,
                              mu_scalar = NA, mu_vector = NA,
                              sigma_scalar = NA, sigma_vector = NA,
-                             in_sep = '\t', control_params = NA,
+                            control_params = NA,
                              upper_bound = DEFAULT_UPPER_BOUND,
                              encoding = 'unknown', model_name = NA) {
   if (is.data.frame(input)) {
@@ -165,7 +172,7 @@ optimize_weights <- function(input, bias_file = NA,
     }
   }
   processed_input <- load_input(
-    input, sep = in_sep, encoding = encoding, model_name = model_name
+    input, encoding = encoding, model_name = model_name
   )
   long_names <- processed_input$long_names
   data <- processed_input$data
@@ -174,13 +181,13 @@ optimize_weights <- function(input, bias_file = NA,
 
   num_constraints <- length(long_names)
   bias_params <- process_bias_arguments(
-    bias_file, mu_scalar, mu_vector, sigma_scalar, sigma_vector,
+    long_names, bias_input, mu_scalar, mu_vector, sigma_scalar, sigma_vector,
     num_constraints
   )
 
   # If mus aren't provided, initialize all weights to 0
   if (any_not_na(bias_params)) {
-    constraint_weights <- bias_params$mus
+    constraint_weights <- bias_params$Mu
   } else {
     constraint_weights <- rep(DEFAULT_WEIGHT, length(long_names))
   }
@@ -388,8 +395,8 @@ expectation_mat <- function(constraint_weights,
 
 # Calculate gradients for bias term
 calculate_grad_bias <- function(bias_params, constraint_weights) {
-  top <- constraint_weights - bias_params$mus
-  bottom <- bias_params$sigmas^2
+  top <- constraint_weights - bias_params$Mu
+  bottom <- bias_params$Sigma^2
   grad_bias <- top / bottom
 
   # Returns a n-length vector, where n=num of constraints
@@ -403,8 +410,8 @@ normalize_row <- function(row, m, col_num) {
 
 # Calculates the bias term in the optimized function.
 calculate_bias <- function(bias_params, constraint_weights) {
-  top <- (constraint_weights - bias_params$mus)^2
-  bottom <- 2 * bias_params$sigmas^2
+  top <- (constraint_weights - bias_params$Mu)^2
+  bottom <- 2 * bias_params$Sigma^2
   bias <- sum(top / bottom)
 
   return(bias)
@@ -417,11 +424,11 @@ any_not_na <- function(...) {
 }
 
 # Function to load and validate bias parameters.
-process_bias_arguments <- function(bias_file = NA,
+process_bias_arguments <- function(names, bias_input = NA,
                                    mu_scalar = NA, mu_vector = NA,
                                    sigma_scalar = NA, sigma_vector=NA,
-                                   num_constraints = NA, sep = '\t') {
-  if (any_not_na(bias_file)) {
+                                   num_constraints = NA) {
+  if (any_not_na(bias_input)) {
     # Read bias parameters from provided file location
     if (any_not_na(mu_scalar, mu_vector, sigma_vector, sigma_vector)) {
       warning(
@@ -429,7 +436,12 @@ process_bias_arguments <- function(bias_file = NA,
         "Ignoring scalars/vectors and using parameters from file"
       )
     }
-    bias_params <- load_bias_file_otsoft(bias_file, sep = sep)
+    if (is.data.frame(bias_input)) {
+      bias_params <- bias_input
+    }
+    else {
+      bias_params <- load_bias_file_otsoft(bias_input)
+    }
   } else if (any_not_na(mu_scalar, mu_vector) &
       any_not_na(sigma_scalar,sigma_vector)) {
     # Set bias parameters from provided scalars/vectors
@@ -479,7 +491,9 @@ process_bias_arguments <- function(bias_file = NA,
     else {
       bias_params <- cbind(bias_params, rep(sigma_scalar, num_constraints))
     }
-    names(bias_params) <- c("mus", "sigmas")
+    bias_params <- cbind(names, bias_params)
+    names(bias_params) <- c("Constraint", "Mu", "Sigma")
+
   } else if (any_not_na(mu_scalar, mu_vector, sigma_scalar, sigma_vector)) {
     stop("You must specify both constraint mus and sigmas, or neither.")
   } else {
@@ -489,10 +503,10 @@ process_bias_arguments <- function(bias_file = NA,
 
   # Check that bias params fall within acceptable ranges
   if (any_not_na(bias_params)) {
-    if (!all(bias_params$mus >= 0)) {
+    if (!all(bias_params$Mu >= 0)) {
       stop("All constraint mus must be >= 0")
     }
-    if (!all(bias_params$sigmas > 0)) {
+    if (!all(bias_params$Sigma > 0)) {
       stop("All constraint sigmas must be > 0")
     }
   }
