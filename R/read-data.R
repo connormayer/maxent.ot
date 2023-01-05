@@ -10,7 +10,10 @@
 #'
 #'   The file should be in OTSoft format.
 #'   For examples of OTSoft format, see inst/extdata/sample_data_file.txt.
-#'
+#' @param output_path (optional) A string specifying the path to a file to
+#'   which the data frame will be saved in CSV format. If the file exists it
+#'   will be overwritten. If this argument isn't provided, the output will not
+#'   be written to a file.
 #' @param encoding (optional) The character encoding of the input file. Defaults
 #'  to "unknown".
 #' @examples
@@ -20,10 +23,13 @@
 #'   )
 #'   df_output <- otsoft_tableaux_to_df(otsoft_file)
 #' @export
-otsoft_tableaux_to_df <- function(input, encoding = 'unknown') {
+otsoft_tableaux_to_df <- function(input, output_path=NA, encoding='unknown') {
   results <- load_input(input, encoding)
   output_df <- data.frame(results$data)
   output_df[output_df == ''] <- 0
+  if (!is.na(output_path)) {
+    write.csv(output_df, file=output_path, row.names=FALSE, quote=FALSE)
+  }
   return(output_df)
 }
 
@@ -39,17 +45,26 @@ otsoft_tableaux_to_df <- function(input, encoding = 'unknown') {
 #'
 #'   The file should be in OTSoft format.
 #'   For examples of OTSoft format, see inst/extdata/sample_data_file.txt.
-#'
-#' @param encoding (optional) The character encoding of the input file. Defaults
-#'  to "unknown".
+#' @param output_path (optional) A string specifying the path to a file to
+#'   which the data frame will be saved in CSV format. If the file exists it
+#'   will be overwritten. If this argument isn't provided, the output will not
+#'   be written to a file.
 #' @examples
 #'   # Convert OTSoft file to data frame format
 #'   otsoft_file <- system.file(
 #'       "extdata", "sample_data_file.txt", package = "maxent.ot"
 #'   )
 #'   df_output <- otsoft_tableaux_to_df(otsoft_file)
+#'
+#'   # Save data frame to a file
+#'   tmp_output <- tempfile()
+#'   otsoft_tableaux_to_df(otsoft_file, tmp_output)
 #' @export
-otsoft_bias_to_df <- function(input) {
+otsoft_bias_to_df <- function(input, output_path=NA) {
+  bias_df <- load_bias_file_otsoft(input)
+  if (!is.na(output_path)) {
+    write.csv(bias_df, file=output_path, row.names=FALSE, quote=FALSE)
+  }
   return(load_bias_file_otsoft(input))
 }
 
