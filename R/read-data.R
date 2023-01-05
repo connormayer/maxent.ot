@@ -19,9 +19,13 @@
 #' @examples
 #'   # Convert OTSoft file to data frame format
 #'   otsoft_file <- system.file(
-#'       "extdata", "sample_data_file.txt", package = "maxent.ot"
+#'       "extdata", "sample_data_file_otsoft.txt", package = "maxent.ot"
 #'   )
 #'   df_output <- otsoft_tableaux_to_df(otsoft_file)
+#'
+#'   # Save data frame to a file
+#'   tmp_output <- tempfile()
+#'   otsoft_tableaux_to_df(otsoft_file, tmp_output)
 #' @export
 otsoft_tableaux_to_df <- function(input, output_path=NA, encoding='unknown') {
   results <- load_input(input, encoding)
@@ -38,27 +42,27 @@ otsoft_tableaux_to_df <- function(input, output_path=NA, encoding='unknown') {
 #' Loads an OTSoft bias file and converts it to the data frame format used by
 #' the maxent.ot functions.
 #'
-#' @param test_input The path to the input data file.
-#'   This should contain more OT tableaux consisting of
-#'   mappings between underlying and surface forms with observed frequency and
-#'   violation profiles. Constraint violations must be numeric.
+#' @param test_input The path to the input bias file. This should contain more
+#' OT tableaux consisting of mappings between underlying and surface forms with
+#' observed frequency and violation profiles. Constraint violations must be
+#' numeric.
 #'
-#'   The file should be in OTSoft format.
-#'   For examples of OTSoft format, see inst/extdata/sample_data_file.txt.
+#' The file should be in OTSoft format. For examples of OTSoft format, see
+#' inst/extdata/sample_bias_file_otsoft.txt.
 #' @param output_path (optional) A string specifying the path to a file to
 #'   which the data frame will be saved in CSV format. If the file exists it
 #'   will be overwritten. If this argument isn't provided, the output will not
 #'   be written to a file.
 #' @examples
-#'   # Convert OTSoft file to data frame format
+#'   # Convert OTSoft bias file to data frame format
 #'   otsoft_file <- system.file(
-#'       "extdata", "sample_data_file.txt", package = "maxent.ot"
+#'       "extdata", "sample_bias_file_otsoft.txt", package = "maxent.ot"
 #'   )
-#'   df_output <- otsoft_tableaux_to_df(otsoft_file)
+#'   df_output <- otsoft_bias_to_df(otsoft_file)
 #'
 #'   # Save data frame to a file
 #'   tmp_output <- tempfile()
-#'   otsoft_tableaux_to_df(otsoft_file, tmp_output)
+#'   otsoft_bias_to_df(otsoft_file, tmp_output)
 #' @export
 otsoft_bias_to_df <- function(input, output_path=NA) {
   bias_df <- load_bias_file_otsoft(input)
