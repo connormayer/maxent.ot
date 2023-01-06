@@ -76,7 +76,8 @@ load_input <- function(input, encoding = 'unknown', model_name=NA) {
   if (is.data.frame(input)) {
     long_names <- colnames(input)[4:ncol(input)]
     data <- data.table::data.table(input)
-    data[,1] <- fill_the_blanks(data[,1], missing=NA)
+    data[is.na(data)] <- 0
+    data[,1] <- fill_the_blanks(data[,1])
     n <- sum(data[,3], na.rm = TRUE)
   } else {
     # Else: default -- input_file is a .txt file with the ot-soft format
