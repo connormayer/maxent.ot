@@ -1,0 +1,246 @@
+---
+title: "TryMaxEntInR"
+author: "Canaan"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(tidylog)
+library(readxl)
+library(rstan)
+
+library(brms)
+setwd("G:/My Drive/MIT/Research/FussingWithNegativeWeights")
+
+```
+
+
+
+
+function for padding tableaux out to max candidate number
+
+```{r}
+
+pad_df <- function(df, max_num_rows){ # adds extra rows filled with zero violations for sub-maximal constraint matrixes - that is, for tableaux   that have fewer than the maximum number of columns
+  padded_df <- df
+  num_candidates <- ncol(df)
+  
+
+  if (nrow(df) < max_num_rows){
+    num_rows_to_be_created <- max_num_rows - nrow(df)
+    constraint_names <- colnames(df)
+    #print(constraint_names)
+    #print("raw df is ")
+    #glimpse(df)
+    #print('making more rows! ')
+    
+    #print(num_rows_to_be_created)
+    m = matrix(0,num_rows_to_be_created,num_candidates)
+    #print(m)
+    #print('is matrix')
+    d <- as.data.frame(m)
+    colnames(d) <- constraint_names
+    #glimpse(d)
+    #print('is df')
+    
+    #print("trying to bind")
+    padded_df <- rbind(padded_df, d)
+    
+  }
+  
+  return (padded_df)
+}
+
+```
+
+
+function to convert otsoft format to the right format for stan
+
+```{r}
+
+  
+lengthen_otsoft <- function(dat){
+  list_of_URs <- dat %>% 
+    select(UR) %>% 
+    distinct()
+  
+  num_levels_of_subject <- dat %>% 
+    select(Subject) %>% 
+    n_distinct()
+  
+  num_levels_of_item <- dat %>% 
+    select(Item) %>% 
+    n_distinct()
+  
+  #num_datapoints <-sum(dat$FREQ) weird error here, returning N as the length of the number of tableau at the end
+  #num_datapoints <- length()
+  
+  num_tableaux <- dat %>% 
+    select(TableauIndex) %>% 
+    distinct()
+  list_of_URs <- list_of_URs$UR
+  list_of_tableau_indexes <- num_tableaux$TableauIndex
+  
+  
+  print(paste0("list of URs is ", list_of_tableau_indexes))
+  print(paste0("list of URs is ", list_of_URs))
+
+  
+  
+  num_constraints <- dat %>% 
+    select(-TableauIndex,-Subject,-Item,-UR,-SR,-FREQ) %>% 
+    ncol()
+  
+  #print(paste0("num constraints is ",num_constraints))
+  
+  
+  max_num_candidates <- dat %>% 
+    select(UR,SR) %>% 
+    group_by(UR) %>% 
+    summarise(num_cands = n_distinct(SR)) %>% 
+  ungroup() %>% 
+  select(num_cands) %>% 
+  max()
+  
+  #print(paste0("max number of candidates for a tableau is ", max_num_candidates))
+  
+  
+  
+  #list_of_URs <- dat %>% select(UR) %>% distinct()
+  big_list_of_candidates_counts_in_each_tableau <- c()
+  big_list_of_constraint_viol_matrices <- c() # this is a stack of constraint violation matrixes, padded out to the max
+  big_list_of_winner_candidate_indexes <- c() # this is Y, the list of winning candidate IDs (just the linear number in the tableau) coming out of each individual tableau competition
+  big_list_of_candidate_at_index_winner <- c() # this is just for a sanity check
+  big_list_of_subject_attributions_for_each_candidate <- c()
+  big_list_of_item_attributions_for_each_candidate <- c()
+#max_num_candidates <- 4
+  for (tableau_index in list_of_tableau_indexes){
+      #local_ur <- list_of_URs[[i]]
+      #print(ur)
+      
+      local_tableau <- dat %>%
+       ungroup() %>% 
+        filter(TableauIndex == tableau_index)
+      
+      #list_of_winners <- local_tableau$FREQ
+      #print(list_of_winners)
+      
+      list_of_candidates <- local_tableau$SR
+      num_candidates_in_this_tableau <- length(list_of_candidates)
+      #print(paste0("num candidates in this tablau is ",num_candidates_in_this_tableau))
+      list_of_times_that_candidate_wins <- local_tableau$FREQ
+      subject_for_this_tableau <- unique(local_tableau$Subject)
+      item_for_this_tableau <- unique(local_tableau$Item)
+      
+      #print(local_tableau)
+      for (candidate_index in 1:length(list_of_candidates)){
+        candidate <- list_of_candidates[[candidate_index]] # this is the SR
+        num_times_it_wins <- list_of_times_that_candidate_wins[[candidate_index]] # this is its frequency
+        constraint_violation_matrix <- local_tableau %>%
+          select(-FREQ,-UR,-SR,-Item,-Subject,-TableauIndex)
+        padded_df <- pad_df(constraint_violation_matrix, max_num_candidates)
+        for (i in 1:num_times_it_wins){
+          big_list_of_constraint_viol_matrices[[length(big_list_of_constraint_viol_matrices)+1]] <- as.matrix(padded_df)
+          #big_list_of_winner_candidate_indexes[[length(big_list_of_winner_candidate_indexes)+1]] <- candidate_index
+          big_list_of_winner_candidate_indexes<- append(big_list_of_winner_candidate_indexes,candidate_index)
+          
+          big_list_of_candidate_at_index_winner[[length(big_list_of_candidate_at_index_winner)+1]]<- candidate
+          big_list_of_candidates_counts_in_each_tableau<- append(big_list_of_candidates_counts_in_each_tableau,num_candidates_in_this_tableau)
+          big_list_of_subject_attributions_for_each_candidate[[length(big_list_of_subject_attributions_for_each_candidate)+1]] <- subject_for_this_tableau
+          big_list_of_item_attributions_for_each_candidate[[length(big_list_of_item_attributions_for_each_candidate)+1]] <- item_for_this_tableau
+          
+        }
+  
+  
+
+
+    }
+
+  }
+  num_datapoints <- length(big_list_of_candidates_counts_in_each_tableau)
+  print(big_list_of_candidates_counts_in_each_tableau)
+  print(length(big_list_of_candidates_counts_in_each_tableau))
+  #print(class(big_list_of_winner_candidate_indexes))
+  #print(length(big_list_of_winner_candidate_indexes))
+  return(list(J = big_list_of_candidates_counts_in_each_tableau, # this is J
+              N = num_datapoints, # this is N
+              max_num_candidates = max_num_candidates,
+              K = num_constraints, # this is K
+              Y = big_list_of_winner_candidate_indexes, # this is Y
+              violations = big_list_of_constraint_viol_matrices, # this is violations
+              L_subjects = num_levels_of_subject, # this is L_subject
+              L_items = num_levels_of_item, # this is L_item
+              ll_subjects = big_list_of_subject_attributions_for_each_candidate,
+              ll_items = big_list_of_item_attributions_for_each_candidate
+              ))  
+    
+  }
+  
+  
+  
+
+
+
+```
+
+
+
+```{r}
+
+dat <- read_excel("test_in.xlsx", sheet = "otsoft format")
+s <- NULL
+s <- lengthen_otsoft(dat)
+constraint_mus <- c(0,0) 
+constraint_sigmas <- c(1,1)
+is_constraint_hierarchical_by_subjects <- c(0,0)
+is_constraint_hierarchical_by_items <- c(0,0)
+
+
+s$constraint_mus <-  as.integer(constraint_mus)
+s$constraint_sigmas <- as.integer(constraint_sigmas)
+s$is_constraint_hierarchical_by_subjects <- as.integer(is_constraint_hierarchical_by_subjects)
+s$is_constraint_hierarchical_by_items <- as.integer(is_constraint_hierarchical_by_items)
+s$run_estimation <- 1
+t <- s$ll_items
+s$ll_items <- as.numeric(t)
+s$ll_subjects <- as.numeric(s$ll_subjects)
+
+
+#with(s, stan(file="MultinomialModel_HierarchicalItemsAndSubjects.stan", iter=4000, chains=4, seed=3))
+
+p1 <- stan(file="MultinomialModel_HierarchicalItemsAndSubjects.stan", data=s, iter=4000, chains=4, seed=3, thin = 3, cores = 4,control = list(adapt_delta = 0.99, max_treedepth = 15))
+
+
+summary(p1)
+plot(p1)
+
+outcomes <- s$Y
+
+stan_data_vars = names(s)
+stan_data_vars = names(stan_data)
+for (parameter_name in stan_data_vars) {
+    assign(parameter_name, stan_data[[parameter_name]])
+}
+stan_rdump(stan_data_vars, file="c:/tmp/stan_data.data.R")
+
+
+launch_shinystan(p1)
+
+```
+
+nonhierarchical
+
+```{r}
+
+p1 <- stan(file="MultinomialModel_NoHierarchical.stan", data=s, iter=4000, chains=4, seed=3, thin = 3, cores = 4,control = list(adapt_delta = 0.99, max_treedepth = 15))
+
+
+summary(p1)
+launch_shinystan(p1)
+
+```
+
