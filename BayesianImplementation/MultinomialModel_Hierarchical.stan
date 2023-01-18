@@ -55,8 +55,8 @@ transformed parameters {
 
 
 model {
-mu ~ normal(constraint_mus,sigma); // prior on mean of each mu
-sigma ~ normal(constraint_sigmas,1); // prior on sigma for that mu
+mu ~ normal(constraint_mus,constraint_sigmas); // prior on mean of each mu
+//sigma ~ normal(constraint_sigmas,1); // prior on sigma for that mu
 to_vector(beta_params) ~ normal(mu,1); // this is the variance on how much indidivual random offets can be from the mu
 
 for (i in 1:N) { // then for each datapoint

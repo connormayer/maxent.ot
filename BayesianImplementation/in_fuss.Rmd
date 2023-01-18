@@ -14,7 +14,7 @@ library(readxl)
 library(rstan)
 
 library(brms)
-setwd("G:/My Drive/MIT/Research/FussingWithNegativeWeights")
+setwd("G:/My Drive/MIT/Research/maxent.ot/BayesianImplementation")
 
 ```
 
@@ -196,8 +196,8 @@ s <- NULL
 s <- lengthen_otsoft(dat)
 constraint_mus <- c(0,0) 
 constraint_sigmas <- c(1,1)
-is_constraint_hierarchical_by_subjects <- c(0,0)
-is_constraint_hierarchical_by_items <- c(0,0)
+is_constraint_hierarchical_by_subjects <- c(1,1)
+is_constraint_hierarchical_by_items <- c(1,1)
 
 
 s$constraint_mus <-  as.integer(constraint_mus)
@@ -212,12 +212,14 @@ s$ll_subjects <- as.numeric(s$ll_subjects)
 
 #with(s, stan(file="MultinomialModel_HierarchicalItemsAndSubjects.stan", iter=4000, chains=4, seed=3))
 
-p1 <- stan(file="MultinomialModel_HierarchicalItemsAndSubjects.stan", data=s, iter=4000, chains=4, seed=3, thin = 3, cores = 4,control = list(adapt_delta = 0.99, max_treedepth = 15))
+p1 <- stan(file="MultinomialModel_HierarchicalItemsAndSubjects.stan", data=s, iter=4000, chains=4, seed=3, thin = 1, cores = 4,control = list(adapt_delta = 0.8, max_treedepth = 10))
 
 
 summary(p1)
 plot(p1)
 
+library(priorsense)
+powerscale_sensitivity(p1)
 outcomes <- s$Y
 
 stan_data_vars = names(s)
@@ -232,15 +234,5 @@ launch_shinystan(p1)
 
 ```
 
-nonhierarchical
 
-```{r}
-
-p1 <- stan(file="MultinomialModel_NoHierarchical.stan", data=s, iter=4000, chains=4, seed=3, thin = 3, cores = 4,control = list(adapt_delta = 0.99, max_treedepth = 15))
-
-
-summary(p1)
-launch_shinystan(p1)
-
-```
 

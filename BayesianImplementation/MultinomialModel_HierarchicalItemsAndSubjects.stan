@@ -42,8 +42,8 @@ transformed data {
 
 
 parameters {
-  array[K] real mu; // the vector of constraint weights, coefficients - group level
-  array[K] real<lower=0> sigma; // the variance on these guys
+  array[K] real<lower=0>  mu; // the vector of constraint weights, coefficients - group level
+  //array[K] real<lower=0> sigma; // the variance on these guys
   matrix[L_items, num_constraints_hierarchical_on_items] beta_params_items; // a vector of random-effect-level coefficients that are drawn from real_mu, one for each leve lof the random effect, for only those constraints that are hierarchical. these are the random-effect-level offsets // means drawn from the group-level real mu
   matrix[L_subjects, num_constraints_hierarchical_on_subjects] beta_params_subjects; // a vector of random-effect-level coefficients that are drawn from real_mu, one for each leve lof the random effect, for only those constraints that are hierarchical. these are the random-effect-level offsets // means drawn from the group-level real mu
 
