@@ -16,15 +16,14 @@ data {
   vector[K] constraint_mus;
   vector[K] constraint_sigmas;
   int<lower=0,upper=1> run_estimation;
+  int<lower=0,upper=1> fit_mus;
+  int<lower=0,upper=1> fit_sigmas;
+
+
 }
 
 
 transformed data {
-  //  print("in transformed parameters!");
- // vector[(L_items*L_subjects)]transformed_constraint_mus = to_vector(append_col(constraint_mus,constraint_mus));
-//  vector[(L_items*L_subjects)]transformed_constraint_sigmas = to_vector(append_col(constraint_sigmas,constraint_sigmas));
-  //print(dims(transformed_constraint_mus),"are transformed constraint mus dims");
-  //vector[L_items*L_subjects] transformed_constraint_mus;
 
   int num_constraints_hierarchical_on_items = sum(is_constraint_hierarchical_by_items);
   int num_constraints_hierarchical_on_subjects = sum(is_constraint_hierarchical_by_subjects);
@@ -42,6 +41,15 @@ transformed data {
 
 
 parameters {
+
+  //if (fit_mus == 1){
+  array[K] real<lower=0> distribution_of_likely_mus;
+  //}
+
+  //if (fit_sds == 1){
+  array[K] real<lower=0> distribution_of_likely_sigmas;
+  //}
+
   array[K] real<lower=0>  mu; // the vector of constraint weights, coefficients - group level
   //array[K] real<lower=0> sigma; // the variance on these guys
   matrix[L_items, num_constraints_hierarchical_on_items] beta_params_items; // a vector of random-effect-level coefficients that are drawn from real_mu, one for each leve lof the random effect, for only those constraints that are hierarchical. these are the random-effect-level offsets // means drawn from the group-level real mu
@@ -52,38 +60,29 @@ parameters {
 
 transformed parameters {
   array[L_items, L_subjects] vector[K] beta;
-  //arrray[2] mu_longer;
 
-  //print("in transformed params, dims beta is ", dims(beta));
   {
-  //int param_ind_items = 1;
-  //int param_ind_subjects = 1;
+
   for (constraint_index in 1:K)	{
     if (is_constraint_hierarchical_by_items[constraint_index] == 1) {
       for (level_of_hierarchical_structure_items in 1:L_items) {
         if (is_constraint_hierarchical_by_subjects[constraint_index] == 1) {
           for (level_of_hierarchical_structure_subjects in 1:L_subjects) {
             beta[level_of_hierarchical_structure_items, level_of_hierarchical_structure_subjects, constraint_index] = (beta_params_items[level_of_hierarchical_structure_items, t_i[constraint_index]]+beta_params_subjects[level_of_hierarchical_structure_subjects, t_s[constraint_index]] - mu[constraint_index]);
-            //param_ind_items += 1
-            //	param_ind_subjects += 1
+
           }}
           else {
             for (level_of_hierarchical_structure_subjects in 1:L_subjects){
               beta[level_of_hierarchical_structure_items, level_of_hierarchical_structure_subjects, constraint_index] = beta_params_items[level_of_hierarchical_structure_items, t_i[constraint_index]];
-              //param_ind_items += 1
             }}}}
             else{
               for (level_of_hierarchical_structure_items in 1:L_items){
                 if (is_constraint_hierarchical_by_subjects[constraint_index] == 1){
                   for (level_of_hierarchical_structure_subjects in 1:L_subjects)	{
                     beta[level_of_hierarchical_structure_items, level_of_hierarchical_structure_subjects, constraint_index] = beta_params_subjects[level_of_hierarchical_structure_subjects, t_s[constraint_index]];
-                    //param_ind_subjects += 1
                   }}
                   else		{
-                    //print("in last else");
                     for (level_of_hierarchical_structure_subjects in 1:L_subjects)	{
-                      //print("level of hierarchial structure subjects is", level_of_hierarchical_structure_subjects);
-                      //print("mu constraint index is",dims(mu[constraint_index]));
                       beta[level_of_hierarchical_structure_items, level_of_hierarchical_structure_subjects, constraint_index] = mu[constraint_index];
                     }}}}
 
@@ -93,16 +92,27 @@ transformed parameters {
 }
 
 model {
-  //print("in model!");
-  mu ~ normal(constraint_mus,constraint_sigmas); // prior on mean of each mu
-  //print("dims of constrain_mus are", dims(constraint_mus),"constraint sigmas are",dims(constraint_sigmas),"mu is ", dims(mu));
-  //sigma ~ normal(constraint_sigmas,1); // prior on sigma for that mu
-  //  print("dims beta params subjects ",dims((beta_params_subjects)));
+  if (fit_mus == 1){
+    distribution_of_likely_mus ~ normal(0,10);
 
-  //print("dims beta params subjects to vector",dims(to_vector(beta_params_subjects)));
+  }
+  if (fit_sigmas == 1){
+    distribution_of_likely_sigmas ~ exponential(1);
+}
 
-  //mu_longer = append(mu, mu);
-  //print(dims(transformed_constraint_mus),"are dims of transformed mu");
+  if(fit_mus == 1 &&  fit_sigmas == 1){
+      mu ~ normal(distribution_of_likely_mus,distribution_of_likely_sigmas); // prior on mean of each mu
+
+  } else{ if (fit_mus == 1 &&  fit_sigmas == 0){
+          mu ~ normal(distribution_of_likely_mus,constraint_sigmas); // prior on mean of each mu
+
+  } else{ if (fit_mus == 0 &&  fit_sigmas == 1){
+          mu ~ normal(constraint_mus,distribution_of_likely_sigmas); // prior on mean of each mu
+
+  }else {
+      mu ~ normal(constraint_mus,constraint_sigmas); // prior on mean of each mu
+
+  }}}
 
   for (i in 1:num_constraints_hierarchical_on_items){
     col(beta_params_items,i) ~ normal(mu,1);
@@ -110,9 +120,6 @@ model {
   for (i in 1:num_constraints_hierarchical_on_subjects){
     col(beta_params_subjects,i) ~ normal(mu,1);
   }
-  //to_vector(beta_params_items) ~ normal(mu,1); // this is the variance on how much indidivual random offets can be from the mu
- // to_vector(beta_params_subjects) ~ normal(mu,1); // this is the variance on how much indidivual random offets can be from the mu
- //  // print("dims beta params ites",dims(beta_params_items));
 
   if (run_estimation == 1){
   for (i in 1:N) { // then for each datapoint
