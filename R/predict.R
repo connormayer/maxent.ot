@@ -154,8 +154,8 @@ predict_probabilities <- function(test_input, constraint_weights,
   error <- output[, (ncol(output)-1)] - output[, (ncol(output))]
   output <- cbind(output, error)
 
-  names(output) <- c(c(c("UR", "SR", "Freq"), unlist(long_names)),
-                     "Predicted Probability", "Observed Probability", "Error")
+  names(output) <- c(c(c("Input", "Output", "Freq"), unlist(long_names)),
+                     "Predicted", "Observed", "Error")
 
   if (!is.na(output_path)) {
     utils::write.table(output, file=output_path, sep=out_sep, row.names = FALSE)
@@ -163,7 +163,7 @@ predict_probabilities <- function(test_input, constraint_weights,
 
   out_object <- list(
     loglik = loglik,
-    predictions = output
+    predictions = data.frame(output)
   )
 
   return(out_object)
