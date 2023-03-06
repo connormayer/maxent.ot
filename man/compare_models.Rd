@@ -38,6 +38,8 @@ first). This data frame has the following columns:
 \item{\code{model}: }{ The name of the model.}
 \item{\code{k}: }{ The number of parameters.}
 \item{\code{aic}: }{ The model's AIC value.}
+\item{\code{aic.delta}: }{ The difference between this model's AIC value
+and the AIC value of the model with the smallest AIC value.}
 \item{\code{aic.wt}: }{ The model's AIC weight: this reflects the relative
 likelihood (or conditional probability) that this model is the
 "best" model in the set.}

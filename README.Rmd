@@ -1,9 +1,9 @@
 ---
-output: github_document
+  output: github_document
 ---
-
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-
+  
+  <!-- README.md is generated from README.Rmd. Please edit that file -->
+  
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -16,10 +16,10 @@ knitr::opts_chunk$set(
 # maxent.ot
 
 <!-- badges: start -->
-[![DOI](https://zenodo.org/badge/272315147.svg)](https://zenodo.org/badge/latestdoi/272315147)
+  [![DOI](https://zenodo.org/badge/272315147.svg)](https://zenodo.org/badge/latestdoi/272315147)
 <!-- badges: end -->
-
-This package allows you to fit Maximum Entropy Optimality Theory models to data 
+  
+  This package allows you to fit Maximum Entropy Optimality Theory models to data 
 sets, generate the predictions made by such models for novel data, and compare 
 the fit of different models using a variety of metrics. This package is still in
 development, and is being prepared for submission to CRAN.
@@ -36,14 +36,14 @@ If you publish work that uses `maxent.ot`, please cite this repository.
 ## Installation
 
 <!--You can install the released version of maxent.ot from [CRAN](https://CRAN.R-project.org) with:
-
-``` r
+  
+  ``` r
 install.packages("maxent.ot")
 ```
 -->
-You can install the development version from [GitHub](https://github.com/) with:
-
-``` r
+  You can install the development version from [GitHub](https://github.com/) with:
+  
+  ``` r
 if (!require(devtools)) {
   install.packages("devtools", repos = "http://cran.us.r-project.org")
 }
@@ -63,41 +63,27 @@ library(maxent.ot)
 # Get paths to input files.
 # This file has two constraints
 data_file_simple <- system.file(
-   "extdata", "sample_data_file_small.txt", package = "maxent.ot"
+  "extdata", "sample_data_frame.csv", package = "maxent.ot"
 )
 # This file has three constraints
 data_file_complex <- system.file(
-   "extdata", "sample_data_file_large.txt", package = "maxent.ot"
+  "extdata", "sample_data_frame_large.csv", package = "maxent.ot"
 )
 
+# Read files into data frames
+df_simple <- read.csv(data_file_simple)
+df_complex <- read.csv(data_file_complex)
 
 # Fit weights to both data sets with simple regularization
-simple_model <- optimize_weights(data_file_simple, mu_scalar=0, sigma_scalar=10)
-complex_model <- optimize_weights(data_file_complex, mu_scalar=0, sigma_scalar=10)
-
+simple_model <- optimize_weights(df_simple, mu_scalar=0, sigma_scalar=10)
+complex_model <- optimize_weights(df_complex, mu_scalar=0, sigma_scalar=10)
 
 # Examine predicted probabilities of each model
 # Also displayed: log likelihood (of weights given prediction data)
-predict_probabilities(data_file_simple, simple_model$weights)
-predict_probabilities(data_file_complex, complex_model$weights)
+predict_probabilities(df_simple, simple_model$weights)
+predict_probabilities(df_complex, complex_model$weights)
 
 
 # Compare model fit to training data using the likelihood ratio test
 compare_models(simple_model, complex_model, method='lrt')
 ```
-
-<!--What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
-
-```{r cars}
-summary(cars)
-```
-
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. You could also use GitHub Actions to re-render `README.Rmd` every time you push. An example workflow can be found here: <https://github.com/r-lib/actions/tree/master/examples>.
-
-You can also embed plots, for example:
-
-```{r pressure, echo = FALSE}
-plot(pressure)
-```
-
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN. -->

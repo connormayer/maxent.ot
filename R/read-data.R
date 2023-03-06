@@ -1,8 +1,83 @@
-load_input <- function(input, sep="\t", encoding = 'unknown', model_name=NA) {
+#' Converts an OTSoft tableaux file to a data frame
+#'
+#' Loads an OTSoft tableaux file and converts it to the data frame format used by
+#' the maxent.ot functions.
+#'
+#' @param test_input The path to the input data file.
+#'   This should contain more OT tableaux consisting of
+#'   mappings between underlying and surface forms with observed frequency and
+#'   violation profiles. Constraint violations must be numeric.
+#'
+#'   The file should be in OTSoft format.
+#'   For examples of OTSoft format, see inst/extdata/sample_data_file.txt.
+#' @param output_path (optional) A string specifying the path to a file to
+#'   which the data frame will be saved in CSV format. If the file exists it
+#'   will be overwritten. If this argument isn't provided, the output will not
+#'   be written to a file.
+#' @param encoding (optional) The character encoding of the input file. Defaults
+#'  to "unknown".
+#' @examples
+#'   # Convert OTSoft file to data frame format
+#'   otsoft_file <- system.file(
+#'       "extdata", "sample_data_file_otsoft.txt", package = "maxent.ot"
+#'   )
+#'   df_output <- otsoft_tableaux_to_df(otsoft_file)
+#'
+#'   # Save data frame to a file
+#'   tmp_output <- tempfile()
+#'   otsoft_tableaux_to_df(otsoft_file, tmp_output)
+#' @export
+otsoft_tableaux_to_df <- function(input, output_path=NA, encoding='unknown') {
+  results <- load_input(input, encoding)
+  output_df <- data.frame(results$data)
+  output_df[output_df == ''] <- 0
+  if (!is.na(output_path)) {
+    write.csv(output_df, file=output_path, row.names=FALSE, quote=FALSE)
+  }
+  return(output_df)
+}
+
+#' Converts an OTSoft bias file to a data frame
+#'
+#' Loads an OTSoft bias file and converts it to the data frame format used by
+#' the maxent.ot functions.
+#'
+#' @param test_input The path to the input bias file. This should contain more
+#' OT tableaux consisting of mappings between underlying and surface forms with
+#' observed frequency and violation profiles. Constraint violations must be
+#' numeric.
+#'
+#' The file should be in OTSoft format. For examples of OTSoft format, see
+#' inst/extdata/sample_bias_file_otsoft.txt.
+#' @param output_path (optional) A string specifying the path to a file to
+#'   which the data frame will be saved in CSV format. If the file exists it
+#'   will be overwritten. If this argument isn't provided, the output will not
+#'   be written to a file.
+#' @examples
+#'   # Convert OTSoft bias file to data frame format
+#'   otsoft_file <- system.file(
+#'       "extdata", "sample_bias_file_otsoft.txt", package = "maxent.ot"
+#'   )
+#'   df_output <- otsoft_bias_to_df(otsoft_file)
+#'
+#'   # Save data frame to a file
+#'   tmp_output <- tempfile()
+#'   otsoft_bias_to_df(otsoft_file, tmp_output)
+#' @export
+otsoft_bias_to_df <- function(input, output_path=NA) {
+  bias_df <- load_bias_file_otsoft(input)
+  if (!is.na(output_path)) {
+    write.csv(bias_df, file=output_path, row.names=FALSE, quote=FALSE)
+  }
+  return(load_bias_file_otsoft(input))
+}
+
+load_input <- function(input, encoding = 'unknown', model_name=NA) {
   if (is.data.frame(input)) {
     long_names <- colnames(input)[4:ncol(input)]
     data <- data.table::data.table(input)
-    data[,1] <- fill_the_blanks(data[,1], missing=NA)
+    data[is.na(data)] <- 0
+    data[,1] <- fill_the_blanks(data[,1])
     n <- sum(data[,3], na.rm = TRUE)
   } else {
     # Else: default -- input_file is a .txt file with the ot-soft format
@@ -10,7 +85,7 @@ load_input <- function(input, sep="\t", encoding = 'unknown', model_name=NA) {
     if (is.na(model_name)) {
       model_name <- tools::file_path_sans_ext(basename(input))
     }
-    input <- load_data_otsoft(input, sep = sep, encoding = encoding)
+    input <- load_data_otsoft(input, encoding = encoding)
     long_names <- input$full_names
     data <- input$data
     colnames(data) <- c("Input", "Output", "Frequency", unlist(long_names))
@@ -26,9 +101,9 @@ load_input <- function(input, sep="\t", encoding = 'unknown', model_name=NA) {
 }
 
 # Loads tableaux in OTSoft format
-load_data_otsoft <- function(infile, sep = "\t", encoding = 'unknown') {
+load_data_otsoft <- function(infile, encoding = 'unknown') {
   in.dt <- data.table::fread(
-    infile, header = FALSE, sep = sep, fill = TRUE, encoding = encoding
+    infile, header = FALSE, sep = '\t', fill = TRUE, encoding = encoding
   )
 
   # Data should minimally have four columns: Input, Output, Frequency, and
@@ -59,11 +134,10 @@ load_data_otsoft <- function(infile, sep = "\t", encoding = 'unknown') {
 }
 
 # Loads bias file in OTSoft format
-load_bias_file_otsoft <- function(infile, sep = "\t") {
-  in.dt <- data.table::fread(infile, header = FALSE, sep = sep)
-  bias_params <- in.dt[,2:3]
-  names(bias_params) <- c("mus", "sigmas")
-  return(bias_params)
+load_bias_file_otsoft <- function(infile) {
+  in.dt <- data.table::fread(infile, header = FALSE, sep = '\t')
+  names(in.dt) <- c("Constraint", "Mu", "Sigma")
+  return(in.dt)
 }
 
 # Replace empty cells in a column with the closest cell above that is not empty
