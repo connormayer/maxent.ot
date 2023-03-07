@@ -1,5 +1,5 @@
 # Constants
-DEFAULT_UPPER_BOUND <- 1000
+DEFAULT_UPPER_BOUND <- 100
 
 #' Create simulated data and learn weights for these data
 #'
@@ -127,14 +127,7 @@ monte_carlo_weights <- function(pred_prob, num_simul,
     simul_resp_file <- monte_carlo(cdnpred_prob)
 
     # Learn weights for simulated response
-    curr_model <- optimize_weights(simul_resp_file,
-                                   bias_file = NA,
-                                   mu_scalar = NA, mu_vector = NA,
-                                   sigma_scalar = NA, sigma_vector = NA,
-                                   input_format = 'df',
-                                   control_params = NA,
-                                   upper_bound = DEFAULT_UPPER_BOUND,
-                                   model_name = "curr_model")
+    curr_model <- optimize_weights(simul_resp_file)
 
     # Record learned weights
     output[i,] <- curr_model$weights

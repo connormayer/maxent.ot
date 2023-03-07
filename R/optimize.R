@@ -1,6 +1,6 @@
 # Constants
 DEFAULT_WEIGHT <- 0
-DEFAULT_UPPER_BOUND <- 1000
+DEFAULT_UPPER_BOUND <- 100
 
 #' Optimize MaxEnt OT constraint weights
 #'
@@ -113,7 +113,7 @@ DEFAULT_UPPER_BOUND <- 1000
 #'   with `-1` if specified, since this must be treated as a maximization
 #'   problem.
 #' @param upper_bound (optional) The maximum value for constraint weights.
-#'   Defaults to 1000.
+#'   Defaults to 100.
 #' @param encoding (optional) The character encoding of the input file. Defaults
 #'  to "unknown".
 #' @param model_name (optional) A name for the model. If not provided, the name
@@ -162,7 +162,7 @@ DEFAULT_UPPER_BOUND <- 1000
 optimize_weights <- function(input, bias_input = NA,
                              mu_scalar = NA, mu_vector = NA,
                              sigma_scalar = NA, sigma_vector = NA,
-                            control_params = NA,
+                             control_params = NA,
                              upper_bound = DEFAULT_UPPER_BOUND,
                              encoding = 'unknown', model_name = NA) {
   if (is.data.frame(input)) {
