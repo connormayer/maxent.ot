@@ -168,7 +168,7 @@ done without the bias term.
 
   # Fit weights with biases specified in file
   bias_df <- read.csv(bias_file)
-  optimize_weights(tableaux_df, bias_file)
+  optimize_weights(tableaux_df, bias_df)
 
   # Fit weights with biases specified in vector form
   optimize_weights(
