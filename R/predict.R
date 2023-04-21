@@ -124,7 +124,9 @@ predict_probabilities <- function(test_input, constraint_weights,
   # Replace empty cells with 0
   data_matrix[is.na(data_matrix)] <- 0
 
-  loglik <- calculate_log_likelihood(constraint_weights, data_matrix)
+  loglik <- calculate_log_likelihood(
+    constraint_weights, data_matrix, temperature
+  )
 
   # Calculate probabilities
   data_matrix <- calculate_probabilities(

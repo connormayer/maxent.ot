@@ -257,14 +257,15 @@ optimize_weights <- function(input, bias_input = NA,
   return(out_object)
 }
 
-calculate_log_likelihood <- function(constraint_weights, data) {
+calculate_log_likelihood <- function(constraint_weights, data,
+                                     temperature=DEFAULT_TEMPERATURE) {
   # Set a few column indexes
   freq_ix <- 2
   log_prob_ix <- ncol(data) - 1
   lik_ix <- log_prob_ix + 1
 
   # Calculate log likelihood of data
-  data <- calculate_probabilities(constraint_weights, data)
+  data <- calculate_probabilities(constraint_weights, data, temperature)
   ll <- sum(data[, freq_ix] * data[, log_prob_ix])
 
   return(ll)
