@@ -7,7 +7,7 @@ test_that("Basic predict_probabilities call", {
   predictions <- predict_probabilities(tableaux_df, my_model$weights)
 
   expect_equal(
-    predictions$predictions$`Predicted Probability`,
+    predictions$predictions$Predicted,
     c(0.5, 0.5, 1, 0),
     tolerance=1e-5
   )

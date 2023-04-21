@@ -79,31 +79,26 @@ predict_probabilities(df_simple, simple_model$weights)
 #> [1] -1.444645
 #> 
 #> $predictions
-#>        UR        SR Freq Constraint1 Constraint2 Predicted Probability
-#> 1: Input1 Output1-1    1           1           0            0.51384754
-#> 2: Input1 Output1-2    1           0           1            0.48615246
-#> 3: Input2 Output2-1    1           0           0            0.94404279
-#> 4: Input2 Output2-2    0           0           1            0.05595721
-#>    Observed Probability       Error
-#> 1:                  0.5  0.01384754
-#> 2:                  0.5 -0.01384754
-#> 3:                  1.0 -0.05595721
-#> 4:                  0.0  0.05595721
+#>    Input    Output Freq Constraint1 Constraint2  Predicted Observed       Error
+#> 1 Input1 Output1-1    1           1           0 0.51384754      0.5  0.01384754
+#> 2 Input1 Output1-2    1           0           1 0.48615246      0.5 -0.01384754
+#> 3 Input2 Output2-1    1           0           0 0.94404279      1.0 -0.05595721
+#> 4 Input2 Output2-2    0           0           1 0.05595721      0.0  0.05595721
 predict_probabilities(df_complex, complex_model$weights)
 #> $loglik
 #> [1] -1.444644
 #> 
 #> $predictions
-#>        UR        SR Freq Constraint1 Constraint2 Constraint3
-#> 1: Input1 Output1-1    1           1           0           1
-#> 2: Input1 Output1-2    1           0           1           0
-#> 3: Input2 Output2-1    1           0           0           1
-#> 4: Input2 Output2-2    0           0           1           0
-#>    Predicted Probability Observed Probability       Error
-#> 1:            0.51385019                  0.5  0.01385019
-#> 2:            0.48614981                  0.5 -0.01385019
-#> 3:            0.94404422                  1.0 -0.05595578
-#> 4:            0.05595578                  0.0  0.05595578
+#>    Input    Output Freq Constraint1 Constraint2 Constraint3  Predicted Observed
+#> 1 Input1 Output1-1    1           1           0           1 0.51385019      0.5
+#> 2 Input1 Output1-2    1           0           1           0 0.48614981      0.5
+#> 3 Input2 Output2-1    1           0           0           1 0.94404422      1.0
+#> 4 Input2 Output2-2    0           0           1           0 0.05595578      0.0
+#>         Error
+#> 1  0.01385019
+#> 2 -0.01385019
+#> 3 -0.05595578
+#> 4  0.05595578
 
 
 # Compare model fit to training data using the likelihood ratio test

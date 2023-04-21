@@ -157,6 +157,7 @@ cross_validate <- function(input, k, mu_values, sigma_values,
   return(result_df)
 }
 
+
 do_validation <- function(k, data, partitions, mu, sigma, model_name,
                           control_params, upper_bound) {
   # Performs cross-validation given a particular value of mu and sigma
@@ -176,7 +177,8 @@ do_validation <- function(k, data, partitions, mu, sigma, model_name,
     sigma_vector <- NA
   }
 
-  log_liks <- c()
+  log_liks_test <- c()
+  log_liks_training <- c()
 
   for (hold_out in (1:k)) {
     print(sprintf(
@@ -198,19 +200,26 @@ do_validation <- function(k, data, partitions, mu, sigma, model_name,
       sigma_scalar = sigma_scalar, sigma_vector = sigma_vector,
       control_params = control_params, upper_bound = upper_bound
     )
-    predictions <- predict_probabilities(test_tableau, m$weights)
-    log_liks <- c(predictions$loglik, log_liks)
+    predictions_test <- predict_probabilities(test_tableau, m$weights)
+    log_liks_test <- c(predictions_test$loglik, log_liks_test)
+
+    predictions_training <- predict_probabilities(training_tableau, m$weights)
+    log_liks_training <-c(predictions_training$loglik, log_liks_training)
   }
-  mean_ll <- mean(log_liks)
+  mean_ll_test <- mean(log_liks_test)
+  mean_ll_training <- mean(log_liks_training)
+
   df <- data.frame(
     model_name = model_name, mu = toString(mu), sigma = toString(sigma),
-    folds = k, mean_ll = mean_ll
+    folds = k, mean_ll_test = mean_ll_test, mean_ll_training = mean_ll_training
   )
   return(df)
 }
 
+#A function to turn input-output pairs back into tableaux
 populate_tableau <- function(tableau, tokens) {
   # Fills in a tableau with token frequency counts
+  tableau$Frequency <- 0 #First, initialize all the frequencies to 0
   tokens$count <- seq(nrow(tokens))
   counts <- aggregate(count ~ Input + Output, data = tokens, FUN = length)
   for (i in (1:nrow(counts))) {

@@ -232,16 +232,16 @@ This effect has been observed in phonological phenomena, and has also been repor
 Let's imagine we have a data set with multiple tableaux, and would like to find constraint weights that maximize the probability of our data. 
 In other words, we would like to find constraint weights that produce a distribution over UR-SR pairs that matches the observed frequencies of our data as closely as possible.
 In order to do that, we first need to know how to structure our data set.
-Take a look at the data set below, loaded from the `sample_data_file` data set included in this package. 
+Take a look at the data set below, loaded from the `sample_data_frame` data set included in this package. 
 
 ```{r}
 # Get paths to sample data file
 data_file <- system.file(
-  "extdata", "sample_data_file_otsoft.txt", package = "maxent.ot"
+  "extdata", "sample_data_frame.csv", package = "maxent.ot"
 )
 
 # Take a look at the structure of the sample data
-data_table <- read.table(data_file, header=FALSE, sep='\t')
+data_table <- read.table(data_file, header=FALSE)
 data_table
 ```
 
@@ -283,7 +283,7 @@ The User may modify the upper bound by specifying another value for the optional
 Using the function `optimize_weights()`, we'll train a model for the data set above, and store the result (our trained model) in the object `simple_model`:
 ```{r dataForSimpleCase}
 # Fit weights to data using file path
-simple_model <- optimize_weights(data_file)
+simple_model <- optimize_weights(data_frame)
 ```
 
 You can also fit a model using a data frame as input.
@@ -496,17 +496,17 @@ To use the argument `bias_file`, pass in a `.txt` file with the structure below.
 
 ``` {r}
 # Get paths to toy data and bias files.
-data_file <- system.file(
+data_frame_file <- system.file(
   "extdata", "sample_data_frame.csv", package = "maxent.ot"
 )
 bias_file <- system.file(
   "extdata", "sample_bias_data_frame.csv", package = "maxent.ot"
 )
-data_df <- read.csv(data_file)
-bias_df <- read.csv(bias_file)
 
-# Take a look at the structure of the bias_df
-bias_df
+# Take a look at the structure of the bias_file
+data_frame <- read.csv(data_frame_file) 
+bias_data_frame <- read.csv(bias_file)
+bias_data_frame
 ```
 
 The bias file is a `.csv`.
@@ -519,7 +519,7 @@ Below, we fit weights with the biases specified in a file.
 
 ``` {r}
 # Fit weights with biases specified in file
-optimize_weights(data_df, bias_df)
+optimize_weights(data_frame, bias_data_frame)
 ```
 
 The arguments `mu_vector` and `sigma_vector` allow us to specify biases in vector form.
@@ -531,7 +531,7 @@ For each `..._vector` argument, we have to combine the individual parameter valu
 ``` {r}
 # Fit weights with biases specified in vector form
 optimize_weights(
-  data_df, mu_vector = c(1, 2), sigma_vector = c(100, 200)
+  data_frame, mu_vector = c(1, 2), sigma_vector = c(100, 200)
 )
 ```
 
@@ -542,7 +542,7 @@ Below, we fit weights with the bias parameters specified in scalar form.
 ``` {r}
 # Fit weights with biases specified as scalars
 optimize_weights(
-  data_df, mu_scalar = 0, sigma_scalar = 1000
+  data_frame, mu_scalar = 0, sigma_scalar = 1000
 )
 ```
 
@@ -550,7 +550,7 @@ A mix of scalar and vector biases is also possible:
 ``` {r}
 # Fit weights with a mix of scalar and vector biases
 optimize_weights(
-  data_df, mu_vector = c(1, 2), sigma_scalar = 1000
+  data_frame, mu_vector = c(1, 2), sigma_scalar = 1000
 )
 ```
 
@@ -625,7 +625,7 @@ Since every constraint has the same ideal weight & the same standard deviation (
 ```{r scalarBiases}
 # Train regularized model with mu_scalar=0 & sigma_scalar=1
 regularized_model <- optimize_weights(
-  data_df, mu_scalar=0, sigma_scalar=1
+  data_frame, mu_scalar=0, sigma_scalar=1
 )
 ```
 
@@ -745,8 +745,11 @@ white_salt_data_file <- system.file(
   "extdata", "sample_whiteSalt_data_file.txt", package = "maxent.ot"
 )
 
+# File is in OTSoft format, so first convert it to data frame
+white_salt_data_frame <- otsoft_tableaux_to_df(white_salt_data_file)
+
 # View training data (experimental condition)
-read.table(white_salt_data_file, header=FALSE, sep='\t')
+white_salt_data_frame
 ```
 
 We now train the bias model for the experimental condition, making use of the argument `mu_vector`.
@@ -757,7 +760,7 @@ Here, we choose to have the same tolerance for deviation from the preferred weig
 ```{r}
 # Fit model with preferred weights for experimental condition
 white_salt_bias_model = optimize_weights(
-  white_salt_data_file, mu_vector=c(0, 0, 1.3, 3.65), sigma_scalar=sqrt(0.6)
+  white_salt_data_frame, mu_vector=c(0, 0, 1.3, 3.65), sigma_scalar=sqrt(0.6)
 )
 
 # View trained weights (expt cdn with bias)
@@ -770,7 +773,7 @@ We'll average out the preferred weights for the two *Map constraints, which resu
 ```{r}
 # Fit unbiased model for experimental condition
 white_salt_noBias_model = optimize_weights(
-  white_salt_data_file,
+  white_salt_data_frame, 
   mu_vector=c(0, 0, 2.27, 2.27), sigma_scalar=sqrt(0.6)
 )
 
@@ -793,17 +796,20 @@ white_salt_test_file <- system.file(
   "extdata", "sample_whiteSalt_test_file.txt", package = "maxent.ot"
 )
 
+# File is in OTSoft format, so convert first
+white_salt_test_df <- otsoft_tableaux_to_df(white_salt_data_file)
+
 # View test data (experimental condition)
-read.table(white_salt_test_file, header=FALSE, sep='\t')
+white_salt_test_df
 
 # Predict probabilities with weights trained with bias (expt cdn)
 predict_probabilities(
-  white_salt_test_file, white_salt_bias_model$weights
+  white_salt_test_df, white_salt_bias_model$weights
 )
 
 # Predict probabilities with weights trained without bias (expt cdn)
 predict_probabilities(
-  white_salt_test_file, white_salt_noBias_model$weights
+  white_salt_test_df, white_salt_noBias_model$weights
 )
 ```
 
@@ -847,12 +853,14 @@ white_control_data_file <- system.file(
   "extdata", "sample_whiteCtrl_data_file.txt", package = "maxent.ot"
 )
 
+white_control_df <- otsoft_tableaux_to_df(white_control_data_file)
+
 # View training data (control condition)
-read.table(white_control_data_file, header=FALSE, sep='\t')
+white_control_df
 
 # Fit model with preferred weights for control condition
 white_control_bias_model = optimize_weights(
-  white_control_data_file,
+  white_control_df,
   mu_vector=c(0, 0, 1.3, 3.65), sigma_scalar=sqrt(0.6)
 )
 
@@ -861,7 +869,7 @@ white_control_bias_model$weights
 
 # Fit unbiased model for control condition
 white_control_noBias_model = optimize_weights(
-  white_control_data_file,
+  white_control_df,
   mu_vector=c(0, 0, 2.27, 2.27), sigma_scalar=sqrt(0.6)
 )
 
@@ -877,17 +885,23 @@ white_control_test_file <- system.file(
   "extdata", "sample_whiteCtrl_test_file.txt", package = "maxent.ot"
 )
 
+# File is in OTSoft format, so convert first
+white_control_test_df <- otsoft_tableaux_to_df(white_control_test_file)
+
+# View test data (experimental condition)
+white_control_test_df
+
 # View test data (control condition)
 read.table(white_control_test_file, header=FALSE, sep='\t')
 
 # Predict probabilities with weights trained with bias (control cdn)
 predict_probabilities(
-  white_control_test_file, white_control_bias_model$weights
+  white_control_test_df, white_control_bias_model$weights
 )
 
 # Predict probabilities with weights trained with bias (control cdn)
 predict_probabilities(
-  white_control_test_file, white_control_noBias_model$weights
+  white_control_test_df, white_control_noBias_model$weights
 )
 ```
 
@@ -943,30 +957,16 @@ If we've trained a model using `optimize_weights()` and stored the trained model
 ``` {r}
 # Get paths to toy data file
 data_file_a <- system.file(
-  "extdata", "sample_data_file.txt", package="maxent.ot"
-)
-
-# Fit weights to data (no biases)
-fit_model_a <- optimize_weights(data_file_a)
-
-# Predict probabilities for the same input
-predict_probabilities(data_file_a, fit_model_a$weights)
-```
-
-As with `optimize_weights`, you can also pass a data frame/data table/tibble into `predict_probabilities` instead of a file path.
-
-``` {r}
-# Get paths to toy data file
-data_frame_file_a <- system.file(
   "extdata", "sample_data_frame.csv", package="maxent.ot"
 )
-data_frame_a <- read.csv(data_frame_file_a)
+
+df_a <- read.csv(data_file_a)
 
 # Fit weights to data (no biases)
-fit_model_a <- optimize_weights(data_frame_a)
+fit_model_a <- optimize_weights(df_a)
 
-# Predict probabilities for the same input
-predict_probabilities(data_frame_a, fit_model_a$weights)
+# Predict probabilities for the same input 
+predict_probabilities(df_a, fit_model_a$weights)
 ```
 
 The returned object has two attributes:
@@ -1003,27 +1003,29 @@ data_file_b <- system.file(
   "extdata", "sample_data_file_double_aFreq.txt", package="maxent.ot"
 )
 
+df_b <- otsoft_tableaux_to_df(data_file_b)
+
 # Take a look at the structure of the sample data with duplicate URs
-read.table(data_file_b, header=FALSE, sep='\t')
+df_b
 
 # Here's the structure of the same data without duplicate URs
-read.table(data_file_a, header=FALSE, sep='\t')
+df_a
 ```
 
-Notice that both `data_file_a` and `data_file_b` describe the same data, albeit in a different manner.
-If we'd collapsed all instances of repeated URs from `data_file_b`, we'd the get `data_file_a`.
+Notice that both `df_a` and `df_b` describe the same data, albeit in a different manner.
+If we'd collapsed all instances of repeated URs from `df_b`, we'd the get `df_a`.
 However, the resulting `Error` from both data sets differ.
 
 ``` {r}
 # Fit weights to data (no biases)
-fit_model_b <- optimize_weights(data_file_b)
+fit_model_b <- optimize_weights(df_b)
 
 # Predict probabilities for the same input (duplicate URs)
-predict_probabilities(data_file_b, fit_model_b$weights)
+predict_probabilities(df_b, fit_model_b$weights)
 ```
 
-Interpreting the `Error` for `data_file_a` is straightforward, while the `Error` for `data_file_b` is uninterpretable.
-(*e.g.* Regarding `data_file_b`, what does it mean when the the first instance of *Output1-2* has a 25% overprediction error?)
+Interpreting the `Error` for `df_a` is straightforward, while the `Error` for `df_b` is uninterpretable.
+(*e.g.* Regarding `df_b`, what does it mean when the the first instance of *Output1-2* has a 25% overprediction error?)
 
 For this reason, it is strongly recommended to check one's data set for duplicate URs, in order to collapse duplicate URs into a single UR if the User desires to make use of the `Error` values.
 Alternatively, one could engage in post-hoc data wrangling to achieve interpretable error values if the uncollapsed data set is otherwise desired.
@@ -1050,7 +1052,7 @@ Now we're ready to make predictions with our hand-selected weights.
 
 ``` {r}
 # Get predictions
-predict_probabilities(data_file_a, my_wts)
+predict_probabilities(df_a, my_wts)
 ```
 
 
@@ -1120,23 +1122,23 @@ Next, we'll construct a data frame to easily compare the prediction probabilitie
 Notice that we can extract the predicted probabilities like so:
 ``` {r}
 # View predicted probability of t1_pred
-t1_pred$predictions[, 'Predicted Probability']
+t1_pred$predictions[, 'Predicted']
 ```
 
 Now we'll create the data frame:
 ```{r}
 # Select columns we want, and store them in lettered variables
-a <- t1_pred$predictions[, 'UR']
-b <- t1_pred$predictions[, 'SR']
-c <- t1_pred$predictions[, 'Predicted Probability']
-d <- t3_pred$predictions[, 'Predicted Probability']
-e <- t5_pred$predictions[, 'Predicted Probability']
+a <- t1_pred$predictions[, 'Input']
+b <- t1_pred$predictions[, 'Output']
+c <- t1_pred$predictions[, 'Predicted']
+d <- t3_pred$predictions[, 'Predicted']
+e <- t5_pred$predictions[, 'Predicted']
 
 # Join variables to create data frame
 temperature_df <- data.frame(a, b, c, d, e)
 
 # Rename columns
-names(temperature_df) <- c('UR', 'SR', 'T=1', 'T=3', 'T=5')
+names(temperature_df) <- c('Input', 'Output', 'T=1', 'T=3', 'T=5')
 
 # View the data frame
 temperature_df
@@ -1301,9 +1303,11 @@ We will utilize the `predict_probabilities()` function to generate the probabili
 
 ``` {r}
 # Get paths to sample Hungarian wug data
-hu_data <- system.file(
+hu_file <- system.file(
   "extdata", "sample_hu_wug.txt", package = "maxent.ot"
 )
+
+hu_data <- otsoft_tableaux_to_df(hu_file)
 
 # We'll use the weights learned by training on the lexicon as reported by HZSL on (p.848).
 lex_wts_ls <- list(5.39, 1.69, 1.46, 3.00, 4.04, 2.45, 1.08, .91, 1.73, 2.42)
@@ -1512,27 +1516,30 @@ Thus, the nested criterion is met.
 ``` {r}
 # Get paths to toy data files
 # This file has two constraints
-small_data <- system.file(
+small_file <- system.file(
   "extdata", "sample_data_file_small.txt", package = "maxent.ot"
 )
+small_df <- otsoft_tableaux_to_df(small_file)
+
 # This file has three constraints
-large_data <- system.file(
-  "extdata", "sample_data_file_large.txt", package = "maxent.ot"
+large_file <- system.file(
+  "extdata", "sample_data_file_large_otsoft.txt", package = "maxent.ot"
 )
+large_df <- otsoft_tableaux_to_df(large_file)
 
 # View small_data
-read.table(small_data, header=FALSE, sep='\t')
+small_df
 
 # View large_data
-read.table(large_data, header=FALSE, sep='\t')
+large_df
 ```
 
 We'll train both models and store the trained models in the objects `small_model` & `large_model`:
 
 ``` {r}
 # Fit weights to both data sets
-small_model <- optimize_weights(small_data)
-large_model <- optimize_weights(large_data)
+small_model <- optimize_weights(small_df)
+large_model <- optimize_weights(large_df)
 ```
 
 Now we'll perform the likelihood ratio test on the two trained models.
@@ -1592,18 +1599,19 @@ We introduce a new data set, large_data_b, which has constraints C1, C2 & C4.
 ``` {r}
 # Get paths to toy data files
 # This file has three constraints
-large_data_b <- system.file(
+large_file_b <- system.file(
   "extdata", "sample_data_file_large_b.txt", package = "maxent.ot"
 )
+large_df_b <- otsoft_tableaux_to_df(large_file_b)
 
 # View small_data
-read.table(small_data, header=FALSE, sep='\t')
+small_df
 
 # View large_data_b
-read.table(large_data_b, header=FALSE, sep='\t')
+large_df_b
 
-# Fit weights to data set large_data_b
-large_model_b <- optimize_weights(large_data_b)
+# Fit weights to data set large_data_b 
+large_model_b <- optimize_weights(large_df_b)
 ```
 
 The program is unable to perform the likelihood ratio test, and will produce an error message.
@@ -1825,18 +1833,20 @@ The models can appear in any order, but they must all appear before the `method`
 ``` {r}
 # Get paths to toy data files
 # This file has 2 constraints
-small_data_c <- system.file(
+small_file_c <- system.file(
   "extdata", "sample_data_file_small_c.txt", package = "maxent.ot"
 )
+small_df_c <- otsoft_tableaux_to_df(small_file_c)
 
 # This file has 3 constraints
-large_data_c <- system.file(
+large_file_c <- system.file(
   "extdata", "sample_data_file_large_c.txt", package = "maxent.ot"
 )
+large_df_c <- otsoft_tableaux_to_df(large_file_c)
 
-# Fit weights to both data sets
-small_model_c <- optimize_weights(small_data_c)
-large_model_c <- optimize_weights(large_data_c)
+# Fit weights to both data sets 
+small_model_c <- optimize_weights(small_df_c) 
+large_model_c <- optimize_weights(large_df_c)
 
 # Compare models using AIC-C
 compare_models(small_model_c, large_model_c, method='aic_c')
@@ -1874,13 +1884,13 @@ For example, the problematic data sets had their sample sizes increased by a fac
 # sample size: n = 3
 # maximum number of constraints for valid aic_c score: 3-2 = 1
 # actual maximum number of constraints used: 3
-read.table(large_data, header=FALSE, sep='\t')
+large_df
 
 # View non-problematic data set
 # sample size: n = 6
 # maximum number of constraints for valid aic_c score: 6-2 = 4
 # actual maximum number of constraints used: 3
-read.table(large_data_c, header=FALSE, sep='\t')
+large_df_c
 ```
 
 In the case where only one (*i.e.* `large_model_d`) of multiple models produces an invalid AIC-C score, the model with the invalid AIC-C score will have an `aicc.wt` of 0.
@@ -1895,22 +1905,27 @@ The `aicc.wt` for the other models with valid AIC-C scores will be calculated as
 
 # Get paths to toy data files
 # This file has 2 constraints: Good
-small_data_d <- system.file(
+small_file_d <- system.file(
   "extdata", "sample_data_file_small_d.txt", package = "maxent.ot"
 )
+small_df_d <- otsoft_tableaux_to_df(small_file_d)
+
 # This file has 3 constraints: Good
-med_data_d <- system.file(
+med_file_d <- system.file(
   "extdata", "sample_data_file_med_d.txt", package = "maxent.ot"
 )
+med_df_d <- otsoft_tableaux_to_df(med_file_d)
+
 # This file has 4 constraints: Problematic
-large_data_d <- system.file(
+large_file_d <- system.file(
   "extdata", "sample_data_file_large_d.txt", package = "maxent.ot"
 )
+large_df_d <- otsoft_tableaux_to_df(large_file_d)
 
-# Fit weights for all data sets
-small_model_d <- optimize_weights(small_data_d)
-med_model_d <- optimize_weights(med_data_d)
-large_model_d <- optimize_weights(large_data_d)
+# Fit weights for all data sets 
+small_model_d <- optimize_weights(small_df_d)
+med_model_d <- optimize_weights(med_df_d)
+large_model_d <- optimize_weights(large_df_d)
 
 # Compare models using AIC-C
 compare_models(small_model_d, med_model_d, large_model_d, method='aic_c')
