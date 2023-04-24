@@ -1,0 +1,600 @@
+---
+title: "Markdown file to accompany PDA submission on maxent.ot"
+author: "anonymous"
+date: "2023-04-19"
+output: 
+  html_document:
+    number_sections: true
+---
+
+This is a bare-bones R Markdown file to accompany a 2023 PDA submission on maxent.ot. Section headings and code chunks are identical to those in the submission, but with minimal surrounding text. Sections and sub-sections of the submission that have no R code are left blank here, with only the headings to help with navigation.
+
+To view, use, and alter the .Rmd file, open it in RStudio, and then...
+
+* To run all the code, click the **Knit** button, which will generate an html file containing the content and the output of the R code chunks
+* To run individual parts of the code...
+  + first, from the Session menu in RStudio, select Session > Set Working Directory > To Source File Location
+  + run a whole code chunk by placing the cursor anywhere in the chunk and typing CTRL+SHIFT+ENTER
+  + run a single line of code by placing the cursor anywhere in the line of code and typing CTRL+ENTER
+  
+First, set random seed, to ensure consistency of results
+```{r random_seed}
+set.seed(321)
+```
+
+# Introduction: Why this package
+## The problem of switching out of an analysis script
+## Goals of this software
+## Overview
+
+# Reproducible research
+## R Markdown for reproducible research
+## Benefits of reproducible research
+
+# Carrying out a MaxEnt analysis using maxent.ot
+## Code excursion: Installing the package
+
+Install and load the package.
+
+```{r install_package}
+#install.packages("maxent.ot")
+
+if (!require(devtools)) {
+  install.packages("devtools", repos = "http://cran.us.r-project.org")
+}
+
+#This if-then statement will install the maxent.ot package only if it's not already installed. If you have the package installed but want to re-install the latest version, comment out (put "#" before) the if-then statement, and uncomment the next line instead:
+if (!require(maxent.ot)) {
+  devtools::install_github("connormayer/maxent.ot")
+}
+
+# Uncomment this line (delete the "#") if you want to install the package afresh, even if you already have (a version of) it installed:
+# devtools::install_github("connormayer/maxent.ot")
+
+library(maxent.ot)
+```
+
+## A running example: simplification of onset clusters by French-acquiring children
+## Maximum Entropy constraint grammars
+## Code excursion: Formatting data for maxent.ot
+
+Read in toy data
+
+```{r load_simple_data}
+if (!require(tidyverse)) {
+  install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+}
+
+library(tidyverse)
+
+simple_input <- read_csv("data/simple_input_dataframe.csv")
+```
+
+## How MaxEnt relates harmony to probability
+## Calculating the conditional likelihood of a data set
+## Code excursion: Calculating candidate distributions and conditional likelihoods
+
+Use predict\_probabilities
+
+```{r predict_probabilities}
+result <- predict_probabilities(simple_input, c(2,1))
+
+result$loglik
+# -265.3047
+
+result$predictions
+# See Table 7
+```
+
+## Learning weights in a MaxEnt grammar
+
+Use optimize\_weights
+
+```{r optimize_weights}
+simple_model <- optimize_weights(simple_input)
+
+simple_model$weights
+# StarComplex Max
+# 0.6190392 0.0000000
+
+simple_model$loglik
+# -258.9787
+
+result$k
+# 2
+
+simple_model$n
+# 400
+
+simple_model$bias_params
+# NA
+```
+
+Get probabilities
+
+```{r get_probabilities}
+result <- predict_probabilities(simple_input, simple_model$weights)
+
+result$loglik
+# -258.9787
+
+result$predictions
+# See Table
+```
+
+### Test against new data
+
+Test grammar against new data
+
+```{r test_against_new}
+wug_input <- read_csv("data/simple_wug.csv")
+
+result_wug <- predict_probabilities(wug_input, simple_model$weights)
+
+result_wug$loglik
+# -5.491637
+
+result_wug$predictions
+# See Table
+
+```
+
+# Compare how well different models fit the data
+
+Full model
+
+```{r make_full_model}
+# full model
+# copy the original data
+MaxStressed_SSP_input <- simple_input
+
+# add MaxStressed column
+MaxStressed_SSP_input$MaxStressed <- c(0,1,0,1,0,0,0,0)
+
+# add SSP column
+MaxStressed_SSP_input$SSP <- c(1,0,0,0,1,0,0,0)
+
+# Remove SSP column for model without SSP
+MaxStressed_input <- MaxStressed_SSP_input %>% select(-SSP)
+
+# Remove MaxStressed column for model without MaxStressed
+SSP_input <- MaxStressed_SSP_input %>% select(-MaxStressed)
+```
+
+Fit weights to new scenarios
+
+```{r fit_to_new}
+model_MaxStressed <- optimize_weights(MaxStressed_input)
+model_SSP <- optimize_weights(SSP_input)
+model_MaxStressed_SSP <- optimize_weights(MaxStressed_SSP_input)
+
+```
+
+Get each model's predictions
+```{r get_each_prediction}
+# Apply predict_probability to each model
+result_basic <- predict_probabilities(simple_input, simple_model$weights)
+
+result_MaxStressed <- predict_probabilities(
+  MaxStressed_input, model_MaxStressed$weights
+)
+
+result_SSP <- predict_probabilities(SSP_input, model_SSP$weights)
+
+result_MaxStressed_SSP <- predict_probabilities(
+  MaxStressed_SSP_input, model_MaxStressed_SSP$weights
+)
+
+# Consolidate model predictions into single tibble
+results_compiled <- result_MaxStressed_SSP$predictions[, c(1:7)]
+results_compiled$Observed <- result_basic$predictions$Observed
+results_compiled$`Pred. basic` <- result_basic$predictions$Predicted
+results_compiled$`Pred. w/ MaxStr` <- result_MaxStressed$predictions$Predicted
+results_compiled$`Pred. w/ SSP` <- result_SSP$predictions$Predicted
+results_compiled$`Pred. w/ both` <- result_MaxStressed_SSP$predictions$Predicted
+
+# Round and format for readability
+results_compiled %>% mutate_at(vars(starts_with("Pred")), list(~ round(., 2)))
+
+results_compiled
+# See Table 11, which is slightly modified from the R output for better display
+```
+
+### BIC
+
+Make BIC by hand
+
+```{r BIC_by_hand}
+-2 * simple_model$loglik + simple_model$k * log(simple_model$n)
+# 529.9402
+```
+
+Use compare\_models to get BIC
+
+```{r BIC_auto}
+compare_models(simple_model, model_MaxStressed, model_SSP, model_MaxStressed_SSP, method = "bic")
+# See Table 13
+```
+
+Model with an extra constraint
+
+```{r model_extra}
+# Make the new data tableau
+# Copy the four-constraint data
+DTRT_input <- MaxStressed_SSP_input
+
+# Add DoTheRightThing column
+DTRT_input$DoTheRightThing <- c(0,1,1,0,1,0,0,1)
+
+# Fit constraint weights
+model_DTRT <- optimize_weights(DTRT_input)
+
+# Retrieve model predictions
+result_DTRT <- predict_probabilities(DTRT_input, model_DTRT$weights)
+
+# Get log likelihood
+result_DTRT$loglik
+# -228.1971
+```
+
+Ceiling log likelihood
+
+```{r log_lik}
+sum(simple_input$Frequency * log(simple_input$Frequency/100))
+#-228.1971
+```
+
+Compare models
+
+```{r compare}
+compare_models(model_MaxStressed_SSP, model_DTRT, method = "bic")
+#See Table
+```
+
+### AIC and AICc
+
+Compare AICs
+
+```{r AIC}
+compare_models(simple_model, model_MaxStressed, model_SSP, model_MaxStressed_SSP, model_DTRT, method = "aic")
+# See Table 15
+```
+
+Compare AICcs
+
+```{r AICc}
+compare_models(simple_model, model_MaxStressed, model_SSP, model_MaxStressed_SSP, model_DTRT, method = "aic_c")
+# See Table 16
+```
+
+### Likelihood ratio test
+
+Likelihood ratio
+
+```{r likelihood_ratio}
+compare_models(model_MaxStressed_SSP, model_DTRT, method = "lrt")
+# See Table 17
+```
+
+## Using prior terms to encode bias or over-fitting
+### Code excursion: prior terms in maxent.ot
+
+Apply a basic Gaussian bias, same values for all constraints
+
+```{r basic_bias}
+# all constraints have mu of 0, sigma of 1
+model_MaxStressed_SSP_bias1 <- optimize_weights(MaxStressed_SSP_input, mu_scalar = 0, sigma_scalar = 1)
+
+rbind(unbiased_weights = model_MaxStressed_SSP$weights, biased_weights = model_MaxStressed_SSP_bias1$weights)
+# See Table 18
+```
+
+custom values for each constraint
+
+```{r elaborate_bias}
+model_MaxStressed_SSP_bias2 <- optimize_weights(MaxStressed_SSP_input, mu_vector = c(2,0,0,1), sigma_vector = c(1, 1, 0.1, 1))
+
+rbind(unbaised_weights = model_MaxStressed_SSP$weights, biased_weights = model_MaxStressed_SSP_bias1$weights, individually_biased_weights = model_MaxStressed_SSP_bias2$weights)
+# See Table 19
+```
+
+Read bias terms from a file
+
+```{r make_table}
+bias_table <- data.frame(Constraint = c("StarComplex", "Max", "MaxStressed", "SSP"), Mu = c(2,0,0,1), Sigma = c(1, 1, 0.1, 1))
+
+model_MaxStressed_SSP_bias3 <- optimize_weights(MaxStressed_SSP_input, bias_input = bias_table)
+
+model_MaxStressed_SSP_bias3$weights
+# StarComplex Max MaxStressed SSP
+# 1.1704909 0.8294676 0.2499602 0.8894339
+```
+
+# Cross-validation
+## Example from the phonology of Shona
+
+Read in Shona
+
+```{r read_Shona}
+shona_input <- read_csv("data/Shona_tableaux.csv")
+
+# display top left corner of tableaux
+shona_input[1:10,1:10]
+
+# make a version with a column for total frequency of each tableau, using a loop
+# (will be useful for plots below)
+
+# add an empty column
+shona_input_with_total <- shona_input %>% add_column(tableau_freq = 0)
+
+for(i in 1:length(shona_input_with_total$Frequency)) {
+  # This works because every tableau in this data set has a unique input
+  shona_input_with_total$tableau_freq[i] <- sum(shona_input_with_total$Frequency[shona_input_with_total$Input == shona_input_with_total$Input[i]])
+}
+```
+
+## Using cross-validation to explore different values of sigma
+
+Make a close-fitting model, with very large sigma
+
+```{r close_fit}
+shona_1000 <- optimize_weights(shona_input, mu_scalar = 0, sigma_scalar = 1000, upper_bound = 10)
+
+shona_1000_predictions <- predict_probabilities(shona_input, constraint_weights = shona_1000$weights)
+
+shona_1000_predictions$loglik
+# -874.2246
+
+plot(shona_1000_predictions$predictions$Observed, shona_1000_predictions$predictions$Predicted, xlab = "observed probability of each candidate", ylab = "predicted probabilities", pch = 21, bg = alpha("blue", 0.2), cex = log(shona_input_with_total$tableau_freq) / 2, xlim=c(0,1), ylim=c(0,1))
+
+abline(coef = c(0,1), col="grey")
+```
+
+Create partition
+
+```{r split_80_20}
+# housekeeping needed to formate data the way partition_data() is expection
+processed_input <- maxent.ot:::load_input(shona_input)
+data <- processed_input$data
+
+# slice data into 5 random parts
+partitions <- maxent.ot:::partition_data(data, k=5) 
+
+# slice number 1 will be held out
+hold_out <- 1
+
+# the training slices
+training_part <- partitions[partitions$partition != hold_out,]
+
+# the held-out slice
+test_part <- partitions[partitions$partition == hold_out,]
+
+# housekeeping to set up data the way populate_tableau() expects
+training_data <- data
+training_data$Frequency <- 0
+test_data <- training_data
+
+# format the training and held-out data into tableaux
+training_tableau <- maxent.ot:::populate_tableau(training_data, training_part)
+test_tableau <- maxent.ot:::populate_tableau(test_data, test_part)
+```
+
+Fit to training slices only
+```{r fit_to_traiing}
+# Fit model to training data
+shona_1000_crossval_model <- optimize_weights(training_tableau, mu_scalar = 0, sigma_scalar = 1000, control_params = NA, upper_bound = 10) 
+
+```
+
+Get predictions of trained model
+```{r get_predictions_of_trained}
+# How does it do on the training data?
+predictions_training <- predict_probabilities(training_tableau, shona_1000_crossval_model$weights) 
+
+predictions_training$loglik / sum(predictions_training$predictions$Freq) 
+# -0.5204737
+
+# How does it do on the held-out data?
+predictions_test <- predict_probabilities(test_tableau, shona_1000_crossval_model$weights)
+
+predictions_test$loglik / sum(predictions_test$predictions$Freq) 
+# -0.5379555
+```
+
+Plot fits to training and held-out data (these code chunks were not included in the submission)
+```{r plot_fits}
+# Give variables more-mnemonic names
+shona_1000_crossval_fit_to_training <- predictions_training
+shona_1000_crossval_fit_to_test <- predictions_test
+
+#Plot fit to training data
+plot(shona_1000_crossval_fit_to_training$predictions$Observed, shona_1000_crossval_fit_to_training$predictions$Predicted, xlab = "observed probability of each training candidate", ylab = "predicted probabilities", pch = 21, bg = alpha("blue", 0.2), cex = log(shona_input_with_total$tableau_freq)/3, xlim=c(0,1), ylim=c(0,1))
+abline(coef = c(0,1), col="grey")
+
+#Plot fit to held-out data
+plot(shona_1000_crossval_fit_to_test$predictions$Observed, shona_1000_crossval_fit_to_test$predictions$Predicted, xlab = "observed probability of each held-out candidate", ylab = "predicted probabilities", pch = 21, bg = alpha("blue", 0.2), cex = log(shona_input_with_total$tableau_freq)/3, xlim=c(0,1), ylim=c(0,1))
+abline(coef = c(0,1), col="grey")
+
+```
+
+Code chunks omitted from submission: do cross-validation with two other values of sigma.
+
+Try a too-strict sigma, 0.1
+
+```{r sigma_0_point_1}
+#Fit model to training data
+shona_point01_crossval_model <- optimize_weights(training_tableau, mu_scalar = 0, sigma_scalar = 0.1, upper_bound = 10)
+
+#How does it do on the training data?
+shona_point01_crossval_fit_to_training <- predict_probabilities(test_input = training_tableau, constraint_weights = shona_point01_crossval_model$weights)
+
+shona_point01_crossval_fit_to_training$loglik / sum(training_tableau$Frequency)
+# -0.8339063
+
+#Plot
+plot(shona_point01_crossval_fit_to_training$predictions$Observed, shona_point01_crossval_fit_to_training$predictions$Predicted, xlab = "observed probability of each training candidate", ylab = "predicted probabilities", pch = 21, bg = alpha("blue", 0.2), cex = log(shona_input_with_total$tableau_freq)/3, xlim=c(0,1), ylim=c(0,1))
+abline(coef = c(0,1), col="grey")
+
+#How does it do on the held-out data?
+shona_point01_crossval_fit_to_test <- predict_probabilities(test_input = test_tableau, constraint_weights = shona_point01_crossval_model$weights)
+
+shona_point01_crossval_fit_to_test$loglik / sum(test_tableau$Frequency)
+# -0.8290028
+
+plot(shona_point01_crossval_fit_to_test$predictions$Observed, shona_point01_crossval_fit_to_test$predictions$Predicted, xlab = "observed probability of each held-out candidate", ylab = "predicted probabilities", pch = 21, bg = alpha("blue", 0.2), cex = log(shona_input_with_total$tableau_freq)/3, xlim=c(0,1), ylim=c(0,1))
+abline(coef = c(0,1), col="grey")
+
+```
+
+Try a moderate sigma, 3:
+
+```{r crossval_sigma_3}
+#Fit model to training data
+shona_3_crossval_model <- optimize_weights(training_tableau, mu_scalar = 0, sigma_scalar = 3, upper_bound = 10)
+
+#How does it do on the training data?
+shona_3_crossval_fit_to_training <- predict_probabilities(test_input = training_tableau, constraint_weights = shona_3_crossval_model$weights)
+
+shona_3_crossval_fit_to_training$loglik / sum(training_tableau$Frequency)
+# -0.5242238
+
+#Plot
+plot(shona_3_crossval_fit_to_training$predictions$Observed, shona_3_crossval_fit_to_training$predictions$Predicted, xlab = "observed probability of each training candidate", ylab = "predicted probabilities", pch = 21, bg = alpha("blue", 0.2), cex = log(shona_input_with_total$tableau_freq)/3, xlim=c(0,1), ylim=c(0,1))
+abline(coef = c(0,1), col="grey")
+
+#How does it do on the held-out data?
+shona_3_crossval_fit_to_test <- predict_probabilities(test_input = test_tableau, constraint_weights = shona_3_crossval_model$weights)
+
+shona_3_crossval_fit_to_test$loglik / sum(test_tableau$Frequency)
+# -0.5317218
+
+plot(shona_3_crossval_fit_to_test$predictions$Observed, shona_3_crossval_fit_to_test$predictions$Predicted, xlab = "observed probability of each held-out candidate", ylab = "predicted probabilities", pch = 21, bg = alpha("blue", 0.2), cex = log(shona_input_with_total$tableau_freq)/3, xlim=c(0,1), ylim=c(0,1))
+abline(coef = c(0,1), col="grey")
+
+```
+
+
+## Choosing the best value for sigma
+
+Explore different values of sigma
+
+```{r explore_sigma}
+sigmas_to_try <- c(100, 75, 50, 40, 30, 20, 15, 10, 9, 8, 7, 6, 5.5,
+5, 4.5,4, 3.5, 3, 2.5, 2, 1.5, 1, 0.8, 0.7, 0.6, 0.5)
+
+# This might take some time
+shona_crossval <- cross_validate(shona_input, k = 5, mu_values = rep(0,length(sigmas_to_try)), sigma_values = sigmas_to_try, upper_bound = 10)
+
+shona_crossval
+# Looks like
+# model_name mu sigma folds mean_ll_test mean_ll_training
+# 1 shona_input 0 100 5 -183.3994 -696.2001
+# 2 shona_input 0 75 5 -183.7278 -696.0800
+# 3 shona_input 0 50 5 -183.7573 -696.0632
+# ...
+```
+
+Plot cross-validation results
+
+```{r plot_cross_val}
+# get approximate number of data points for training and held-out
+approx_num_of_train <- sum(shona_input$Frequency) * 0.8
+approx_num_of_testing <- sum(shona_input$Frequency) * 0.2
+
+# Get row corresponding to best sigma
+best_row <- shona_crossval[which.max(shona_crossval$mean_ll_test),]
+
+# find best sigma value, for placing vertical line
+best_sigma <- best_row$sigma
+
+# find best fit, for placing horizontal line
+best_fit_to_test <- best_row$mean_ll_test / approx_num_of_testing
+
+# to avoid scientific notation for numbers of x axis
+options(scipen=10)
+
+#basic plot
+plot(as.numeric(shona_crossval$sigma), shona_crossval$mean_ll_test / approx_num_of_testing, xlab="sigma value used in training", ylab="average log likelihood", type="b", log="x", cex=0.8, col="blue", ylim=c(-0.59,-0.51), pch = 21, main="k=5")
+
+#add points
+points(as.numeric(shona_crossval$sigma), shona_crossval$mean_ll_training / approx_num_of_train, cex=0.8, col="orange", pch = 15)
+
+#add lines
+lines(as.numeric(shona_crossval$sigma), shona_crossval$mean_ll_training / approx_num_of_train, cex=0.8, col="orange", lty=2)
+abline(v=best_sigma, col="grey", lty = 2)
+abline(h=best_fit_to_test, col="grey", lty=2)
+
+#add legend
+legend("bottomright", legend= c("training data", "held-out data"), col=c("orange", "blue"), pch = c(15,21), cex=1, lty=c(2,1))
+```
+
+Do it again, but with a different k, k=10
+
+```{r explore_sigma_k_10}
+
+# This might take some time
+shona_crossval_10 <- cross_validate(shona_input, k = 10, mu_values = rep(0,length(sigmas_to_try)), sigma_values = sigmas_to_try, upper_bound = 10)
+
+shona_crossval_10
+# Looks like
+#     model_name mu sigma folds mean_ll_test mean_ll_training
+# 1  shona_input  0   100    10    -91.87253        -784.9358
+# 2  shona_input  0    75    10    -91.88824        -784.9636
+# 3  shona_input  0    50    10    -91.93277        -784.9671
+# ...
+
+approx_num_of_train_10 <- sum(shona_input$Frequency) * 9/10
+approx_num_of_testing_10 <- sum(shona_input$Frequency) * 1/10
+
+# Get row corresponding to best sigma
+best_row_10 <- shona_crossval_10[which.max(shona_crossval_10$mean_ll_test),]
+
+# find best sigma value, for placing vertical line
+best_sigma_10 <- best_row_10$sigma
+
+# find best fit, for placing horizontal line
+best_fit_to_test_10 <- best_row_10$mean_ll_test / approx_num_of_testing_10
+
+# to avoid scientific notation for numbers of x axis
+options(scipen=10)
+
+#basic plot
+plot(as.numeric(shona_crossval_10$sigma), shona_crossval_10$mean_ll_test / approx_num_of_testing_10, xlab="sigma value used in training", ylab="average log likelihood", type="b", log="x", cex=0.8, col="blue", ylim=c(-0.59,-0.51), pch = 21, main="k=10")
+
+#add points
+points(as.numeric(shona_crossval_10$sigma), shona_crossval_10$mean_ll_training / approx_num_of_train_10, cex=0.8, col="orange", pch = 15)
+
+#add lines
+lines(as.numeric(shona_crossval_10$sigma), shona_crossval_10$mean_ll_training / approx_num_of_train_10, cex=0.8, col="orange", lty=2)
+abline(v=best_sigma_10, col="grey", lty = 2)
+abline(h=best_fit_to_test_10, col="grey", lty=2)
+
+#add legend
+legend("bottomright", legend= c("training data", "held-out data"), col=c("orange", "blue"), pch = c(15,21), cex=1, lty=c(2,1))
+```
+
+# Conclusion and futher resources
+
+# Appendix A: OTSoft formant
+
+Read OTSoft-formatted file
+
+```{r readOTSoft}
+simple_input <- read_tsv("data/simple_input_otsoft.txt")
+```
+
+# Appendix B: The temperature parameter
+
+Use a temperature value greater than 1
+
+```{r temperature}
+# Call predict_probabilities with the sample parameters used to generate
+# predictions in last column of Table 12, but with temperature = 5.
+result <- predict_probabilities(MaxStressed_SSP_input, model_MaxStressed_SSP$weights, temperature=2)
+
+result$loglik
+# -228.811
+
+result$predictions
+# Table 25
+```

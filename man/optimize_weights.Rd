@@ -74,7 +74,7 @@ with \code{-1} if specified, since this must be treated as a maximization
 problem.}
 
 \item{upper_bound}{(optional) The maximum value for constraint weights.
-Defaults to 1000.}
+Defaults to 100.}
 
 \item{encoding}{(optional) The character encoding of the input file. Defaults
 to "unknown".}
@@ -168,7 +168,7 @@ done without the bias term.
 
   # Fit weights with biases specified in file
   bias_df <- read.csv(bias_file)
-  optimize_weights(tableaux_df, bias_file)
+  optimize_weights(tableaux_df, bias_df)
 
   # Fit weights with biases specified in vector form
   optimize_weights(
