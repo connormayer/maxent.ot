@@ -308,7 +308,7 @@ border_remove(tableau)
 ```
 We can train our model again, but with the same prior on the weights of all constraints. 
 ```{r}
-full_model_map <- optimize_weights(full_file, in_sep=',', mu_scalar=0, sigma_scalar=0.5)
+full_model_map <- optimize_weights(full_file, in_sep=',', mu=0, sigma=0.5)
 ```
 Notice that the log likelihood of the training data is worse for the MAP model.
 ```{r}

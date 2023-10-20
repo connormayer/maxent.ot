@@ -283,7 +283,7 @@ Apply a basic Gaussian bias, same values for all constraints
 
 ```{r basic_bias}
 # all constraints have mu of 0, sigma of 1
-model_MaxStressed_SSP_bias1 <- optimize_weights(MaxStressed_SSP_input, mu_scalar = 0, sigma_scalar = 1)
+model_MaxStressed_SSP_bias1 <- optimize_weights(MaxStressed_SSP_input, mu = 0, sigma = 1)
 
 rbind(unbiased_weights = model_MaxStressed_SSP$weights, biased_weights = model_MaxStressed_SSP_bias1$weights)
 # See Table 18
@@ -292,7 +292,7 @@ rbind(unbiased_weights = model_MaxStressed_SSP$weights, biased_weights = model_M
 custom values for each constraint
 
 ```{r elaborate_bias}
-model_MaxStressed_SSP_bias2 <- optimize_weights(MaxStressed_SSP_input, mu_vector = c(2,0,0,1), sigma_vector = c(1, 1, 0.1, 1))
+model_MaxStressed_SSP_bias2 <- optimize_weights(MaxStressed_SSP_input, mu = c(2,0,0,1), sigma = c(1, 1, 0.1, 1))
 
 rbind(unbaised_weights = model_MaxStressed_SSP$weights, biased_weights = model_MaxStressed_SSP_bias1$weights, individually_biased_weights = model_MaxStressed_SSP_bias2$weights)
 # See Table 19
@@ -338,7 +338,7 @@ for(i in 1:length(shona_input_with_total$Frequency)) {
 Make a close-fitting model, with very large sigma
 
 ```{r close_fit}
-shona_1000 <- optimize_weights(shona_input, mu_scalar = 0, sigma_scalar = 1000, upper_bound = 10)
+shona_1000 <- optimize_weights(shona_input, mu = 0, sigma = 1000, upper_bound = 10)
 
 shona_1000_predictions <- predict_probabilities(shona_input, constraint_weights = shona_1000$weights)
 
@@ -382,7 +382,7 @@ test_tableau <- maxent.ot:::populate_tableau(test_data, test_part)
 Fit to training slices only
 ```{r fit_to_traiing}
 # Fit model to training data
-shona_1000_crossval_model <- optimize_weights(training_tableau, mu_scalar = 0, sigma_scalar = 1000, control_params = NA, upper_bound = 10) 
+shona_1000_crossval_model <- optimize_weights(training_tableau, mu = 0, sigma = 1000, control_params = NA, upper_bound = 10) 
 
 ```
 
@@ -423,7 +423,7 @@ Try a too-strict sigma, 0.1
 
 ```{r sigma_0_point_1}
 #Fit model to training data
-shona_point01_crossval_model <- optimize_weights(training_tableau, mu_scalar = 0, sigma_scalar = 0.1, upper_bound = 10)
+shona_point01_crossval_model <- optimize_weights(training_tableau, mu = 0, sigma = 0.1, upper_bound = 10)
 
 #How does it do on the training data?
 shona_point01_crossval_fit_to_training <- predict_probabilities(test_input = training_tableau, constraint_weights = shona_point01_crossval_model$weights)
@@ -450,7 +450,7 @@ Try a moderate sigma, 3:
 
 ```{r crossval_sigma_3}
 #Fit model to training data
-shona_3_crossval_model <- optimize_weights(training_tableau, mu_scalar = 0, sigma_scalar = 3, upper_bound = 10)
+shona_3_crossval_model <- optimize_weights(training_tableau, mu = 0, sigma = 3, upper_bound = 10)
 
 #How does it do on the training data?
 shona_3_crossval_fit_to_training <- predict_probabilities(test_input = training_tableau, constraint_weights = shona_3_crossval_model$weights)

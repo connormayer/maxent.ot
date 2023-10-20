@@ -161,22 +161,6 @@ cross_validate <- function(input, k, mu_values, sigma_values,
 do_validation <- function(k, data, partitions, mu, sigma, model_name,
                           control_params, upper_bound) {
   # Performs cross-validation given a particular value of mu and sigma
-  if (length(mu) > 1) {
-    mu_scalar <- NA
-    mu_vector <- unlist(mu)
-  } else {
-    mu_scalar <- mu
-    mu_vector <- NA
-  }
-
-  if (length(sigma) > 1) {
-    sigma_scalar <- NA
-    sigma_vector <- unlist(sigma)
-  } else {
-    sigma_scalar <- sigma
-    sigma_vector <- NA
-  }
-
   log_liks_test <- c()
   log_liks_training <- c()
 
@@ -196,9 +180,8 @@ do_validation <- function(k, data, partitions, mu, sigma, model_name,
     test_tableau <- populate_tableau(test_data, test_part)
 
     m <- optimize_weights(
-      training_tableau, mu_scalar = mu_scalar, mu_vector = mu_vector,
-      sigma_scalar = sigma_scalar, sigma_vector = sigma_vector,
-      control_params = control_params, upper_bound = upper_bound
+      training_tableau, mu = mu, sigma = sigma, control_params = control_params,
+      upper_bound = upper_bound
     )
     predictions_test <- predict_probabilities(test_tableau, m$weights)
     log_liks_test <- c(predictions_test$loglik, log_liks_test)

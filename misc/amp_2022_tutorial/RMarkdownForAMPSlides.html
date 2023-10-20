@@ -595,7 +595,7 @@ base_model &lt;- optimize_weights(base_file, in_sep=&#39;,&#39;)
 
 # Get the weights of each constraint
 base_model$weights</code></pre>
-<pre><code>## StarComplex         Max 
+<pre><code>## StarComplex         Max
 ##   1.6088911   0.9898518</code></pre>
 <pre class="r"><code># Get the log likelihood assigned to the training data under these weights
 base_model$loglik</code></pre>
@@ -617,7 +617,7 @@ uses the same constraints as your trained model.</p>
 <pre class="r"><code>predict_probabilities(base_file, base_model$weights, in_sep=&#39;,&#39;)</code></pre>
 <pre><code>## $loglik
 ## [1] -258.9787
-## 
+##
 ## $predictions
 ##            UR         SR Freq StarComplex Max Predicted Probability Observed Probability       Error
 ## 1:      &#39;stad      &#39;stad   40           1   0                  0.35                  0.4 -0.05000002
@@ -710,7 +710,7 @@ stressed_model &lt;- optimize_weights(stressed_file, in_sep=&#39;,&#39;)
 
 # Get the weights of each constraint
 stressed_model$weights</code></pre>
-<pre><code>##    *Complex         Max MaxStressed 
+<pre><code>##    *Complex         Max MaxStressed
 ##   2.3697155   0.9834209   1.3862945</code></pre>
 <pre class="r"><code># Get the log likelihood assigned to the training data under these weights
 stressed_model$loglik</code></pre>
@@ -725,7 +725,7 @@ stressed_model$n</code></pre>
 <pre class="r"><code>predict_probabilities(stressed_file, stressed_model$weights, in_sep=&#39;,&#39;)</code></pre>
 <pre><code>## $loglik
 ## [1] -238.7099
-## 
+##
 ## $predictions
 ##            UR         SR Freq *Complex Max MaxStressed Predicted Probability Observed Probability       Error
 ## 1:      &#39;stad      &#39;stad   40        1   0           0                   0.5                  0.4  0.09999998
@@ -804,7 +804,7 @@ full_model &lt;- optimize_weights(full_file, in_sep=&#39;,&#39;)
 
 # Get the weights of each constraint
 full_model$weights</code></pre>
-<pre><code>##    *Complex         Max MaxStressed         SSP 
+<pre><code>##    *Complex         Max MaxStressed         SSP
 ##   1.8104996   0.8510383   1.4618151   1.0047286</code></pre>
 <pre class="r"><code># Get the log likelihood assigned to the training data under these weights
 full_model$loglik</code></pre>
@@ -819,7 +819,7 @@ full_model$n</code></pre>
 <pre class="r"><code>predict_probabilities(full_file, full_model$weights, in_sep=&#39;,&#39;)</code></pre>
 <pre><code>## $loglik
 ## [1] -228.811
-## 
+##
 ## $predictions
 ##            UR         SR Freq *Complex Max MaxStressed SSP Predicted Probability Observed Probability       Error
 ## 1:      &#39;stad      &#39;stad   40        1   0           0   1             0.3769828                  0.4 -0.02301723
@@ -945,7 +945,7 @@ overfit_model &lt;- optimize_weights(overfit_file, in_sep=&#39;,&#39;)
 predict_probabilities(overfit_file, overfit_model$weights, in_sep=&#39;,&#39;)</code></pre>
 <pre><code>## $loglik
 ## [1] -228.1971
-## 
+##
 ## $predictions
 ##            UR         SR Freq *Complex Max MaxStressed SSP DoTheRightThing Predicted Probability Observed Probability         Error
 ## 1:      &#39;stad      &#39;stad   40        1   0           0   1               0             0.3999982                  0.4 -1.838151e-06
@@ -1053,7 +1053,7 @@ fantome.appendChild(templateContent);
 
 <p>We can train our model again, but with the same prior on the weights
 of all constraints.</p>
-<pre class="r"><code>full_model_map &lt;- optimize_weights(full_file, in_sep=&#39;,&#39;, mu_scalar=0, sigma_scalar=0.5)</code></pre>
+<pre class="r"><code>full_model_map &lt;- optimize_weights(full_file, in_sep=&#39;,&#39;, mu=0, sigma=0.5)</code></pre>
 <p>Notice that the log likelihood of the training data is worse for the
 MAP model.</p>
 <pre class="r"><code>full_model$loglik</code></pre>
@@ -1065,7 +1065,7 @@ MAP model.</p>
 predict_probabilities(new_file, full_model$weights, in_sep=&#39;,&#39;)</code></pre>
 <pre><code>## $loglik
 ## [1] -258.2738
-## 
+##
 ## $predictions
 ##          UR       SR Freq *Complex Max MaxStressed SSP Predicted Probability Observed Probability       Error
 ## 1:    &#39;staʒ    &#39;staʒ   43        1   0           0   1             0.3769828                 0.43 -0.05301723
@@ -1079,7 +1079,7 @@ predict_probabilities(new_file, full_model$weights, in_sep=&#39;,&#39;)</code></
 <pre class="r"><code>predict_probabilities(new_file, full_model_map$weights, in_sep=&#39;,&#39;)</code></pre>
 <pre><code>## $loglik
 ## [1] -254.3244
-## 
+##
 ## $predictions
 ##          UR       SR Freq *Complex Max MaxStressed SSP Predicted Probability Observed Probability       Error
 ## 1:    &#39;staʒ    &#39;staʒ   43        1   0           0   1             0.3721018                 0.43 -0.05789816

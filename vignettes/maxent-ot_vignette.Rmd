@@ -483,16 +483,14 @@ If the User notices that their models don't appear to have learned anything (*i.
 
 
 ## 3.2 Using the prior: Which argument to use?
-There are five arguments that may be used to pass in values for the bias parameters $\mu$ and $\sigma$.
+There are three arguments that may be used to pass in values for the bias parameters $\mu$ and $\sigma$.
 The arguments are:
 
 * `bias_file`
-* `mu_vector`
-* `sigma_vector`
-* `mu_scalar`
-* `sigma_scalar`
+* `mu`
+* `sigma`
 
-To use the argument `bias_file`, pass in a `.txt` file with the structure below.
+To use the argument `bias_file`, pass in a bias file with the structure below.
 
 ``` {r}
 # Get paths to toy data and bias files.
@@ -522,27 +520,27 @@ Below, we fit weights with the biases specified in a file.
 optimize_weights(data_frame, bias_data_frame)
 ```
 
-The arguments `mu_vector` and `sigma_vector` allow us to specify biases in vector form.
+The arguments `mu` and `sigma` allow us to specify biases in either scalar or vector form.
 This enables us to specify different values of $\mu$ for each constraint, if we so desire.
 The same applies to $\sigma$.
-Below, we fit weights with the bias parameters specified in vector form.
-For each `..._vector` argument, we have to combine the individual parameter values into a vector using the `c()` function (*e.g.* `c(100, 200)`).
 
-``` {r}
-# Fit weights with biases specified in vector form
-optimize_weights(
-  data_frame, mu_vector = c(1, 2), sigma_vector = c(100, 200)
-)
-```
-
-The arguments `mu_scalar` and `sigma_scalar` allow us to specify the bias parameter values just once for all constraints.
-This is useful when all constraints share the same ideal weight, $\mu$, or when they all share the same tolerance for weight discrepancy, $\sigma$.
+If you specify bias terms as scalars, all constraints will share the same values.
 Below, we fit weights with the bias parameters specified in scalar form.
 
 ``` {r}
 # Fit weights with biases specified as scalars
 optimize_weights(
-  data_frame, mu_scalar = 0, sigma_scalar = 1000
+  data_frame, mu = 0, sigma = 1000
+)
+```
+
+If you specify bias terms as vectors, each constraint can have different values.
+We combine the individual constraint parameter values into a vector using the `c()` function (*e.g.* `c(100, 200)`).
+
+``` {r}
+# Fit weights with biases specified in vector form
+optimize_weights(
+  data_frame, mu = c(1, 2), sigma = c(100, 200)
 )
 ```
 
@@ -550,7 +548,7 @@ A mix of scalar and vector biases is also possible:
 ``` {r}
 # Fit weights with a mix of scalar and vector biases
 optimize_weights(
-  data_frame, mu_vector = c(1, 2), sigma_scalar = 1000
+  data_frame, mu = c(1, 2), sigma = 1000
 )
 ```
 
@@ -562,8 +560,7 @@ knitr::include_graphics("../man/figures/bias_param_hierarchy.jpg")
 ```
 
 In this chart, the argument above takes precedence over the one(s) it dominates.
-For example, if the User passes in both a file for `bias_file` and a separate value for `mu_scalar`, the parameter values specified in `bias_file` will be used and the one specified in `mu_scalar` will be ignored.
-Likewise, if the User passes in both a vector for `sigma_vector` and another value for `sigma_scalar`, the vector for `sigma_vector` will be used and the value for `sigma_scalar` will be ignored.
+For example, if the User passes in both a file for `bias_file` and a separate value for `mu`, the parameter values specified in `bias_file` will be used and the one specified in `mu` will be ignored.
 
 If only one of the two bias parameters is present, an error will be raised.
 (*e.g.* When values are provided for $\mu$, but there are none for $\sigma$.)
@@ -614,18 +611,18 @@ Such models are said to **overfit** the training data.
 One strategy to reduce overfitting is to include a regularization term.
 The intended effect of regularization is to keep the weights as low as possible.
 
-To put this into practice, we'll make use of the optional arguments `mu_scalar` & `sigma_scalar` of the function `optimize_weights()`.
-To keep weights low, we'll set `mu_scalar = 0` & `sigma_scalar = 1`.
+To put this into practice, we'll make use of the optional arguments `mu` & `sigma` of the function `optimize_weights()`.
+To keep weights low, we'll set `mu = 0` & `sigma = 1`.
 This means that we believe that every constraint should:
 
   * Have an ideal weight = 0
   * Have standard deviation = 1
 
-Since every constraint has the same ideal weight & the same standard deviation (tolerance for weight discrepancy), we can make use of the optional arguments `mu_scalar` & `sigma_scalar` to input $\mu$ and $\sigma$ just once for all constraints.
+Since every constraint has the same ideal weight & the same standard deviation (tolerance for weight discrepancy), we can make use of the optional arguments `mu` & `sigma` to input $\mu$ and $\sigma$ just once for all constraints.
 ```{r scalarBiases}
-# Train regularized model with mu_scalar=0 & sigma_scalar=1
+# Train regularized model with mu=0 & sigma=1
 regularized_model <- optimize_weights(
-  data_frame, mu_scalar=0, sigma_scalar=1
+  data_frame, mu=0, sigma=1
 )
 ```
 
@@ -752,15 +749,15 @@ white_salt_data_frame <- otsoft_tableaux_to_df(white_salt_data_file)
 white_salt_data_frame
 ```
 
-We now train the bias model for the experimental condition, making use of the argument `mu_vector`.
+We now train the bias model for the experimental condition, making use of the argument `mu`.
 We want the value of $\mu$ to be 0, 0, 1.3 and 3.65 for the four ordered constraints [\*V[-cont]V, \*V[-voi]V, \*Map(b,v), \*Map(p,v)] respectively.
 We have to combine these four values into a vector using the `c()` function (*i.e.* `c(0, 0, 1.3, 3.65)`).
-Here, we choose to have the same tolerance for deviation from the preferred weight for all constraints, so we'll use the argument `sigma_scalar`.
+Here, we choose to have the same tolerance for deviation from the preferred weight for all constraints, so we'll use the argument `sigma`.
 
 ```{r}
 # Fit model with preferred weights for experimental condition
 white_salt_bias_model = optimize_weights(
-  white_salt_data_frame, mu_vector=c(0, 0, 1.3, 3.65), sigma_scalar=sqrt(0.6)
+  white_salt_data_frame, mu=c(0, 0, 1.3, 3.65), sigma=sqrt(0.6)
 )
 
 # View trained weights (expt cdn with bias)
@@ -774,7 +771,7 @@ We'll average out the preferred weights for the two *Map constraints, which resu
 # Fit unbiased model for experimental condition
 white_salt_noBias_model = optimize_weights(
   white_salt_data_frame, 
-  mu_vector=c(0, 0, 2.27, 2.27), sigma_scalar=sqrt(0.6)
+  mu=c(0, 0, 2.27, 2.27), sigma=sqrt(0.6)
 )
 
 # View trained weights (expt cdn, no bias)
@@ -861,7 +858,7 @@ white_control_df
 # Fit model with preferred weights for control condition
 white_control_bias_model = optimize_weights(
   white_control_df,
-  mu_vector=c(0, 0, 1.3, 3.65), sigma_scalar=sqrt(0.6)
+  mu=c(0, 0, 1.3, 3.65), sigma=sqrt(0.6)
 )
 
 # View trained weights (control cdn with bias)
@@ -870,7 +867,7 @@ white_control_bias_model$weights
 # Fit unbiased model for control condition
 white_control_noBias_model = optimize_weights(
   white_control_df,
-  mu_vector=c(0, 0, 2.27, 2.27), sigma_scalar=sqrt(0.6)
+  mu=c(0, 0, 2.27, 2.27), sigma=sqrt(0.6)
 )
 
 # View trained weights (control cdn, no bias)
@@ -936,7 +933,7 @@ Overall, the biased model, which incorporated substantive biases, performed much
 The unbiased model both greatly underpredicted extension to the b&rarr;v alternation in the experimental condition and greatly overpredicted the extension to the p&rarr;v alternation in the control condition.
 In contrast, the biased model neither vastly under- nor overpredicted on any of the response tasks.
 
-For the biased model, we introduced different preferred weights for separate constraints by utilizing the `mu_vector` argument of the `optimize_weights()` function.
+For the biased model, we introduced different preferred weights for separate constraints by utilizing the `mu` argument of the `optimize_weights()` function.
 These preferred weights were chosen to represent the substantive effects that arose from perceptual distances.
 The resulting trained biased model was able to match the observed frequencies of alternations produced by human subjects during the response phase much more closely than its unbiased counterpart in all experimental conditions, thus demonstrating the utility of incorporating substantive biases for linguistic modeling.
 
