@@ -8,12 +8,10 @@ monte_carlo_weights(
   pred_prob,
   num_simul,
   bias_file = NA,
-  mu_scalar = NA,
-  mu_vector = NA,
-  sigma_scalar = NA,
-  sigma_vector = NA,
+  mu = NA,
+  sigma = NA,
   output_path = NA,
-  out_sep = "\\t",
+  out_sep = ",",
   control_params = NA,
   upper_bound = DEFAULT_UPPER_BOUND
 )
@@ -29,33 +27,24 @@ the object returned by the \code{predict_probabilities} function.}
 for constraint biases. If this argument is provided, the scalar and vector
 mu and sigma arguments will be ignored. Each row in this file should be
 the name of the constraint, followed by the mu, followed by the sigma
-(separated by whatever the relevant separator is; default is tabs).}
+(separated by whatever the relevant separator is; default is commas).}
 
-\item{mu_scalar}{(optional) A single scalar value that will serve as the mu
-for each constraint in the bias term. Constraint weights will also be
-initialized to this value. This value will not be used if either
-\code{bias_file} or \code{mu_vector} are provided.}
+\item{mu}{(optional) A scalar or vector that will serve as the mu for each
+constraint in the bias term. Constraint weights will also be initialized to
+this value. If a vector, its length must equal the number of constraints in
+the input file. This value will not be used if \code{bias_file} is provided.}
 
-\item{mu_vector}{(optional) A vector of mus for each constraint in the bias
-term. The length of this vector must equal the number of constraints in
-the input file. If \code{bias_file} is provided, this argument will be
-ignored. If this argument is provided, \code{mu_scalar} will be ignored.}
-
-\item{sigma_scalar}{(optional) A single scalar value that will serve as the
-sigma for each constraint in the bias term. This value will not be used if
-either \code{bias_file} or \code{sigma_vector} are provided.}
-
-\item{sigma_vector}{(optional) A vector of sigmas for each constraint in the
-bias term. The length of this vector must equal the number of constraints
-in the input file. If \code{bias_file} is provided, this argument will be
-ignored. If this argument is provided, \code{sigma_scalar} will be ignored.}
+\item{sigma}{(optional) A scalar or vector that will serve as the sigma for
+each constraint in the bias term. If a vector, its length must equal the
+number of constraints in the input file. This value will not be used if
+\code{bias_file} is provided.}
 
 \item{output_path}{(optional) A string specifying the path to a file to
 which the output will be saved. If the file exists it will be overwritten.
 If this argument isn't provided, the output will not be written to a file.}
 
 \item{out_sep}{(optional) The delimiter used in the output files.
-Defaults to tabs.}
+Defaults to commas.}
 
 \item{control_params}{(optional) A named list of control parameters that
 will be passed to the \link[stats]{optim} function. See the documentation
@@ -65,7 +54,7 @@ with \code{-1} if specified, since this must be treated as a maximization
 problem.}
 
 \item{upper_bound}{(optional) The maximum value for constraint weights.
-Defaults to 1000.}
+Defaults to 100.}
 }
 \value{
 A data frame with the following structure:

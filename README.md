@@ -69,8 +69,8 @@ df_simple <- read.csv(data_file_simple)
 df_complex <- read.csv(data_file_complex)
 
 # Fit weights to both data sets with simple regularization
-simple_model <- optimize_weights(df_simple, mu_scalar=0, sigma_scalar=10)
-complex_model <- optimize_weights(df_complex, mu_scalar=0, sigma_scalar=10)
+simple_model <- optimize_weights(df_simple, mu=0, sigma=10)
+complex_model <- optimize_weights(df_complex, mu=0, sigma=10)
 
 # Examine predicted probabilities of each model
 # Also displayed: log likelihood (of weights given prediction data)

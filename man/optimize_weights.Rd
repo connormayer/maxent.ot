@@ -7,10 +7,8 @@
 optimize_weights(
   input,
   bias_input = NA,
-  mu_scalar = NA,
-  mu_vector = NA,
-  sigma_scalar = NA,
-  sigma_vector = NA,
+  mu = NA,
+  sigma = NA,
   control_params = NA,
   upper_bound = DEFAULT_UPPER_BOUND,
   encoding = "unknown",
@@ -38,7 +36,7 @@ A data frame/data table/tibble containing the bias mus and sigmas. Each row
 corresponds to an individual constraint, and consists of three columns:
 \code{Constraint}, which contains the constraint name, \code{Mu}, which contains the
 mu, and \code{Sigma}, which contains the sigma. If this argument is provided,
-the scalar and vector mu and sigma arguments will be ignored.
+the mu and sigma arguments will be ignored.
 Like the \code{input} argument, this function also supports the legacy OTSoft
 file format for this argument. In this case, \code{bias_input} should be a path
 to the bias parameters in OTSoft format.
@@ -47,24 +45,15 @@ For examples of OTSoft bias format, see inst/extdata/sample_bias_file_otsoft.txt
 Each row in this file should be the name of the constraint, followed by the
 mu, followed by the sigma (separated by tabs).}
 
-\item{mu_scalar}{(optional) A single scalar value that will serve as the mu
-for each constraint in the bias term. Constraint weights will also be
-initialized to this value. This value will not be used if either
-\code{bias_file} or \code{mu_vector} are provided.}
+\item{mu}{(optional) A scalar or vector that will serve as the mu for each
+constraint in the bias term. Constraint weights will also be initialized to
+this value. If a vector, its length must equal the number of constraints in
+the input file. This value will not be used if \code{bias_file} is provided.}
 
-\item{mu_vector}{(optional) A vector of mus for each constraint in the bias
-term. The length of this vector must equal the number of constraints in
-the input file. If \code{bias_file} is provided, this argument will be
-ignored. If this argument is provided, \code{mu_scalar} will be ignored.}
-
-\item{sigma_scalar}{(optional) A single scalar value that will serve as the
-sigma for each constraint in the bias term. This value will not be used if
-either \code{bias_file} or \code{sigma_vector} are provided.}
-
-\item{sigma_vector}{(optional) A vector of sigmas for each constraint in the
-bias term. The length of this vector must equal the number of constraints
-in the input file. If \code{bias_file} is provided, this argument will be ignored.
-If this argument is provided, \code{sigma_scalar} will be ignored.}
+\item{sigma}{(optional) A scalar or vector that will serve as the sigma for
+each constraint in the bias term. If a vector, its length must equal the
+number of constraints in the input file. This value will not be used if
+\code{bias_file} is provided.}
 
 \item{control_params}{(optional) A named list of control parameters that
 will be passed to the \link[stats]{optim} function. See the documentation
@@ -150,9 +139,8 @@ statistics library. By default it uses \code{L-BFGS-B} optimization, which is a
 quasi-Newtonian method that allows upper and lower bounds on variables.
 Constraint weights are restricted to finite, non-negative values.
 
-If no bias parameters are specified (either the \code{bias_file} argument or some
-combination of the scalar/vector mu/sigma parameters), optimization will be
-done without the bias term.
+If no bias parameters are specified (either the \code{bias_file} argument or the
+mu and sigma parameters), optimization will be done without the bias term.
 }
 \examples{
   # Get paths to toy data and bias files.
@@ -172,14 +160,14 @@ done without the bias term.
 
   # Fit weights with biases specified in vector form
   optimize_weights(
-      tableaux_df, mu_vector = c(1, 2), sigma_vector = c(100, 200)
+      tableaux_df, mu = c(1, 2), sigma = c(100, 200)
   )
 
   # Fit weights with biases specified as scalars
-  optimize_weights(tableaux_df, mu_scalar = 0, sigma_scalar = 1000)
+  optimize_weights(tableaux_df, mu = 0, sigma = 1000)
 
   # Fit weights with mix of scalar and vector biases
-  optimize_weights(tableaux_df, mu_vector = c(1, 2), sigma_scalar = 1000)
+  optimize_weights(tableaux_df, mu = c(1, 2), sigma = 1000)
 
   # Pass additional arguments to optim function
   optimize_weights(tableaux_df, control_params = list(maxit = 500))
