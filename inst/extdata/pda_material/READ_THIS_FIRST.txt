@@ -1,0 +1,12 @@
+Steps to install maxent.ot:
+
+1. Install R and RStudio if not already installed: ttps://posit.co/download/rstudio-desktop/
+2. Open RStudio and in the menu at the top, click "Tools > Install Packages"
+3. Choose the option "Package Archive File (.zip; .tar.gz)" from the "Install from:" dropdown menu
+4. Click "Browse" beside "Package archive" and choose the file "maxent.ot_0.0.0.9000.tar.gz" included in this folder.
+5. Click "Install"
+6. Run library(maxent.ot) and confirm that it loads properly
+
+You can open RMarkdownForPDASubmission.Rmd for a stripped down version of the code samples in the paper. You can also look at the knitted version of this file in RMarkdownForPDASubmission.html.
+
+The source code for the project is in the source_code folder.
