@@ -572,7 +572,7 @@ sigmas_to_try <- c(
   5, 4.5,4, 3.5, 3, 2.5, 2, 1.5, 1, 0.8, 0.7, 0.6, 0.5
 )
 # This might take some time
-shona_crossval <- cross_validate(
+shona_crossval_5 <- cross_validate(
     shona_input, 
     k = 5, 
     mu_values = 0, 
@@ -580,7 +580,7 @@ shona_crossval <- cross_validate(
     upper_bound = 10,
     grid_search = TRUE
 )
-shona_crossval
+shona_crossval_5
 # Looks like
 #     model_name mu sigma folds mean_ll_test mean_ll_training
 # 1  shona_input  0   100     5    -183.3994        -696.2001
@@ -592,8 +592,6 @@ shona_crossval
 Do it again, but with a different k, k=10
 
 ```{r explore_sigma_k_10}
-
-# This might take some time
 # This might take some time
 shona_crossval_10 <- cross_validate(
   shona_input, k = 10, mu_values = 0, 
@@ -606,15 +604,34 @@ shona_crossval_10
 Plot cross-validation results
 
 ```{r plot_cross_val}
+# Format k=5 set for plotting
+
 # get approximate number of data points for training and held-out for k=5
-approx_num_of_train <- sum(shona_input$Frequency) * 0.8
-approx_num_of_testing <- sum(shona_input$Frequency) * 0.2
+approx_num_of_train_5 <- sum(shona_input$Frequency) * 0.8
+approx_num_of_testing_5 <- sum(shona_input$Frequency) * 0.2
+
 # Get row corresponding to best sigma
-best_row <- shona_crossval[which.max(shona_crossval$mean_ll_test),]
+best_row_5 <- shona_crossval_5 %>%
+  filter(mean_ll_test == max(mean_ll_test))
+
 # find best sigma value, for placing vertical line
-best_sigma <- best_row$sigma
+best_sigma_5 <- best_row_5$sigma
+
 # find best fit, for placing horizontal line
-best_fit_to_test <- best_row$mean_ll_test / approx_num_of_testing
+best_fit_to_test_5 <- best_row_5$mean_ll_test / approx_num_of_testing_5
+
+# Convert to format used in plotting, normalize LL by count
+shona_crossval_5_df <- shona_crossval_5  %>%
+  pivot_longer(cols=c(mean_ll_training, mean_ll_test), 
+               names_to='type', values_to='ll') %>%
+  mutate(type=ifelse(type == 'mean_ll_training', 
+                     'training data', 
+                     'held-out data'),
+         ll=ifelse(type=='training data', 
+                   ll/approx_num_of_train_5,
+                   ll/approx_num_of_testing_5),
+         best_sigma=best_sigma_5,
+         best_fit=best_fit_to_test_5)
 
 # Do the same for k=10
 approx_num_of_train_10 <- sum(shona_input$Frequency) * 9/10
@@ -625,23 +642,10 @@ best_row_10 <- shona_crossval_10[which.max(shona_crossval_10$mean_ll_test),]
 best_sigma_10 <- best_row_10$sigma
 # find best fit, for placing horizontal line
 best_fit_to_test_10 <- best_row_10$mean_ll_test / approx_num_of_testing_10
-# to avoid scientific notation for numbers of x axis
-options(scipen=10)
 
-# Create single data frame
-shona_crossval_tmp <- shona_crossval  %>%
-  pivot_longer(cols=c(mean_ll_training, mean_ll_test), names_to='type', values_to='ll') %>%
-  mutate(type=ifelse(type == 'mean_ll_training', 
-                     'training data', 
-                     'held-out data'),
-         ll=ifelse(type=='training data', 
-                   ll/approx_num_of_train,
-                   ll/approx_num_of_testing),
-         best_sigma=best_sigma,
-         best_fit=best_fit_to_test)
-
-shona_crossval_10_tmp <- shona_crossval_10 %>%
-  pivot_longer(cols=c(mean_ll_training, mean_ll_test), names_to='type', values_to='ll') %>%
+shona_crossval_10_df <- shona_crossval_10 %>%
+  pivot_longer(cols=c(mean_ll_training, mean_ll_test), 
+               names_to='type', values_to='ll') %>%
   mutate(type=ifelse(type == 'mean_ll_training', 
                      'training data', 
                      'held-out data'),
@@ -656,8 +660,8 @@ shona_full_crossval <- rbind(shona_crossval_tmp, shona_crossval_10_tmp) %>%
 
 # Make plot
 shona_full_crossval %>%
-  ggplot(aes(as.numeric(sigma), ll, fill=type, color=type, shape=type)) +
-  geom_point(shape=21) +
+  ggplot(aes(as.numeric(sigma), ll, fill=type, color=type, shape=type, lty=type)) +
+  geom_point() +
   geom_line() +
   xlab("sigma value used in training") +
   ylab("average log likelihood / N") +
@@ -674,10 +678,10 @@ ggsave('figures/Shona_5_vs_10_fold_crossval.png', width=9, height=4, dpi=300)
 
 # Appendix A: OTSoft formant
 
-Read OTSoft-formatted file
+Read OTSoft-formatted file into data frame.
 
 ```{r readOTSoft}
-simple_input <- read_tsv("data/simple_input_otsoft.txt")
+simple_input <- otsoft_tableaux_to_df("data/simple_input_otsoft.txt")
 ```
 
 # Appendix B: The temperature parameter
