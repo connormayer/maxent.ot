@@ -102,7 +102,8 @@ monte_carlo_weights <- function(pred_prob, num_simul,
                                 bias_file = NA, mu = NA, sigma = NA,
                                 output_path = NA, out_sep = ",",
                                 control_params = NA,
-                                upper_bound = DEFAULT_UPPER_BOUND) {
+                                upper_bound = DEFAULT_UPPER_BOUND,
+                                allow_negative_weights = FALSE) {
 
   # Create file that calculates conditional probability over trial
   cdnpred_prob <- cdnProb_trial(pred_prob)
@@ -118,7 +119,9 @@ monte_carlo_weights <- function(pred_prob, num_simul,
     simul_resp_file <- monte_carlo(cdnpred_prob)
 
     # Learn weights for simulated response
-    curr_model <- optimize_weights(simul_resp_file)
+    curr_model <- optimize_weights(
+      simul_resp_file, allow_negative_weights=allow_negative_weights
+    )
 
     # Record learned weights
     output[i,] <- curr_model$weights

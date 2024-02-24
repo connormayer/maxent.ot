@@ -61,6 +61,8 @@
 #' @param model_name (optional) A name for the model. If not provided, the file
 #'   name will be used if the input is a file path. If the input is a data frame
 #'   the name of the variable will be used.
+#' @param allow_negative_weights (optional) Whether the optimizer should allow
+#'   negative weights. Defaults to FALSE.
 #' @return A data frame with the following columns:
 #' \itemize{
 #'         \item `model_name`: the name of the model
@@ -109,7 +111,8 @@ cross_validate <- function(input, k, mu_values, sigma_values,
                            grid_search = FALSE, output_path = NA,
                            out_sep = ',', control_params = NA,
                            upper_bound = DEFAULT_UPPER_BOUND,
-                           encoding = 'unknown', model_name = NA) {
+                           encoding = 'unknown', model_name = NA,
+                           allow_negative_weights = FALSE) {
   if (is.data.frame(input)) {
     if (is.na(model_name)) {
       # If no provided model name, use name of input variable
@@ -129,7 +132,7 @@ cross_validate <- function(input, k, mu_values, sigma_values,
       for (sigma in sigma_values) {
         result_row <- do_validation(
           k, data, partitions, mu[[1]], sigma[[1]], model_name, control_params,
-          upper_bound
+          upper_bound, allow_negative_weights
         )
         result_df <- rbind(result_df, result_row)
       }
@@ -143,7 +146,7 @@ cross_validate <- function(input, k, mu_values, sigma_values,
     for (i in (1:length(mu_values))) {
       result_row <- do_validation(
         k, data, partitions, mu_values[[i]], sigma_values[[i]], model_name,
-        control_params, upper_bound
+        control_params, upper_bound, allow_negative_weights
       )
       result_df <- rbind(result_df, result_row)
     }
@@ -159,7 +162,7 @@ cross_validate <- function(input, k, mu_values, sigma_values,
 
 
 do_validation <- function(k, data, partitions, mu, sigma, model_name,
-                          control_params, upper_bound) {
+                          control_params, upper_bound, allow_negative_weights) {
   # Performs cross-validation given a particular value of mu and sigma
   log_liks_test <- c()
   log_liks_training <- c()
@@ -181,7 +184,7 @@ do_validation <- function(k, data, partitions, mu, sigma, model_name,
 
     m <- optimize_weights(
       training_tableau, mu = mu, sigma = sigma, control_params = control_params,
-      upper_bound = upper_bound
+      upper_bound = upper_bound, allow_negative_weights = allow_negative_weights
     )
     predictions_test <- predict_probabilities(test_tableau, m$weights)
     log_liks_test <- c(predictions_test$loglik, log_liks_test)
