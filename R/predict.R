@@ -108,10 +108,6 @@ predict_probabilities <- function(test_input, constraint_weights,
   long_names <- processed_input$long_names
   data <- processed_input$data
 
-  if (any(constraint_weights < 0)) {
-    stop("Constraint weights must be non-negative")
-  }
-
   # Build ourselves a matrix for efficient computation
   # Pre-allocate space
   data_matrix <- matrix(0L, nrow = nrow(data), ncol = ncol(data) + 2)

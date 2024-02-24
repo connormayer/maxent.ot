@@ -111,6 +111,8 @@ DEFAULT_UPPER_BOUND <- 100
 #' @param model_name (optional) A name for the model. If not provided, the name
 #'   of the variable will be used if the input is a data frame. If the input
 #'   is a path to an OTSoft file, the filename will be used.
+#' @param allow_negative_weights (optional) Whether the optimizer should allow
+#'   negative weights. Defaults to FALSE.
 #' @return An object with the following named attributes:
 #' \itemize{
 #'         \item `weights`: A named list of the optimal constraint weights
@@ -155,7 +157,8 @@ optimize_weights <- function(input, bias_input = NA,
                              mu = NA, sigma = NA,
                              control_params = NA,
                              upper_bound = DEFAULT_UPPER_BOUND,
-                             encoding = 'unknown', model_name = NA) {
+                             encoding = 'unknown', model_name = NA,
+                             allow_negative_weights = FALSE) {
   if (is.data.frame(input)) {
     if (is.na(model_name)) {
       # If no provided model name, use name of input variable
@@ -172,7 +175,8 @@ optimize_weights <- function(input, bias_input = NA,
 
   num_constraints <- length(long_names)
   bias_params <- process_bias_arguments(
-    long_names, bias_input, mu, sigma, num_constraints
+    long_names, bias_input, mu, sigma, num_constraints,
+    allow_negative_weights
   )
 
   # If mus aren't provided, initialize all weights to 0
@@ -204,6 +208,12 @@ optimize_weights <- function(input, bias_input = NA,
   # Replace empty cells with 0
   data_matrix[is.na(data_matrix)] <- 0
 
+  if (allow_negative_weights) {
+    lower_bound = -upper_bound
+  } else {
+    lower_bound = 0
+  }
+
   # Perform optimization
   best <- tryCatch({
     stats::optim(
@@ -213,7 +223,7 @@ optimize_weights <- function(input, bias_input = NA,
       data=data_matrix,
       bias_params=bias_params,
       control=control_params,
-      lower=rep(0, length(constraint_weights)),
+      lower=rep(lower_bound, length(constraint_weights)),
       # The default upper bound is Inf, but the function we're optimizing
       # can't be evaluated at Inf. This results in the optimizer finding
       # non-optimal weights, so we pass in a large finite value instead.
@@ -416,7 +426,8 @@ any_not_na <- function(...) {
 
 # Function to load and validate bias parameters.
 process_bias_arguments <- function(names, bias_input = NA, mu = NA, sigma = NA,
-                                   num_constraints = NA) {
+                                   num_constraints = NA,
+                                   allow_negative_weights = FALSE) {
   if (any_not_na(bias_input)) {
     # Read bias parameters from provided file location
     if (any_not_na(mu, sigma)) {
@@ -477,7 +488,7 @@ process_bias_arguments <- function(names, bias_input = NA, mu = NA, sigma = NA,
 
   # Check that bias params fall within acceptable ranges
   if (any_not_na(bias_params)) {
-    if (!all(bias_params$Mu >= 0)) {
+    if (!allow_negative_weights & !all(bias_params$Mu >= 0)) {
       stop("All constraint mus must be >= 0")
     }
     if (!all(bias_params$Sigma > 0)) {
