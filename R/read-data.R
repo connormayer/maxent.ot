@@ -3,7 +3,7 @@
 #' Loads an OTSoft tableaux file and converts it to the data frame format used by
 #' the maxent.ot functions.
 #'
-#' @param test_input The path to the input data file.
+#' @param input The path to the input data file.
 #'   This should contain more OT tableaux consisting of
 #'   mappings between underlying and surface forms with observed frequency and
 #'   violation profiles. Constraint violations must be numeric.
@@ -32,7 +32,7 @@ otsoft_tableaux_to_df <- function(input, output_path=NA, encoding='unknown') {
   output_df <- data.frame(results$data)
   output_df[output_df == ''] <- 0
   if (!is.na(output_path)) {
-    write.csv(output_df, file=output_path, row.names=FALSE, quote=FALSE)
+    utils::write.csv(output_df, file=output_path, row.names=FALSE, quote=FALSE)
   }
   return(output_df)
 }
@@ -42,7 +42,7 @@ otsoft_tableaux_to_df <- function(input, output_path=NA, encoding='unknown') {
 #' Loads an OTSoft bias file and converts it to the data frame format used by
 #' the maxent.ot functions.
 #'
-#' @param test_input The path to the input bias file. This should contain more
+#' @param input The path to the input bias file. This should contain more
 #' OT tableaux consisting of mappings between underlying and surface forms with
 #' observed frequency and violation profiles. Constraint violations must be
 #' numeric.
@@ -67,7 +67,7 @@ otsoft_tableaux_to_df <- function(input, output_path=NA, encoding='unknown') {
 otsoft_bias_to_df <- function(input, output_path=NA) {
   bias_df <- load_bias_file_otsoft(input)
   if (!is.na(output_path)) {
-    write.csv(bias_df, file=output_path, row.names=FALSE, quote=FALSE)
+    utils::write.csv(bias_df, file=output_path, row.names=FALSE, quote=FALSE)
   }
   return(load_bias_file_otsoft(input))
 }

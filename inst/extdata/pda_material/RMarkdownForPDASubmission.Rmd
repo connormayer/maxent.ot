@@ -516,11 +516,28 @@ shona_3_crossval_fit <- rbind(
                select(Input, Output, tableau_freq), by=c('Input', 'Output')) %>%
   mutate(type = fct_relevel(type, 'training'))
 ```
+Plot results.
 ```{r plot_sigmas}
-#Plot fits
-#Plot fits
+
+shona_1000_crossval_fit$group <- 'sigma = 1000'
+shona_point01_crossval_fit$group <- 'sigma = 0.1'
+shona_3_crossval_fit$group <- 'sigma = 3'
+
+shona_crossval_fit <- rbind(
+  shona_1000_crossval_fit, shona_point01_crossval_fit, shona_3_crossval_fit
+) %>%
+  mutate(group_type = str_c(type, group, sep=', ')) %>%
+  mutate(group_type = fct_relevel(
+    group_type,     
+    levels = c('training, sigma = 1000',
+               'training, sigma = 0.1',
+               'training, sigma = 3',
+               'test, sigma = 1000',
+               'test, sigma = 0.1',
+               'test, sigma = 3')))
+
 #Plot fit to training data
-shona_1000_crossval_fit %>%
+shona_crossval_fit %>%
   ggplot(aes(x=Observed, y=Predicted, size=log(tableau_freq))) +
   geom_point(
     shape=21, fill=alpha("blue", 0.2), stroke=1, show.legend = FALSE) + 
@@ -529,36 +546,8 @@ shona_1000_crossval_fit %>%
   ylab("predicted probabilities") +
   theme_classic(base_size=16) +
   theme(panel.spacing = unit(2, "lines")) +
-  facet_grid(~ type)
-ggsave('figures/Shona_1000_crossval.png', width=9, height=4, dpi=300)
-
-shona_point01_crossval_fit %>%
-  ggplot(aes(x=Observed, y=Predicted, size=log(tableau_freq))) +
-  geom_point(
-    shape=21, fill=alpha("blue", 0.2), stroke=1, show.legend = FALSE) + 
-  geom_abline(slope=1, intercept=0, color="grey") + 
-  xlab("observed probability of each candidate") +
-  ylab("predicted probabilities") +
-  theme_classic(base_size=16) +
-  theme(panel.spacing = unit(2, "lines")) +
-  facet_grid(~ type) +
-  xlim(0,1) + 
-  ylim(0, 1)
-ggsave('figures/Shona_point_01_crossval.png', width=9, height=4, dpi=300)
-
-shona_3_crossval_fit %>%
-  ggplot(aes(x=Observed, y=Predicted, size=log(tableau_freq))) +
-  geom_point(
-    shape=21, fill=alpha("blue", 0.2), stroke=1, show.legend = FALSE) + 
-  geom_abline(slope=1, intercept=0, color="grey") + 
-  xlab("observed probability of each candidate") +
-  ylab("predicted probabilities") +
-  theme_classic(base_size=16) +
-  theme(panel.spacing = unit(2, "lines")) +
-  facet_grid(~ type) +
-  xlim(0,1) + 
-  ylim(0, 1)
-ggsave('figures/Shona_3_crossval.png', width=9, height=4, dpi=300)
+  facet_wrap(~ group_type, nrow=2)
+ggsave('figures/Shona_crossval.png', width=9, height=6, dpi=300)
 ```
 
 ## Choosing the best value for sigma

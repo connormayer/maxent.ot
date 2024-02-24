@@ -18,7 +18,6 @@ knitr::opts_chunk$set(
 ```{r setup}
 # Import packages
 library(maxent.ot)
-library(ggplot2)    # For plots
 ```
 
 # 1 Overview
@@ -1445,26 +1444,25 @@ For example, USE_FRONT/bilabial__ has a lower weight when trained on human wug r
 The plots below visualize where the weights trained on human wug tests (blue vertical dashed line) fall in relation to the distribution of the weights trained on the simulated idealized wug tests (histogram).
 
 ``` {r}
-library(ggplot2)
-
 # Plot weights for the five unnatural constraints by looping through them
 # For i-th constraint
-for (i in 6:10) {
-  print(
-    # Select appropriate data
-    ggplot(hu_500simul_wts, aes(x=hu_500simul_wts[[i]])) +
-      # Simulated idealized weights (histogram)
-      geom_histogram(bins=15,
-                 color="black", fill="gray") +
-      # Human weights (blue vertical dashed line)
-      geom_vline(aes(xintercept=human_wug_model$weights[i]),
-            color="blue", linetype="dashed", size=1) +
-      # Add plot title
-      ggtitle(colnames(hu_500simul_wts[i])) +
-      # Change axis title
-      xlab("weight")
-  )
-}
+# TODO: Rewrite this without ggplot
+# for (i in 6:10) {
+#   print(
+#     # Select appropriate data
+#     ggplot2::ggplot(hu_500simul_wts, ggplot2::aes(x=hu_500simul_wts[[i]])) +
+#       # Simulated idealized weights (histogram)
+#       ggplot2::geom_histogram(bins=15,
+#                  color="black", fill="gray") +
+#       # Human weights (blue vertical dashed line)
+#       ggplot2::geom_vline(ggplot2::aes(xintercept=human_wug_model$weights[i]),
+#             color="blue", linetype="dashed", size=1) +
+#       # Add plot title
+#       ggplot2::ggtitle(colnames(hu_500simul_wts[i])) +
+#       # Change axis title
+#       ggplot2::xlab("weight")
+#   )
+# }
 ```
 
 

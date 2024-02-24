@@ -12,7 +12,8 @@ optimize_weights(
   control_params = NA,
   upper_bound = DEFAULT_UPPER_BOUND,
   encoding = "unknown",
-  model_name = NA
+  model_name = NA,
+  allow_negative_weights = FALSE
 )
 }
 \arguments{
@@ -71,6 +72,9 @@ to "unknown".}
 \item{model_name}{(optional) A name for the model. If not provided, the name
 of the variable will be used if the input is a data frame. If the input
 is a path to an OTSoft file, the filename will be used.}
+
+\item{allow_negative_weights}{(optional) Whether the optimizer should allow
+negative weights. Defaults to FALSE.}
 }
 \value{
 An object with the following named attributes:

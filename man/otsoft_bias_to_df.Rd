@@ -7,18 +7,18 @@
 otsoft_bias_to_df(input, output_path = NA)
 }
 \arguments{
-\item{output_path}{(optional) A string specifying the path to a file to
-which the data frame will be saved in CSV format. If the file exists it
-will be overwritten. If this argument isn't provided, the output will not
-be written to a file.}
-
-\item{test_input}{The path to the input bias file. This should contain more
+\item{input}{The path to the input bias file. This should contain more
 OT tableaux consisting of mappings between underlying and surface forms with
 observed frequency and violation profiles. Constraint violations must be
 numeric.
 
 The file should be in OTSoft format. For examples of OTSoft format, see
 inst/extdata/sample_bias_file_otsoft.txt.}
+
+\item{output_path}{(optional) A string specifying the path to a file to
+which the data frame will be saved in CSV format. If the file exists it
+will be overwritten. If this argument isn't provided, the output will not
+be written to a file.}
 }
 \description{
 Loads an OTSoft bias file and converts it to the data frame format used by

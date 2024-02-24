@@ -56,6 +56,14 @@
 #'   be written to a file.
 #' @param out_sep (optional) The delimiter used in the output files.
 #'   Defaults to tabs.
+#' @param control_params (optional) A named list of control parameters that
+#'   will be passed to the \link[stats]{optim} function. See the documentation
+#'   of that function for details. Note that some parameter settings may
+#'   interfere with optimization. The parameter `fnscale` will be overwritten
+#'   with `-1` if specified, since this must be treated as a maximization
+#'   problem.
+#' @param upper_bound (optional) The maximum value for constraint weights.
+#'   Defaults to 100.
 #' @param encoding (optional) The character encoding of the input file. Defaults
 #'  to "unknown".
 #' @param model_name (optional) A name for the model. If not provided, the file
@@ -93,12 +101,12 @@
 #'   # You can also use vectors/lists for some/all of the bias parameters to set
 #'   # separate biases for each constraint
 #'   mus_v <- list(
-#'     c(0, 0, 0, 0, 0, 1, 1, 1, 1, 1),
-#'     c(1, 1, 1, 1, 1, 0, 0, 0, 0, 0)
+#'     c(0, 1),
+#'     c(1, 0)
 #'   )
 #'   sigmas_v <- list(
-#'     c(0.01, 0.01, 0.01, 0.01, 0.01, 0.1, 0.1, 0.1, 0.1, 0.1),
-#'     c(0.1, 0.1, 0.1, 0.1, 0.1, 0.01, 0.01, 0.01, 0.01, 0.01)
+#'     c(0.01, 0.1),
+#'     c(0.1, 0.01)
 #'   )
 #'
 #'   cross_validate(tableaux_df, 2, mus_v, sigmas_v)
@@ -207,7 +215,7 @@ populate_tableau <- function(tableau, tokens) {
   # Fills in a tableau with token frequency counts
   tableau$Frequency <- 0 #First, initialize all the frequencies to 0
   tokens$count <- seq(nrow(tokens))
-  counts <- aggregate(count ~ Input + Output, data = tokens, FUN = length)
+  counts <- stats::aggregate(count ~ Input + Output, data = tokens, FUN = length)
   for (i in (1:nrow(counts))) {
     row <- counts[i, ]
     tableau[tableau$Input == row$Input & tableau$Output == row$Output, ]$Frequency <- row$count

@@ -15,7 +15,8 @@ cross_validate(
   control_params = NA,
   upper_bound = DEFAULT_UPPER_BOUND,
   encoding = "unknown",
-  model_name = NA
+  model_name = NA,
+  allow_negative_weights = FALSE
 )
 }
 \arguments{
@@ -63,12 +64,25 @@ be written to a file.}
 \item{out_sep}{(optional) The delimiter used in the output files.
 Defaults to tabs.}
 
+\item{control_params}{(optional) A named list of control parameters that
+will be passed to the \link[stats]{optim} function. See the documentation
+of that function for details. Note that some parameter settings may
+interfere with optimization. The parameter \code{fnscale} will be overwritten
+with \code{-1} if specified, since this must be treated as a maximization
+problem.}
+
+\item{upper_bound}{(optional) The maximum value for constraint weights.
+Defaults to 100.}
+
 \item{encoding}{(optional) The character encoding of the input file. Defaults
 to "unknown".}
 
 \item{model_name}{(optional) A name for the model. If not provided, the file
 name will be used if the input is a file path. If the input is a data frame
 the name of the variable will be used.}
+
+\item{allow_negative_weights}{(optional) Whether the optimizer should allow
+negative weights. Defaults to FALSE.}
 }
 \value{
 A data frame with the following columns:
@@ -122,12 +136,12 @@ partitions.
   # You can also use vectors/lists for some/all of the bias parameters to set
   # separate biases for each constraint
   mus_v <- list(
-    c(0, 0, 0, 0, 0, 1, 1, 1, 1, 1),
-    c(1, 1, 1, 1, 1, 0, 0, 0, 0, 0)
+    c(0, 1),
+    c(1, 0)
   )
   sigmas_v <- list(
-    c(0.01, 0.01, 0.01, 0.01, 0.01, 0.1, 0.1, 0.1, 0.1, 0.1),
-    c(0.1, 0.1, 0.1, 0.1, 0.1, 0.01, 0.01, 0.01, 0.01, 0.01)
+    c(0.01, 0.1),
+    c(0.1, 0.01)
   )
 
   cross_validate(tableaux_df, 2, mus_v, sigmas_v)

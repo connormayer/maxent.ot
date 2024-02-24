@@ -146,16 +146,19 @@ the selection of models it is being compared to.
   # Get paths to toy data files
   # This file has two constraints
   data_file_small <- system.file(
-      "extdata", "sample_data_file.txt", package = "maxent.ot"
+      "extdata", "sample_data_frame.csv", package = "maxent.ot"
   )
   # This file has three constraints
   data_file_large <- system.file(
-      "extdata", "sample_data_file_2.txt", package = "maxent.ot"
+      "extdata", "sample_data_frame_large.csv", package = "maxent.ot"
   )
 
   # Fit weights to both data sets with no biases
-  small_model <- optimize_weights(data_file_small)
-  large_model <- optimize_weights(data_file_large)
+  tableaux_small <- read.csv(data_file_small)
+  small_model <- optimize_weights(tableaux_small)
+
+  tableaux_large <- read.csv(data_file_large)
+  large_model <- optimize_weights(tableaux_large)
 
   # Compare models using likelihood ratio test. This is appropriate here
   # because the constraints are nested.

@@ -1,6 +1,6 @@
 Package: maxent.ot
 Title: Perform MaxEnt Optimality Theory Analyses in R
-Version: 0.0.0.9000
+Version: 0.0.1.0
 Authors@R: 
     c(person(given = "Connor",
            family = "Mayer",
@@ -9,7 +9,11 @@ Authors@R:
       person(given = "Kie",
             family = "Zuraw",
             role = "aut",
-            email = "kie@ucla.edu"))
+            email = "kie@ucla.edu"),
+      person(given = "Adeline",
+            family = "Tan",
+            role = "aut",
+            email = "aderaetan@ucla.edu"))
 Description: This package allows you to fit Maximum Entropy Optimality Theory
   models to data sets, generate the predictions made by such models for novel
   data, and compare the fit of different models using a variety of metrics.
@@ -17,7 +21,7 @@ License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Imports:
   data.table
 Suggests: 

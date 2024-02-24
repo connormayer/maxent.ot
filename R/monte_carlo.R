@@ -68,6 +68,8 @@ DEFAULT_UPPER_BOUND <- 100
 #'   problem.
 #' @param upper_bound (optional) The maximum value for constraint weights.
 #'   Defaults to 100.
+#' @param allow_negative_weights (optional) Whether the optimizer should allow
+#'   negative weights. Defaults to FALSE.
 #' @return A data frame with the following structure:
 #' \itemize{
 #'         \item rows: As many rows as the number of simulations
@@ -76,15 +78,17 @@ DEFAULT_UPPER_BOUND <- 100
 #' @examples
 #'   # Get paths to toy data file
 #'   data_file <- system.file(
-#'       "extdata", "sample_data_file.txt", package = "maxent.ot"
+#'       "extdata", "sample_data_frame.csv", package = "maxent.ot"
 #'   )
 #'
+#'   tableaux_df <- read.csv(data_file)
+#'
 #'   # Fit weights to data with no biases
-#'   fit_model <- optimize_weights(data_file)
+#'   fit_model <- optimize_weights(tableaux_df)
 #'
 #'   # Predict probabilities for the same input with temperature = 2
 #'   pred_obj <- predict_probabilities(
-#'       data_file, fit_model$weights, temperature = 2
+#'       tableaux_df, fit_model$weights, temperature = 2
 #'   )
 #'
 #'  # Run 5 monte carlo simulations
