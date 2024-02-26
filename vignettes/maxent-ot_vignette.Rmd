@@ -1446,23 +1446,11 @@ The plots below visualize where the weights trained on human wug tests (blue ver
 ``` {r}
 # Plot weights for the five unnatural constraints by looping through them
 # For i-th constraint
-# TODO: Rewrite this without ggplot
-# for (i in 6:10) {
-#   print(
-#     # Select appropriate data
-#     ggplot2::ggplot(hu_500simul_wts, ggplot2::aes(x=hu_500simul_wts[[i]])) +
-#       # Simulated idealized weights (histogram)
-#       ggplot2::geom_histogram(bins=15,
-#                  color="black", fill="gray") +
-#       # Human weights (blue vertical dashed line)
-#       ggplot2::geom_vline(ggplot2::aes(xintercept=human_wug_model$weights[i]),
-#             color="blue", linetype="dashed", size=1) +
-#       # Add plot title
-#       ggplot2::ggtitle(colnames(hu_500simul_wts[i])) +
-#       # Change axis title
-#       ggplot2::xlab("weight")
-#   )
-# }
+
+for (i in 6:10) {
+  hist(hu_500simul_wts[[i]], breaks=15, xlab="weight", main = colnames(hu_500simul_wts[i]))
+  abline(v=human_wug_model$weights[i], col="red", lwd=3, lty=2)
+}
 ```
 
 
