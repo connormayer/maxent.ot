@@ -32,7 +32,7 @@ set.seed(321)
 ## Benefits of reproducible research
 
 # Carrying out a MaxEnt analysis using maxent.ot
-## Code excursion: Installing the package
+## Installing the package
 
 Install and load the package.
 
@@ -59,8 +59,8 @@ library(maxent.ot)
 ```
 
 ## A running example: simplification of onset clusters by French-acquiring children
-## Maximum Entropy constraint grammars
-## Code excursion: Formatting data for maxent.ot
+
+## Formatting data for maxent.ot
 
 Read in toy data
 
@@ -74,9 +74,10 @@ library(tidyverse)
 simple_input <- read_csv("data/simple_input_dataframe.csv")
 ```
 
-## How MaxEnt relates harmony to probability
-## Calculating the conditional likelihood of a data set
-## Code excursion: Calculating candidate distributions and conditional likelihoods
+## MaxEnt background: Constraint grammars
+## MaxEnt background: How MaxEnt relates harmony to probability
+## MaxEnt background: Conditional log likelihood, a metric to quantify how well a model fits the data
+## Calculating candidate distributions and conditional likelihoods
 
 Use predict\_probabilities
 
@@ -139,7 +140,7 @@ result_wug$loglik
 result_wug$predictions
 ```
 
-# Compare how well different models fit the data
+## Compare how well different models fit the data
 
 Full model
 
@@ -207,10 +208,13 @@ Make BIC by hand
 Use compare\_models to get BIC
 
 ```{r BIC_auto}
+options(scipen = 999)
+options(digits = 5)
 compare_models(
   simple_model, model_max_stressed, model_ssp, model_max_stressed_ssp, 
   method = "bic"
 )
+options(digits = 7)
 ```
 
 Model with an extra constraint
@@ -243,6 +247,7 @@ sum(simple_input$Frequency * log(simple_input$Frequency/100))
 Compare models
 
 ```{r compare}
+options(digits = 5)
 compare_models(model_max_stressed_ssp, model_dtrt, method = "bic")
 ```
 
@@ -272,10 +277,12 @@ Likelihood ratio
 
 ```{r likelihood_ratio}
 compare_models(model_max_stressed_ssp, model_dtrt, method = "lrt")
+options(digits = 7)
 ```
 
 ## Using prior terms to encode bias or over-fitting
-### Code excursion: prior terms in maxent.ot
+### MaxEnt background: The Gaussian prior
+### Prior terms in maxent.ot
 
 Apply a basic Gaussian bias, same values for all constraints
 
@@ -289,6 +296,28 @@ rbind(
   unbiased_weights = model_max_stressed_ssp$weights, 
   biased_weights = model_max_stressed_ssp_bias1$weights
 )
+```
+
+Calculating log likelihood and prior
+
+```{r compare_ll_prior}
+#log likelihoods
+model_max_stressed_ssp$loglik
+# -228.811
+model_max_stressed_ssp_bias1$loglik
+# -228.9289
+
+#priors
+sum(((model_max_stressed_ssp$weights - 0)^2)/(2* 1^2))
+# 2.114716
+sum(((model_max_stressed_ssp_bias1$weights - 0)^2)/(2* 1^2))
+# 1.787735
+
+#values of objective function
+model_max_stressed_ssp$loglik - sum(((model_max_stressed_ssp$weights - 0)^2)/(2* 1^2))
+# -230.9257
+model_max_stressed_ssp_bias1$loglik - sum(((model_max_stressed_ssp_bias1$weights - 0)^2)/(2* 1^2))
+# -230.7166
 ```
 
 custom values for each constraint
@@ -420,7 +449,7 @@ predictions_training <- predict_probabilities(
 ) 
 
 predictions_training$loglik / sum(predictions_training$predictions$Freq) 
-# -0.5204737
+# average log likelihood: -0.5204737
 
 # How does it do on the held-out data?
 predictions_test <- predict_probabilities(
@@ -428,7 +457,7 @@ predictions_test <- predict_probabilities(
 )
 
 predictions_test$loglik / sum(predictions_test$predictions$Freq) 
-# -0.5379555
+# average log likelihood: -0.5379555
 ```
 
 Plot fits to training and held-out data (these code chunks were not included in the submission)
@@ -524,17 +553,21 @@ shona_point01_crossval_fit$group <- 'sigma = 0.1'
 shona_3_crossval_fit$group <- 'sigma = 3'
 
 shona_crossval_fit <- rbind(
-  shona_1000_crossval_fit, shona_point01_crossval_fit, shona_3_crossval_fit
-) %>%
-  mutate(group_type = str_c(type, group, sep=', ')) %>%
-  mutate(group_type = fct_relevel(
-    group_type,     
-    levels = c('training, sigma = 1000',
-               'training, sigma = 0.1',
+  shona_1000_crossval_fit, shona_3_crossval_fit, shona_point01_crossval_fit
+)
+
+shona_crossval_fit <- shona_crossval_fit %>%
+  mutate(group_type = str_c(type, group, sep=', ')) 
+
+shona_crossval_fit <- shona_crossval_fit %>%
+  mutate(group_type = fct_relevel(factor(
+    group_type),     
+     c('training, sigma = 1000',
                'training, sigma = 3',
+               'training, sigma = 0.1',
                'test, sigma = 1000',
-               'test, sigma = 0.1',
-               'test, sigma = 3')))
+               'test, sigma = 3',
+               'test, sigma = 0.1')))
 
 #Plot fit to training data
 shona_crossval_fit %>%
