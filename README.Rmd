@@ -37,12 +37,12 @@ If you publish work that uses `maxent.ot`, please cite the following paper and r
 
 ## Installation
 
-<!--You can install the released version of maxent.ot from [CRAN](https://CRAN.R-project.org) with:
-  
+You can install the released version of maxent.ot from [CRAN](https://CRAN.R-project.org) with:
+
   ``` r
 install.packages("maxent.ot")
 ```
--->
+
   You can install the development version from [GitHub](https://github.com/) with:
   
   ``` r

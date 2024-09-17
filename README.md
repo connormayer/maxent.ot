@@ -29,11 +29,12 @@ paper and repository:
 
 ## Installation
 
-<!--You can install the released version of maxent.ot from [CRAN](https://CRAN.R-project.org) with:
-  &#10;  ``` r
+You can install the released version of maxent.ot from
+[CRAN](https://CRAN.R-project.org) with:
+
+``` r
 install.packages("maxent.ot")
 ```
--->
 
 You can install the development version from
 [GitHub](https://github.com/) with:
