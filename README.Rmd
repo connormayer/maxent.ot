@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
 # maxent.ot
 
 <!-- badges: start -->
-  [![DOI](https://zenodo.org/badge/272315147.svg)](https://zenodo.org/badge/latestdoi/272315147)
+  [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13774033.svg)](https://doi.org/10.5281/zenodo.13774033)
 <!-- badges: end -->
   
   This package allows you to fit Maximum Entropy Optimality Theory models to data 
