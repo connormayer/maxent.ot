@@ -1,6 +1,6 @@
 Package: maxent.ot
 Title: Perform MaxEnt Optimality Theory Analyses in R
-Version: 0.0.1.0
+Version: 1.0.0
 Authors@R: 
     c(person(given = "Connor",
            family = "Mayer",

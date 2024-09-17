@@ -20,15 +20,17 @@ The authors of this package are [Connor Mayer](http://connormayer.com),
 
 ## Citing maxent.ot
 
-If you publish work that uses `maxent.ot`, please cite this repository.
+If you publish work that uses `maxent.ot`, please cite the following
+paper and repository:
 
-> `Mayer, C., Tan, A., & Zuraw, K.(2022). maxent.ot: A package for doing Maximum Entropy Optimality Theory in R (Version 0.1.0) [Computer software]. https://doi.org/10.5281/zenodo.7246367`
+> `Mayer, C., Tan, A., & Zuraw, K. (in press). Introducing maxent.ot: an R package for Maximum Entropy constraint grammars.*Phonological Data and Analysis*.`
+
+> `Mayer, C., Tan, A., & Zuraw, K.(2024). maxent.ot: A package for doing Maximum Entropy Optimality Theory in R (Version 1.0.0) [Computer software]. 10.5281/zenodo.7246366`
 
 ## Installation
 
 <!--You can install the released version of maxent.ot from [CRAN](https://CRAN.R-project.org) with:
-  
-  ``` r
+  &#10;  ``` r
 install.packages("maxent.ot")
 ```
 -->
