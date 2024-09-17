@@ -15,7 +15,7 @@ metrics. This package is still in development, and is being prepared for
 submission to CRAN.
 
 The authors of this package are [Connor Mayer](http://connormayer.com),
-[Adeline Tan](https://linguistics.ucla.edu/person/adeline-tan/), and
+[Adeline Tan](https://www.linkedin.com/in/adeline-tan-ph-d-aa67742a9), and
 [Kie Zuraw](https://linguistics.ucla.edu/people/zuraw/).
 
 ## Citing maxent.ot
