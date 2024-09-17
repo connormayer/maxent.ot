@@ -1,0 +1,9 @@
+Input,Output,Frequency,StarComplex,Max,MaxStressed,SSP
+'stad,'stad,40,1,0,0,1
+'stad,'tad,60,0,1,1,0
+'grav,'grav,60,1,0,0,0
+'grav,'gav,40,0,1,1,0
+spa.gə.'ti,spa.gə.'ti,10,1,0,0,1
+spa.gə.'ti,pa.gə.'ti,90,0,1,0,0
+gry.'o,gry.'o,30,1,0,0,0
+gry.'o,gy.'o,70,0,1,0,0
