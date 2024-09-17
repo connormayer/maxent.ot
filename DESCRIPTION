@@ -29,6 +29,6 @@ Suggests:
     knitr,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
-URL: http://connormayer.com/maxent_ot.html
+URL: https://github.com/connormayer/maxent.ot
 BugReports: https://github.com/connormayer/maxent.ot/issues
 VignetteBuilder: knitr
