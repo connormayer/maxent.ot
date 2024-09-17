@@ -45,7 +45,7 @@ In OT, ranked constraints choose one winning SR candidate per UR.
 Consider the OT tableaux below (*Figure 1*).
 
 ```{r, echo=FALSE, fig.cap="Fig 1: Two OT tableaux.", out.width = '40%'}
-knitr::include_graphics("../man/figures/OT_tableau.JPG")
+knitr::include_graphics("../man/figures/OT_tableau.jpg")
 ```
 
 For the UR /ur-1/, Con1 prefers [sr1-1] while Con2 prefers [sr1-2].

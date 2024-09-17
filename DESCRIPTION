@@ -14,9 +14,9 @@ Authors@R:
             family = "Tan",
             role = "aut",
             email = "aderaetan@ucla.edu"))
-Description: This package allows you to fit Maximum Entropy Optimality Theory
-  models to data sets, generate the predictions made by such models for novel
-  data, and compare the fit of different models using a variety of metrics.
+Description: Tools to fit Maximum Entropy Optimality Theory models to data sets,
+  generate the predictions made by such models for novel data, and compare the 
+  fit of different models using a variety of metrics.
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
