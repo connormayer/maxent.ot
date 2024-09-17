@@ -22,43 +22,40 @@ many models.}
 A data frame containing information about the comparison. The
 contents and size of this data frame vary depending on the method used.
 \itemize{
-\item{\code{lrt}: }{ A data frame with a single row and the following columns:
+\item \code{lrt}: A data frame with a single row and the following columns:
 \itemize{
-\item{\code{description}:}{ the names of the two models being compared.
-The name of the model with more parameters will be first.}
-\item{\code{chi_sq}: }{ the chi-squared value calculated during the test.}
-\item{\code{k_delta}: }{ the difference in parameters between the two
-models used as degrees of freedom in the chi-squared test.}
-\item{\code{p_value}: }{ the p-value calculated by the test}}
+\item \code{description}: the names of the two models being compared.
+The name of the model with more parameters will be first.
+\item \code{chi_sq}: the chi-squared value calculated during the test.
+\item \code{k_delta}: the difference in parameters between the two
+models used as degrees of freedom in the chi-squared test.
+\item \code{p_value}: the p-value calculated by the test
 }
-\item{\code{aic}: }{ A data frame with as many rows as there were models
+\item \code{aic}: A data frame with as many rows as there were models
 passed in. The models are sorted in ascending order of AIC (i.e., best
 first). This data frame has the following columns:
 \itemize{
-\item{\code{model}: }{ The name of the model.}
-\item{\code{k}: }{ The number of parameters.}
-\item{\code{aic}: }{ The model's AIC value.}
-\item{\code{aic.delta}: }{ The difference between this model's AIC value
-and the AIC value of the model with the smallest AIC value.}
-\item{\code{aic.wt}: }{ The model's AIC weight: this reflects the relative
+\item \code{model}: The name of the model.
+\item \code{k}: The number of parameters.
+\item \code{aic}: The model's AIC value.
+\item \code{aic.delta}: The difference between this model's AIC value
+and the AIC value of the model with the smallest AIC value.
+\item \code{aic.wt}: The model's AIC weight: this reflects the relative
 likelihood (or conditional probability) that this model is the
-"best" model in the set.}
-\item{\code{cum.wt}: }{ The cumulative sum of AIC weights up to and
-including this model.}
-\item{\code{ll}: }{ The log likelihood of this model.}
+"best" model in the set.
+\item \code{cum.wt}: The cumulative sum of AIC weights up to and
+including this model.
+\item \code{ll}: The log likelihood of this model.
 }
-}
-\item{\code{aicc}: }{ The data frame returned here is analogous to the
+\item \code{aicc}: The data frame returned here is analogous to the
 structure of the AIC data frame, with AICc values replacing AICs and
 accordingly modified column names. There is one additional column:
 \itemize{
-\item{\code{n}: }{ The number of samples in the data the model is fit to.}
+\item \code{n}: The number of samples in the data the model is fit to.
 }
-}
-\item{\code{bic}: }{ The data frame returned here is analogous to the
+\item \code{bic}: The data frame returned here is analogous to the
 structure of the AIC and AICc data frames. Like the AICc data frame,
 it contains the \code{n} column.
-}
 }
 }
 \description{
