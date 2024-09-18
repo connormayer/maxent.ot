@@ -45,7 +45,7 @@ In OT, ranked constraints choose one winning SR candidate per UR.
 Consider the OT tableaux below (*Figure 1*).
 
 ```{r, echo=FALSE, fig.cap="Fig 1: Two OT tableaux.", out.width = '40%'}
-knitr::include_graphics("../man/figures/OT_tableau.jpg")
+knitr::include_graphics("../man/figures/OT_tableau_simple.jpg")
 ```
 
 For the UR /ur-1/, Con1 prefers [sr1-1] while Con2 prefers [sr1-2].
@@ -76,7 +76,7 @@ where $\mathcal{S}(UR_i)$ is the set of surface realizations of input $UR_i$.
 We'll walk through the MaxEnt tableaux in *Figure 2* to illustrate how the equations in &sect;1.3 are applied to calculate the probability of a particular UR-SR pair.
 
 ```{r, echo=FALSE, fig.cap="Fig 2: Two MaxEnt tableaux.", out.width = '85%'}
-knitr::include_graphics("../man/figures/maxEnt_tableau_5.jpg")
+knitr::include_graphics("../man/figures/maxEnt_tableau.jpg")
 ```
 
 Notice that these two MaxEnt tableaux have the same URs, SRs, constraints, and constraint violation profiles as the two OT tableaux above.
