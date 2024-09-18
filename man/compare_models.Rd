@@ -65,7 +65,7 @@ provides the best fit, using a variety of methods.
 \details{
 The available comparison methods are
 \itemize{
-\item{\strong{lrt}: }{ The likelihood ratio test. This method can be applied to a
+\item \strong{lrt}: The likelihood ratio test. This method can be applied to a
 maximum of two models, and the parameters of these models (i.e., their
 constraints) \emph{must be in a strict subset/superset relationship.} If your
 models do not meet these requirements, you should use a different method.
@@ -79,17 +79,17 @@ p-value is calculated by conducting a chi-squared test with \eqn{X^2 = LR}
 and the degrees of freedom set to the difference in number of parameters
 between the two models. This p-value tells us whether the difference in
 likelihood between the two models is significant (i.e., whether the extra
-parameters in the full model are justified by the increase in model fit).}
+parameters in the full model are justified by the increase in model fit).
 
-\item{\strong{aic}: }{ The Akaike Information Criterion. This is calculated as
+\item \strong{aic}: The Akaike Information Criterion. This is calculated as
 follows for each model:
 
 \deqn{AIC = 2k - 2LL}
 
 where \eqn{k} is the number of model parameters (i.e., constraints) and LL
-is the model's log likelihood.}
+is the model's log likelihood.
 
-\item{\strong{aic_c}: }{ The Akaike Information Criterion corrected for small sample
+\item \strong{aic_c}: The Akaike Information Criterion corrected for small sample
 sizes. This is calculated as follows:
 
 \deqn{AIC_c = 2k - 2LL + \frac{2k^2 + 2k}{n - k - 1}}
@@ -98,15 +98,15 @@ where \eqn{n} is the number of samples and the other parameters are
 identical to those used in the AIC calculation. As \eqn{n} approaches
 infinity, the final term converges to 0, and so this equation becomes
 equivalent to AIC. Please see the note below for information about sample
-sizes.}
+sizes.
 
-\item{\strong{bic}: }{ The Bayesian Information Criterion. This is calculated as
+\item \strong{bic}: The Bayesian Information Criterion. This is calculated as
 follows:
 
 \deqn{BIC = k\ln(n) - 2LL}
 
 As with \code{aic_c}, this calculation relies on the number of samples. Please
-see the discussion on sample sizes below before using this method.}
+see the discussion on sample sizes below before using this method.
 }
 
 A few caveats for several of the comparison methods:
