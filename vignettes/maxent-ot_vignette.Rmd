@@ -551,19 +551,8 @@ optimize_weights(
 )
 ```
 
-Any combination of arguments can be used to specify the bias parameters.
-The User, however, is advised that when multiple values are specified for the same parameter, the algorithm decides which one to use according to the chart in *Figure 4*.
-
-```{r, echo=FALSE, fig.cap="Fig 4: Hierarchy for choosing which bias parameters to use when conflicts arise. Parent over-writes child.", out.width = '25%'}
-knitr::include_graphics("../man/figures/bias_param_hierarchy.jpg")
-```
-
-In this chart, the argument above takes precedence over the one(s) it dominates.
-For example, if the User passes in both a file for `bias_file` and a separate value for `mu`, the parameter values specified in `bias_file` will be used and the one specified in `mu` will be ignored.
-
 If only one of the two bias parameters is present, an error will be raised.
 (*e.g.* When values are provided for $\mu$, but there are none for $\sigma$.)
-
 
 ## 3.3 Overfitting & regularization
 ### 3.3.1 Ceiling log likelihood
@@ -1665,7 +1654,7 @@ We'll break this equation down further, and walk through its application step-by
 The values of the intermediate terms we'll use (*e.g.* $\delta$; the raw AIC weight, $r$) are shown in *Figure 5*.
 
 ```{r, echo=FALSE, fig.cap="Fig 5: Calculating AIC weights: Intermediate steps", out.width = '70%'}
-knitr::include_graphics("../man/figures/aicWeight_table.JPG")
+knitr::include_graphics("../man/figures/aicWeight_table.jpg")
 ```
 
 
