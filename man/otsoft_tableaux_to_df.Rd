@@ -23,6 +23,16 @@ be written to a file.}
 \item{encoding}{(optional) The character encoding of the input file. Defaults
 to "unknown".}
 }
+\value{
+A data frame corresponding to the input OTSoft tableau, containing
+the columns
+\itemize{
+\item \code{Input}: The input form.
+\item \code{Output}: The output form.
+\item \code{Frequency}: The frequency of the input/output mapping.
+\item One column for each constraint containing its violation counts.
+}
+}
 \description{
 Loads an OTSoft tableaux file and converts it to the data frame format used by
 the maxent.ot functions.

@@ -1158,10 +1158,9 @@ ur1_df <- temperature_df[1:2, 3:5]
 ur2_df <- temperature_df[3:5, 3:5]
 
 # save old par
-oldpar <- par(mfrow = c(1,2))
+oldpar <- par(mar=c(5, 4, 4, 4), xpd=TRUE)
 
 # Plot distribution of outputs for Input1
-par(mar=c(5, 4, 4, 4), xpd=TRUE)
 barplot(as.matrix(ur1_df),
         main = "Input 1",
         xlab = "Temperature",

@@ -20,6 +20,15 @@ which the data frame will be saved in CSV format. If the file exists it
 will be overwritten. If this argument isn't provided, the output will not
 be written to a file.}
 }
+\value{
+A data frame corresponding to the input OTSoft bias file, containing
+the columns
+\itemize{
+\item \code{Constraint}: The constraint name.
+\item \code{Mu}: The mu value for the regularization term.
+\item \code{Sigma}: The sigma value for the regularization term.
+}
+}
 \description{
 Loads an OTSoft bias file and converts it to the data frame format used by
 the maxent.ot functions.
