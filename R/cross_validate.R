@@ -176,7 +176,7 @@ do_validation <- function(k, data, partitions, mu, sigma, model_name,
   log_liks_training <- c()
 
   for (hold_out in (1:k)) {
-    print(sprintf(
+    message(sprintf(
       "Training paramers mu:%s, sigma:%s, fold number:%s", toString(mu),
       toString(sigma), hold_out
     ))

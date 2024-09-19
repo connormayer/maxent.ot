@@ -16,6 +16,14 @@
 #'   be written to a file.
 #' @param encoding (optional) The character encoding of the input file. Defaults
 #'  to "unknown".
+#' @return A data frame corresponding to the input OTSoft tableau, containing
+#' the columns
+#' \itemize{
+#'  \item `Input`: The input form.
+#'  \item `Output`: The output form.
+#'  \item `Frequency`: The frequency of the input/output mapping.
+#'  \item One column for each constraint containing its violation counts.
+#' }
 #' @examples
 #'   # Convert OTSoft file to data frame format
 #'   otsoft_file <- system.file(
@@ -53,6 +61,13 @@ otsoft_tableaux_to_df <- function(input, output_path=NA, encoding='unknown') {
 #'   which the data frame will be saved in CSV format. If the file exists it
 #'   will be overwritten. If this argument isn't provided, the output will not
 #'   be written to a file.
+#' @return A data frame corresponding to the input OTSoft bias file, containing
+#' the columns
+#' \itemize{
+#'  \item `Constraint`: The constraint name.
+#'  \item `Mu`: The mu value for the regularization term.
+#'  \item `Sigma`: The sigma value for the regularization term.
+#' }
 #' @examples
 #'   # Convert OTSoft bias file to data frame format
 #'   otsoft_file <- system.file(

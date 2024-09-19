@@ -1,5 +1,5 @@
 Package: maxent.ot
-Title: Perform MaxEnt Optimality Theory Analyses in R
+Title: Perform phonological analyses using Maximum Entropy Optimality Theory
 Version: 1.0.0
 Authors@R: 
     c(person(given = "Connor",
@@ -14,9 +14,10 @@ Authors@R:
             family = "Tan",
             role = "aut",
             email = "aderaetan@ucla.edu"))
-Description: Tools to fit Maximum Entropy Optimality Theory models to data sets,
+Description: Fit Maximum Entropy Optimality Theory models to data sets,
   generate the predictions made by such models for novel data, and compare the 
-  fit of different models using a variety of metrics.
+  fit of different models using a variety of metrics. The package is described
+  in Mayer, C., Tan, A., Zuraw, K. (in press) <https://sites.socsci.uci.edu/~cjmayer/papers/cmayer_et_al_maxent_ot_accepted.pdf>.
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true

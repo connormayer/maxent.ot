@@ -1157,6 +1157,9 @@ The graphs below visualize the depolarization of the probability distribution ov
 ur1_df <- temperature_df[1:2, 3:5]
 ur2_df <- temperature_df[3:5, 3:5]
 
+# save old par
+oldpar <- par(mfrow = c(1,2))
+
 # Plot distribution of outputs for Input1
 par(mar=c(5, 4, 4, 4), xpd=TRUE)
 barplot(as.matrix(ur1_df),
@@ -1182,6 +1185,9 @@ barplot(as.matrix(ur2_df),
                            inset = c(-0.55, 0),
                            cex = .7)
         )
+
+# Reset par
+par(oldpar)
 ```
 
 
