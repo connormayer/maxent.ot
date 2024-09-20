@@ -1,5 +1,5 @@
 Package: maxent.ot
-Title: Perform phonological analyses using Maximum Entropy Optimality Theory
+Title: Perform Phonological Analyses using Maximum Entropy Optimality Theory
 Version: 1.0.0
 Authors@R: 
     c(person(given = "Connor",
