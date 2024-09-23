@@ -11,8 +11,7 @@
 This package allows you to fit Maximum Entropy Optimality Theory models
 to data sets, generate the predictions made by such models for novel
 data, and compare the fit of different models using a variety of
-metrics. This package is still in development, and is being prepared for
-submission to CRAN.
+metrics. 
 
 The authors of this package are [Connor Mayer](http://connormayer.com),
 [Adeline Tan](https://www.linkedin.com/in/adeline-tan-ph-d-aa67742a9),
