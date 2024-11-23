@@ -29,7 +29,7 @@ paper and repository:
 ## Installation
 
 You can install the released version of maxent.ot from
-[CRAN](https://CRAN.R-project.org) with:
+[CRAN](https://cran.r-project.org/web/packages/maxent.ot/index.html) with:
 
 ``` r
 install.packages("maxent.ot")
