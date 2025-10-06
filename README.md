@@ -20,9 +20,9 @@ and [Kie Zuraw](https://linguistics.ucla.edu/people/zuraw/).
 ## Citing maxent.ot
 
 If you publish work that uses `maxent.ot`, please cite the following
-paper and repository:
+[paper](https://phondata.org/index.php/pda/article/view/88) and repository:
 
-> `Mayer, C., Tan, A., & Zuraw, K. (in press). Introducing maxent.ot: an R package for Maximum Entropy constraint grammars. Phonological Data and Analysis.`
+> `Mayer, C., Tan, A., & Zuraw, K. (2024). Introducing maxent.ot: an R package for Maximum Entropy constraint grammars. Phonological Data and Analysis, 6(3), 1-44.`
 
 > `Mayer, C., Tan, A., & Zuraw, K.(2024). maxent.ot: A package for doing Maximum Entropy Optimality Theory in R (Version 1.0.0) [Computer software]. 10.5281/zenodo.7246366`
 
