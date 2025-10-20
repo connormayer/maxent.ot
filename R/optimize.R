@@ -288,8 +288,8 @@ objective_func <- function(constraint_weights, data, bias_params=NA) {
 # weights
 calculate_probabilities <- function(constraint_weights, data,
                                     temperature = DEFAULT_TEMPERATURE,
-                                    include_harmony,
-                                    include_maxent_values) {
+                                    include_harmony = FALSE,
+                                    include_maxent_values = FALSE) {
   freq_ix <- 2
   harm_ix <- ncol(data) - 2
   log_prob_ix <- harm_ix + 1
