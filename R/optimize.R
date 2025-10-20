@@ -287,7 +287,38 @@ objective_func <- function(constraint_weights, data, bias_params=NA) {
 # Calculate probabilities for all candidates based on current constraint
 # weights
 calculate_probabilities <- function(constraint_weights, data,
-                                    temperature = DEFAULT_TEMPERATURE) {
+                                    temperature = DEFAULT_TEMPERATURE,
+                                    include_harmony,
+                                    include_maxent_values) {
+  freq_ix <- 2
+  harm_ix <- ncol(data) - 2
+  log_prob_ix <- harm_ix + 1
+
+  harmony_values <- data[, (freq_ix + 1):(harm_ix - 1)] %*% matrix(constraint_weights)
+  maxent_values <- exp(-data[, harm_ix] / temperature)
+  data[, harm_ix] <- harmony_values
+  data[, log_prob_ix] <- log(apply(data, 1, normalize_row, data, harm_ix))
+
+  insert_pos <- log_prob_ix
+  if (include_harmony) {
+    data$harmony <- harmony_values
+    cols <- names(data)
+    data <- data[, append(cols[cols != "harmony"], "harmony", after = insert_pos)]
+    insert_pos <- insert_pos + 1
+  }
+
+  if (include_maxent_values) {
+    data$maxent_values <- maxent_values
+    cols <- names(data)
+    data <- data[, append(cols[cols != "maxent_values"], "maxent_values", after = insert_pos)]
+  }
+  return(data)
+}
+
+calculate_probabilities <- function(constraint_weights, data,
+                                    temperature = DEFAULT_TEMPERATURE,
+                                    include_harmony,
+                                    include_maxent_values) {
   freq_ix <- 2
   harm_ix <- ncol(data) - 2
   log_prob_ix <- harm_ix + 1
@@ -295,6 +326,26 @@ calculate_probabilities <- function(constraint_weights, data,
   data[, harm_ix] <- data[, (freq_ix + 1):(harm_ix - 1)] %*% matrix(constraint_weights)
   data[, harm_ix] <- exp(-data[, harm_ix] / temperature)
   data[, log_prob_ix] <- log(apply(data, 1, normalize_row, data, harm_ix))
+
+  insert_pos <- log_prob_ix
+
+  if (include_harmony) {
+    data <- cbind(
+      data[, 1:insert_pos, drop = FALSE],
+      harmony = harmony_values,
+      data[, (insert_pos + 1):ncol(data), drop = FALSE]
+    )
+    insert_pos <- insert_pos + 1
+  }
+
+  if (include_maxent_values) {
+    data <- cbind(
+      data[, 1:insert_pos, drop = FALSE],
+      maxent_values = maxent_values,
+      data[, (insert_pos + 1):ncol(data), drop = FALSE]
+    )
+  }
+
   return(data)
 }
 
