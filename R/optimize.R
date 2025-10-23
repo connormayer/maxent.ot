@@ -315,40 +315,6 @@ calculate_probabilities <- function(constraint_weights, data,
   return(data)
 }
 
-calculate_probabilities <- function(constraint_weights, data,
-                                    temperature = DEFAULT_TEMPERATURE,
-                                    include_harmony,
-                                    include_maxent_values) {
-  freq_ix <- 2
-  harm_ix <- ncol(data) - 2
-  log_prob_ix <- harm_ix + 1
-
-  data[, harm_ix] <- data[, (freq_ix + 1):(harm_ix - 1)] %*% matrix(constraint_weights)
-  data[, harm_ix] <- exp(-data[, harm_ix] / temperature)
-  data[, log_prob_ix] <- log(apply(data, 1, normalize_row, data, harm_ix))
-
-  insert_pos <- log_prob_ix
-
-  if (include_harmony) {
-    data <- cbind(
-      data[, 1:insert_pos, drop = FALSE],
-      harmony = harmony_values,
-      data[, (insert_pos + 1):ncol(data), drop = FALSE]
-    )
-    insert_pos <- insert_pos + 1
-  }
-
-  if (include_maxent_values) {
-    data <- cbind(
-      data[, 1:insert_pos, drop = FALSE],
-      maxent_values = maxent_values,
-      data[, (insert_pos + 1):ncol(data), drop = FALSE]
-    )
-  }
-
-  return(data)
-}
-
 # Calculate gradients
 calculate_gradient <- function(constraint_weights,
                                data,
