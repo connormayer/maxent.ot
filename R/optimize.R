@@ -299,12 +299,12 @@ calculate_probabilities <- function(constraint_weights, data,
   data[, harm_ix] <- harmony_values
   data[, log_prob_ix] <- log(apply(data, 1, normalize_row, data, harm_ix))
 
-  insert_pos <- log_prob_ix
+  insert_pos <- log_prob_ix - 1
   if (include_harmony) {
     data$harmony <- harmony_values
     cols <- names(data)
     data <- data[, append(cols[cols != "harmony"], "harmony", after = insert_pos)]
-    insert_pos <- insert_pos + 1
+    insert_pos <- insert_pos - 1
   }
 
   if (include_maxent_values) {

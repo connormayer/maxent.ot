@@ -10,7 +10,9 @@ predict_probabilities(
   output_path = NA,
   out_sep = ",",
   encoding = "unknown",
-  temperature = DEFAULT_TEMPERATURE
+  temperature = DEFAULT_TEMPERATURE,
+  include_harmony = FALSE,
+  include_maxent_values = FALSE
 )
 }
 \arguments{
