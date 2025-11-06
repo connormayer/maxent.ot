@@ -4,10 +4,10 @@
 \alias{minimal_constraints}
 \title{Find the optimal minimal subset of weights for a given dataset and model choice.}
 \usage{
-minimal_constraints(dataset, model, weights)
+minimal_constraints(dataset, model, weights, method = "aic")
 }
 \description{
-Uses stepwise regression with backwards elimination to selectively remove
-suboptimal weights as to maximize model performance (through log-likelihood)
-while minimizing the number of weights.
+Uses stepwise regression with backwards elimination to find all subsets of
+weights and compares these subset models to one another, finding the
+subset that results in the best performance overall
 }
