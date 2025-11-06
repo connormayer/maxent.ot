@@ -143,8 +143,22 @@ predict_probabilities <- function(test_input, constraint_weights,
   error <- output[, (ncol(output)-1)] - output[, (ncol(output))]
   output <- cbind(output, error)
 
-  names(output) <- c(c(c("Input", "Output", "Freq"), unlist(long_names)),
-                     "Predicted", "Observed", "Error")
+  base_names <- c("Input", "Output", "Freq")
+  constraint_names <- unlist(long_names)
+
+  all_names <- c(base_names, constraint_names)
+
+  if ("Harmony" %in% colnames(data_matrix)) {
+    all_names <- c(all_names, "Harmony")
+  }
+  if ("MaxEnt" %in% colnames(data_matrix)) {
+    all_names <- c(all_names, "MaxEnt")
+  }
+
+  all_names <- c(all_names, "Predicted", "Observed", "Error")
+
+  names(output) <- all_names
+
 
   if (!is.na(output_path)) {
     utils::write.table(output, file=output_path, sep=out_sep, row.names = FALSE)

@@ -301,11 +301,11 @@ calculate_probabilities <- function(constraint_weights, data,
   data[, log_prob_ix] <- log(apply(data, 1, normalize_row, data, maxent_ix))
 
   if (include_harmony) {
-   data <- cbind(data, harmony_values)
+    data <- cbind(data, Harmony = harmony_values)
   }
 
   if (include_maxent) {
-   data <- cbind(data, maxent_values)
+    data <- cbind(data, MaxEnt = maxent_values)
   }
   return(data)
 }
