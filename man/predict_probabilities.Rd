@@ -12,7 +12,7 @@ predict_probabilities(
   encoding = "unknown",
   temperature = DEFAULT_TEMPERATURE,
   include_harmony = FALSE,
-  include_maxent_values = FALSE
+  include_maxent = FALSE
 )
 }
 \arguments{

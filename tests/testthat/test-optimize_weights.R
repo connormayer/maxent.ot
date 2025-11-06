@@ -22,10 +22,11 @@ test_that("Displays harmony and maxent values", {
   prediction <- predict_probabilities(
     df, model$weights,
     include_harmony = TRUE,
-    include_maxent_values = TRUE
-  )
-  expect_true("harmony" %in% names(prediction))
-  expect_true("maxent_values" %in% names(prediction))
+    include_maxent = TRUE
+  )$predictions
+
+  expect_true("Harmony" %in% names(prediction))
+  expect_true("MaxEnt" %in% names(prediction))
 })
 
 

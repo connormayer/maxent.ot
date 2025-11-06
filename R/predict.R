@@ -104,7 +104,7 @@ predict_probabilities <- function(test_input, constraint_weights,
                                   encoding = 'unknown',
                                   temperature = DEFAULT_TEMPERATURE,
                                   include_harmony = FALSE,
-                                  include_maxent_values = FALSE) {
+                                  include_maxent = FALSE) {
 
   processed_input <- load_input(test_input, encoding = encoding)
   long_names <- processed_input$long_names
@@ -128,7 +128,7 @@ predict_probabilities <- function(test_input, constraint_weights,
 
   # Calculate probabilities
   data_matrix <- calculate_probabilities(
-    constraint_weights, data_matrix, temperature, include_harmony, include_maxent_values
+    constraint_weights, data_matrix, temperature, include_harmony, include_maxent
   )
   # Unlog them
   data_matrix[, ncol(data_matrix) - 1] <- exp(data_matrix[, ncol(data_matrix) - 1])
