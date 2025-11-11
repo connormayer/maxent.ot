@@ -128,7 +128,7 @@ predict_probabilities <- function(test_input, constraint_weights,
 
   # Calculate probabilities
   data_matrix <- calculate_probabilities(
-    constraint_weights, data_matrix, temperature, include_harmony, include_maxent
+    constraint_weights, data_matrix, temperature, add_cols = TRUE
   )
   # Unlog them
   data_matrix[, ncol(data_matrix) - 1] <- exp(data_matrix[, ncol(data_matrix) - 1])
@@ -136,6 +136,13 @@ predict_probabilities <- function(test_input, constraint_weights,
   # Calculate predicted probabilities
   data_matrix[, ncol(data_matrix)] <- apply(data_matrix, 1, normalize_row, data_matrix, 2)
   data_matrix <- data_matrix[, -(ncol(data_matrix) - 2)]
+
+  if (!include_harmony && "Harmony" %in% colnames(data_matrix)) {
+    data_matrix <- data_matrix[, !colnames(data_matrix) %in% "Harmony"]
+  }
+  if (!include_maxent && "MaxEnt" %in% colnames(data_matrix)) {
+    data_matrix <- data_matrix[, !colnames(data_matrix) %in% "MaxEnt"]
+  }
 
   output <- cbind(data[, 1:2], data_matrix[, 2:ncol(data_matrix)])
 

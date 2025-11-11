@@ -288,8 +288,7 @@ objective_func <- function(constraint_weights, data, bias_params=NA) {
 # weights
 calculate_probabilities <- function(constraint_weights, data,
                                     temperature = DEFAULT_TEMPERATURE,
-                                    include_harmony = FALSE,
-                                    include_maxent = FALSE) {
+                                    add_cols = FALSE) {
   freq_ix <- 2
   maxent_ix <- ncol(data) - 2
   log_prob_ix <- maxent_ix + 1
@@ -300,15 +299,18 @@ calculate_probabilities <- function(constraint_weights, data,
   maxent_values <- data[, maxent_ix]
   data[, log_prob_ix] <- log(apply(data, 1, normalize_row, data, maxent_ix))
 
-  if (include_harmony) {
-    log_harmony <- log(harmony_values)
-    data <- cbind(data, Harmony = log_harmony)
+  if (add_cols){
+
+    insert_pos <- ncol(data) - 3
+
+    data <- cbind(
+      data[, 1:insert_pos, drop = FALSE],
+      Harmony = harmony_values,
+      MaxEnt = maxent_values,
+      data[, (insert_pos + 1):ncol(data), drop = FALSE]
+    )
   }
 
-  if (include_maxent) {
-    log_maxent <- log(maxent_values)
-    data <- cbind(data, MaxEnt = log_maxent)
-  }
   return(data)
 }
 
