@@ -2,7 +2,6 @@
 
 export(compare_models)
 export(cross_validate)
-export(minimal_constraints)
 export(monte_carlo_weights)
 export(optimize_weights)
 export(otsoft_bias_to_df)
