@@ -5,7 +5,7 @@
 \title{Recursively generates all subsets of weights and fits optimal models to each
 subset, ultimately returning all models (to be used in minimal_constraints)}
 \usage{
-step1(dataset, weights)
+step1(dataset, method = "aic")
 }
 \description{
 Recursively generates all subsets of weights and fits optimal models to each

@@ -4,66 +4,101 @@
 #' weights and compares these subset models to one another, finding the
 #' subset that results in the best performance overall
 #' @export
-minimal_constraints <- function(dataset, weights, method = "aic", approach = "naive") {
+minimal_constraints <- function(dataset, method = "aic", approach = "naive") {
   #TODO implement naive approach
   if (approach == "naive") {
-    all_models <- step_naive(dataset, model, weights)
+    all_models <- step_naive(dataset, method)
   }
   else if (approach == "recursive") {
-    all_models <- step(dataset, weights)
+    all_models <- step(dataset, method)
   }
   comparison <- compare_models(all_models, method = method)
   return(comparison)
 }
 
 
+
+get_constraint_names <- function(dataset) {
+  colnames(dataset)[4:ncol(dataset)]
+}
+
+
+
+compare_lrt <- function(model, candidate_models, candidate_constraints) {
+  best_pval <- 1
+  best_subset <- NULL
+
+  for (i in seq_along(candidate_models)) {
+    candidate <- candidate_models[[i]]
+    res <- compare_models(model, candidate, method = "lrt")
+    pval <- res$p_value
+    if (pval < best_pval) {
+      best_pval <- pval
+      best_subset <- candidate_constraints[[i]]
+    }
+  }
+  best_subset
+}
+
+
+
+compare_aic <- function(model, candidate_models, candidate_constraints, method) {
+  res <- do.call(compare_models, c(list(model = model, method = method), candidate_models))
+  best_name <- res$model[1]
+  for (i in seq_along(candidate_models)) {
+    if (candidate_models[[i]]$name == best_name) {
+      return(candidate_constraints[[i]])
+    }
+  }
+  return(NULL)
+}
+
+
+
 #'Recursively generates all subsets of weights and fits optimal models to each
 #'subset, ultimately returning all models (to be used in minimal_constraints)
-step1 <- function(dataset, weights) {
+step1 <- function(dataset, method = "aic") {
   all_models <- list()
-  constraint_names <- names(weights)
+  constraint_names <- get_constraint_names(dataset)
 
-  #helper that generates optimal subsets from a given superset of constraints
   generate_subsets <- function(constraints) {
-    if (length(constraints) == 0){
-      return(list())
-    }
-
-
     non_constraint_cols <- colnames(dataset)[!(colnames(dataset) %in% constraint_names)]
     keep_columns <- c(constraints, non_constraint_cols)
     subset_dataset <- dataset[, keep_columns, drop = FALSE]
+
     model <- optimize_weights(subset_dataset)
     all_models[[length(all_models) + 1]] <<- model
 
-    if (length(constraints) == 1){
-      return(list())
-    }
+    if (length(constraints) == 1) return()
 
-    best_score <- Inf
-    best_subset <- NULL
-    # iterates through constraints and stores loglik for the subset excluding
-    # this constraint to an array, ultimately choosing the best n - 1 subset
+    candidate_models <- list()
+    candidate_constraints <- list()
+
     for (to_drop in constraints) {
       candidate_subset <- constraints[constraints != to_drop]
       candidate_dataset <- dataset[, c(candidate_subset, non_constraint_cols), drop = FALSE]
       candidate_model <- optimize_weights(candidate_dataset)
-      if (candidate_model$loglik < best_score) {
-        best_score <- candidate_model$loglik
-        best_subset <- candidate_subset
-      }
+      candidate_models[[length(candidate_models) + 1]] <- candidate_model
+      candidate_constraints[[length(candidate_constraints) + 1]] <- candidate_subset
     }
-    # continues the recursion of this optimal subset to find further optimality
-    generate_subsets(best_subset)
+
+    if (method == "lrt") {
+      best_subset <- compare_lrt(model, candidate_models, candidate_constraints)
+    }
+    else if (method %in% c("aic", "aic_c", "bic")) {
+      best_subset <- compare_aic(model, candidate_models, candidate_constraints, method)
+    }
+
+    if (!is.null(best_subset)) {
+      generate_subsets(best_subset)
+    }
   }
 
-  # compiles all generated subsets to later use in model comparison
   generate_subsets(constraint_names)
-  empty_dataset <- dataset[, !(colnames(dataset) %in% constraint_names), drop = FALSE]
-  all_models[[length(all_models) + 1]] <- optimize_weights(empty_dataset)
-
   return(all_models)
 }
+
+
 
 # TODO: iterate through constraints, naively dropping the constraint that
 # performs worst, output each of these n - 1 subsets
