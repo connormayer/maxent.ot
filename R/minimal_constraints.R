@@ -12,18 +12,23 @@ minimal_constraints <- function(dataset, method = "aic", approach = "naive") {
   else if (approach == "recursive") {
     all_models <- step(dataset, method)
   }
-  comparison <- compare_models(all_models, method = method)
+  else{
+    stop(sprintf(paste(
+      "Approach must be 'naive' or 'recursive'"
+    )))
+  }
+  comparison <- do.call(compare_models, c(all_models, list(method = method)))
   return(comparison)
 }
 
 
-
+# Returns all constraint names from a given dataset
 get_constraint_names <- function(dataset) {
   colnames(dataset)[4:ncol(dataset)]
 }
 
 
-
+# Compares given models using lrt with compare_models
 compare_lrt <- function(model, candidate_models, candidate_constraints) {
   best_pval <- 1
   best_subset <- NULL
@@ -41,7 +46,8 @@ compare_lrt <- function(model, candidate_models, candidate_constraints) {
 }
 
 
-
+#' Compares given model using aic, aic_c, or bic (based on user choice)
+#' with compare_models
 compare_aic <- function(model, candidate_models, candidate_constraints, method) {
   res <- do.call(compare_models, c(list(model = model, method = method), candidate_models))
   best_name <- res$model[1]
@@ -61,6 +67,7 @@ step1 <- function(dataset, method = "aic") {
   all_models <- list()
   constraint_names <- get_constraint_names(dataset)
 
+  # Recursive helper
   generate_subsets <- function(constraints) {
     non_constraint_cols <- colnames(dataset)[!(colnames(dataset) %in% constraint_names)]
     keep_columns <- c(constraints, non_constraint_cols)
@@ -88,6 +95,13 @@ step1 <- function(dataset, method = "aic") {
     else if (method %in% c("aic", "aic_c", "bic")) {
       best_subset <- compare_aic(model, candidate_models, candidate_constraints, method)
     }
+    else{
+      stop(sprintf(
+        paste(
+          "Chosen method must be one of: 'aic', 'aic_c', 'bic', 'lrt'"
+        )
+      ))
+    }
 
     if (!is.null(best_subset)) {
       generate_subsets(best_subset)
@@ -100,11 +114,54 @@ step1 <- function(dataset, method = "aic") {
 
 
 
-# TODO: iterate through constraints, naively dropping the constraint that
-# performs worst, output each of these n - 1 subsets
-step_naive <- function(dataset, weights){
+#' Iteratively drops one constraint at a time (naive approach)
+step_naive <- function(dataset, method = "aic") {
+  all_models <- list()
+  constraint_names <- get_constraint_names(dataset)
 
+  constraints <- constraint_names
+  non_constraint_cols <- colnames(dataset)[!(colnames(dataset) %in% constraint_names)]
+
+  while (length(constraints) > 1) {
+    keep_columns <- c(constraints, non_constraint_cols)
+    subset_dataset <- dataset[, keep_columns, drop = FALSE]
+    model <- optimize_weights(subset_dataset)
+    all_models[[length(all_models) + 1]] <- model
+
+    candidate_models <- list()
+    candidate_constraints <- list()
+    for (to_drop in constraints) {
+      candidate_subset <- constraints[constraints != to_drop]
+      candidate_dataset <- dataset[, c(candidate_subset, non_constraint_cols), drop = FALSE]
+      candidate_model <- optimize_weights(candidate_dataset)
+      candidate_models[[length(candidate_models) + 1]] <- candidate_model
+      candidate_constraints[[length(candidate_constraints) + 1]] <- candidate_subset
+    }
+    if (method == "lrt") {
+      best_subset <- compare_lrt(model, candidate_models, candidate_constraints)
+    }
+    else if (method %in% c("aic", "aic_c", "bic")) {
+      best_subset <- compare_aic(model, candidate_models, candidate_constraints, method)
+    }
+    else {
+      stop(sprintf(paste(
+        "Chosen method must be one of: 'lrt', 'aic', 'aic_c', 'bic'"
+      )))
+    }
+    if (is.null(best_subset)){
+      break
+    }
+    constraints <- best_subset
+  }
+  if (length(constraints) == 1) {
+    final_dataset <- dataset[, c(constraints, non_constraint_cols), drop = FALSE]
+    final_model <- optimize_weights(final_dataset)
+    all_models[[length(all_models) + 1]] <- final_model
+  }
+
+  return(all_models)
 }
+
 
 
 
