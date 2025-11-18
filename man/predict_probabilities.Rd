@@ -46,6 +46,16 @@ to "unknown".}
 
 \item{temperature}{(optional) The temperature parameter, which should be a
 real number \eqn{>= 1}. Defaults to 1.}
+
+\item{include_harmony}{(optional) Displays the harmony value, defined in the
+\strong{Details} section as
+\eqn{-\frac{\sum_{k=1}^{m} w_k f_k(y, x)}{T}}
+Defaults to FALSE.}
+
+\item{include_maxent}{(optional) Displays the maximum entropy value, defined
+in the \strong{Details} section as
+\eqn{\exp\left(-\frac{\sum_{k=1}^{m} w_k f_k(y, x)}{T}\right)}
+Defaults to FALSE.}
 }
 \value{
 An object with the following named attributes:
