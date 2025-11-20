@@ -8,6 +8,5 @@ minimal_constraints(dataset, method = "aic", approach = "naive")
 }
 \description{
 Uses stepwise regression with backwards elimination to find all subsets of
-weights and compares these subset models to one another, finding the
-subset that results in the best performance overall
+weights and compares these subset models to one another.
 }
