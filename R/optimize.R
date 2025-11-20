@@ -287,16 +287,33 @@ objective_func <- function(constraint_weights, data, bias_params=NA) {
 # Calculate probabilities for all candidates based on current constraint
 # weights
 calculate_probabilities <- function(constraint_weights, data,
-                                    temperature = DEFAULT_TEMPERATURE) {
+                                    temperature = DEFAULT_TEMPERATURE,
+                                    add_cols = FALSE) {
   freq_ix <- 2
-  harm_ix <- ncol(data) - 2
-  log_prob_ix <- harm_ix + 1
+  maxent_ix <- ncol(data) - 2
+  log_prob_ix <- maxent_ix + 1
 
-  data[, harm_ix] <- data[, (freq_ix + 1):(harm_ix - 1)] %*% matrix(constraint_weights)
-  data[, harm_ix] <- exp(-data[, harm_ix] / temperature)
-  data[, log_prob_ix] <- log(apply(data, 1, normalize_row, data, harm_ix))
+  data[, maxent_ix] <- data[, (freq_ix + 1):(maxent_ix - 1)] %*% matrix(constraint_weights)
+  harmony_values <- data[, maxent_ix]
+  data[, maxent_ix] <- exp(-data[, maxent_ix] / temperature)
+  maxent_values <- data[, maxent_ix]
+  data[, log_prob_ix] <- log(apply(data, 1, normalize_row, data, maxent_ix))
+
+  if (add_cols){
+
+    insert_pos <- ncol(data) - 3
+
+    data <- cbind(
+      data[, 1:insert_pos, drop = FALSE],
+      Harmony = harmony_values,
+      MaxEnt = maxent_values,
+      data[, (insert_pos + 1):ncol(data), drop = FALSE]
+    )
+  }
+
   return(data)
 }
+
 
 # Calculate gradients
 calculate_gradient <- function(constraint_weights,

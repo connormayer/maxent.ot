@@ -75,6 +75,14 @@ DEFAULT_TEMPERATURE <- 1
 #'  to "unknown".
 #' @param temperature (optional) The temperature parameter, which should be a
 #'   real number \eqn{>= 1}. Defaults to 1.
+#' @param include_harmony (optional) Displays the harmony value, defined in the
+#' **Details** section as
+#'  \eqn{-\frac{\sum_{k=1}^{m} w_k f_k(y, x)}{T}}
+#'  Defaults to FALSE.
+#' @param include_maxent (optional) Displays the maximum entropy value, defined
+#'   in the **Details** section as
+#'   \eqn{\exp\left(-\frac{\sum_{k=1}^{m} w_k f_k(y, x)}{T}\right)}
+#'   Defaults to FALSE.
 #' @return An object with the following named attributes:
 #' \itemize{
 #'         \item `log_lik`: the log likelihood of the data under the provided
@@ -102,7 +110,9 @@ DEFAULT_TEMPERATURE <- 1
 predict_probabilities <- function(test_input, constraint_weights,
                                   output_path = NA, out_sep = ',',
                                   encoding = 'unknown',
-                                  temperature = DEFAULT_TEMPERATURE) {
+                                  temperature = DEFAULT_TEMPERATURE,
+                                  include_harmony = FALSE,
+                                  include_maxent = FALSE) {
 
   processed_input <- load_input(test_input, encoding = encoding)
   long_names <- processed_input$long_names
@@ -126,7 +136,7 @@ predict_probabilities <- function(test_input, constraint_weights,
 
   # Calculate probabilities
   data_matrix <- calculate_probabilities(
-    constraint_weights, data_matrix, temperature
+    constraint_weights, data_matrix, temperature, add_cols = TRUE
   )
   # Unlog them
   data_matrix[, ncol(data_matrix) - 1] <- exp(data_matrix[, ncol(data_matrix) - 1])
@@ -135,14 +145,35 @@ predict_probabilities <- function(test_input, constraint_weights,
   data_matrix[, ncol(data_matrix)] <- apply(data_matrix, 1, normalize_row, data_matrix, 2)
   data_matrix <- data_matrix[, -(ncol(data_matrix) - 2)]
 
+  if (!include_harmony && "Harmony" %in% colnames(data_matrix)) {
+    data_matrix <- data_matrix[, !colnames(data_matrix) %in% "Harmony"]
+  }
+  if (!include_maxent && "MaxEnt" %in% colnames(data_matrix)) {
+    data_matrix <- data_matrix[, !colnames(data_matrix) %in% "MaxEnt"]
+  }
+
   output <- cbind(data[, 1:2], data_matrix[, 2:ncol(data_matrix)])
 
   # Calculate error
   error <- output[, (ncol(output)-1)] - output[, (ncol(output))]
   output <- cbind(output, error)
 
-  names(output) <- c(c(c("Input", "Output", "Freq"), unlist(long_names)),
-                     "Predicted", "Observed", "Error")
+  base_names <- c("Input", "Output", "Freq")
+  constraint_names <- unlist(long_names)
+
+  all_names <- c(base_names, constraint_names)
+
+  if ("Harmony" %in% colnames(data_matrix)) {
+    all_names <- c(all_names, "Harmony")
+  }
+  if ("MaxEnt" %in% colnames(data_matrix)) {
+    all_names <- c(all_names, "MaxEnt")
+  }
+
+  all_names <- c(all_names, "Predicted", "Observed", "Error")
+
+  names(output) <- all_names
+
 
   if (!is.na(output_path)) {
     utils::write.table(output, file=output_path, sep=out_sep, row.names = FALSE)
