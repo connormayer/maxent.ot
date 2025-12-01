@@ -3,15 +3,15 @@
 #' Uses stepwise regression with backwards elimination to find all subsets of
 #' weights and compares these subset models to one another.
 #' @export
-minimal_constraints <- function(dataset, method = "aic", approach = "naive") {
-  if (approach == "naive") {
-    all_models <- step_naive(dataset, method)
+minimal_constraints <- function(dataset, method = "aic", approach = "iterative") {
+  if (approach == "iterative") {
+    all_models <- step_iterative(dataset, method)
   }
   else if (approach == "recursive") {
     all_models <- step_recursive(dataset, method)
   }
   else {
-    stop(sprintf(paste("Approach must be 'naive' or 'recursive'")))
+    stop(sprintf(paste("Approach must be 'iterative' or 'recursive'")))
   }
 
   comparison <- do.call(compare_models, c(all_models, list(method = method)))
@@ -107,8 +107,8 @@ step_recursive <- function(dataset, method = "aic") {
   return(all_models)
 }
 
-# naive approach, iterative
-step_naive <- function(dataset, method = "aic") {
+# iterative approach
+step_iterative <- function(dataset, method = "aic") {
   all_models <- list()
   constraint_names <- get_constraint_names(dataset)
 
