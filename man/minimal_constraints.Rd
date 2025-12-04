@@ -4,7 +4,12 @@
 \alias{minimal_constraints}
 \title{Find the optimal minimal subset of weights for a given dataset and model choice.}
 \usage{
-minimal_constraints(dataset, method = "aic", approach = "iterative")
+minimal_constraints(
+  dataset,
+  method = "aic",
+  approach = "iterative",
+  max_depth = Inf
+)
 }
 \description{
 Uses stepwise regression with backwards elimination to find all subsets of

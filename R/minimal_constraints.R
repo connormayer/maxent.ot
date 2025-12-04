@@ -3,12 +3,70 @@
 #' Uses stepwise regression with backwards elimination to find all subsets of
 #' weights and compares these subset models to one another.
 #' @export
-minimal_constraints <- function(dataset, method = "aic", approach = "iterative") {
+minimal_constraints <- function(dataset, method = "aic", approach = "iterative", max_depth = Inf) {
   if (approach == "iterative") {
     all_models <- step_iterative(dataset, method)
   }
   else if (approach == "recursive") {
     all_models <- step_recursive(dataset, method)
+  }
+  else if (approach == "recursive_without_pruning") {
+    all_models <- step_without_pruning(dataset, max_depth)
+
+    if (method %in% c("aic","aic_c","bic")) {
+      comparison <- do.call(compare_models, c(all_models, list(method = method)))
+    }
+    else if (approach == "recursive_without_pruning") {
+      all_models <- step_without_pruning(dataset, max_depth)
+      if (method == "lrt") {
+        full_model <- all_models[[1]]
+        best_index <- 1
+        best_ll <- all_models[[1]]$log_likelihood
+
+        for (i in 2:length(all_models)) {
+          ll <- all_models[[i]]$log_likelihood
+          if (length(ll) && !is.na(ll)) {
+            if (ll > best_ll) {
+              best_ll <- ll
+              best_index <- i
+            }
+          }
+        }
+
+
+        best_subset_model <- all_models[[best_index]]
+        comparison <- compare_models(full_model, best_subset_model, method = "lrt")
+
+        return(list(
+          constraints = lapply(all_models, function(m) {
+            w <- unlist(m$weights)
+            as.list(w)
+          }),
+          comparison_table = comparison
+        ))
+      }
+
+      comparison <- do.call(compare_models, c(all_models, list(method = method)))
+
+      return(list(
+        constraints = lapply(all_models, function(m) {
+          w <- unlist(m$weights)
+          as.list(w)
+        }),
+        comparison_table = comparison
+      ))
+    }
+    else {
+      stop("Method must be 'aic','aic_c','bic', or 'lrt'")
+    }
+
+    return(list(
+      constraints = lapply(all_models, function(m) {
+        w <- unlist(m$weights)
+        as.list(w)
+      }),
+      comparison_table = comparison
+    ))
   }
   else {
     stop(sprintf(paste("Approach must be 'iterative' or 'recursive'")))
@@ -164,3 +222,31 @@ step_iterative <- function(dataset, method = "aic") {
 
   return(all_models)
 }
+
+step_without_pruning <- function(dataset, max_depth = Inf) {
+  all_models <- list()
+  constraint_names <- get_constraint_names(dataset)
+  non_constraint_cols <- c("Input", "Output", "Frequency")
+
+  recurse <- function(constraints, depth) {
+    if (depth > max_depth) {
+      return()
+    }
+
+    keep_columns <- c(non_constraint_cols, constraints)
+    subset_dataset <- dataset[, keep_columns, drop = FALSE]
+    model <- optimize_weights(subset_dataset)
+    all_models[[length(all_models) + 1]] <<- model
+
+    if (length(constraints) <= 1){
+      return()
+    }
+    for (to_drop in constraints) {
+      new_subset <- constraints[constraints != to_drop]
+      recurse(new_subset, depth + 1)
+    }
+  }
+  recurse(constraint_names, depth = 0)
+  return(all_models)
+}
+
