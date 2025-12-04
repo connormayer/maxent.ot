@@ -15,7 +15,14 @@ minimal_constraints <- function(dataset, method = "aic", approach = "iterative")
   }
 
   comparison <- do.call(compare_models, c(all_models, list(method = method)))
-  return(comparison)
+  out_object <- list(
+    constraints = lapply(all_models, function(m) {
+      w <- unlist(m$weights)
+      as.list(w)
+    }),
+    comparison_table = comparison
+  )
+  return(out_object)
 }
 
 
