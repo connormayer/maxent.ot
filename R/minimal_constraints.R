@@ -61,13 +61,6 @@ minimal_constraints <- function(dataset, method = "aic",
   return(out_object)
 }
 
-# Helper: get all constraint names from dataset
-get_constraint_names <- function(dataset) {
-  colnames(dataset)[4:ncol(dataset)]
-}
-
-
-
 # Returns all constraint names from a given dataset
 get_constraint_names <- function(dataset) {
   colnames(dataset)[4:ncol(dataset)]
