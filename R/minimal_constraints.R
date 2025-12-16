@@ -1,7 +1,47 @@
-#' Find the optimal minimal subset of weights for a given dataset and model choice.
+#' Find the optimal minimal subset of weights for a given dataset, method of
+#' comparison, and approach.
 #'
 #' Uses stepwise regression with backwards elimination to find all subsets of
 #' weights and compares these subset models to one another.
+#'
+#' @param dataset The input data frame/data table/tibble. This should contain one
+#'   or more OT tableaux consisting of mappings between underlying and surface
+#'   forms with observed frequency and violation profiles. Constraint violations
+#'   must be numeric.
+#'
+#'   For an example of the data frame format, see inst/extdata/sample_data_frame.csv.
+#'   You can read this file into a data frame using read.csv or into a tibble
+#'   using dplyr::read_csv.
+#'
+#'   This function also supports the legacy OTSoft file format. You can use this
+#'   format by passing in a file path string to the OTSoft file rather than a
+#'   data frame.
+#'
+#'   For examples of OTSoft format, see inst/extdata/sample_data_file.txt.
+#'
+#' @param method The chosen method of comparison to be used to determine the
+#'  subset of weights. Can be chosen from one of: 'aic', 'bic', 'aic_c', 'lrt'
+#'  which specify the usage of:
+#'    - Akaike Information Criterion (**aic**)
+#'    - Bayesian Information Criterion (**bic**)
+#'    - Akaike Information Criterion corrected for small sample sizes (**aic_c**)
+#'    - Likelihood Ratio Test (**lrt**)
+#'
+#'  Refer to the `compare.R` file for further description of these modes of comparison
+#'
+#' @param approach A string specifying the path to a file to
+#'   which the predictions will be saved. If the file exists it will be overwritten.
+#'   If this argument isn't provided, the output will not be written to a file.
+#' @param max_depth (optional) The maximum possible recursion depth if the
+#'  approach is specified as "recursive_without_pruning"
+#' @return An object with the following named attributes:
+#' \itemize{
+#'         \item `constraints`: The constraints used for each model subset.
+#'         \item `comparison_table`: A data table containing the results of running
+#'         `compare_models` on all created subset models.
+#' }
+#' @examples
+#'   TODO implement
 #' @export
 minimal_constraints <- function(dataset, method = "aic",
                                 approach = "iterative", max_depth = Inf) {
@@ -38,7 +78,14 @@ minimal_constraints <- function(dataset, method = "aic",
     }
 
     best_subset_model <- all_models[[best_index]]
-    comparison <- compare_models(full_model, best_subset_model, method = "lrt")
+    full_weights = full_model$weights
+    best_weights = best_subset_model$weights
+    if (any(full_weights != best_weights)){
+      comparison <- compare_models(full_model, best_subset_model, method = "lrt")
+    }
+    else{
+      comparison <- full_model
+    }
   }
   else {
     stop("Method must be 'aic','aic_c','bic', or 'lrt'")

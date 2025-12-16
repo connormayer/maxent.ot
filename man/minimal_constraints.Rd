@@ -2,7 +2,8 @@
 % Please edit documentation in R/minimal_constraints.R
 \name{minimal_constraints}
 \alias{minimal_constraints}
-\title{Find the optimal minimal subset of weights for a given dataset and model choice.}
+\title{Find the optimal minimal subset of weights for a given dataset, method of
+comparison, and approach.}
 \usage{
 minimal_constraints(
   dataset,
@@ -11,7 +12,53 @@ minimal_constraints(
   max_depth = Inf
 )
 }
+\arguments{
+\item{dataset}{The input data frame/data table/tibble. This should contain one
+or more OT tableaux consisting of mappings between underlying and surface
+forms with observed frequency and violation profiles. Constraint violations
+must be numeric.
+
+For an example of the data frame format, see inst/extdata/sample_data_frame.csv.
+You can read this file into a data frame using read.csv or into a tibble
+using dplyr::read_csv.
+
+This function also supports the legacy OTSoft file format. You can use this
+format by passing in a file path string to the OTSoft file rather than a
+data frame.
+
+For examples of OTSoft format, see inst/extdata/sample_data_file.txt.}
+
+\item{method}{The chosen method of comparison to be used to determine the
+subset of weights. Can be chosen from one of: 'aic', 'bic', 'aic_c', 'lrt'
+which specify the usage of:
+\itemize{
+\item Akaike Information Criterion (\strong{aic})
+\item Bayesian Information Criterion (\strong{bic})
+\item Akaike Information Criterion corrected for small sample sizes (\strong{aic_c})
+\item Likelihood Ratio Test (\strong{lrt})
+}
+
+Refer to the \code{compare.R} file for further description of these modes of comparison}
+
+\item{approach}{A string specifying the path to a file to
+which the predictions will be saved. If the file exists it will be overwritten.
+If this argument isn't provided, the output will not be written to a file.}
+
+\item{max_depth}{(optional) The maximum possible recursion depth if the
+approach is specified as "recursive_without_pruning"}
+}
+\value{
+An object with the following named attributes:
+\itemize{
+\item \code{constraints}: The constraints used for each model subset.
+\item \code{comparison_table}: A data table containing the results of running
+\code{compare_models} on all created subset models.
+}
+}
 \description{
 Uses stepwise regression with backwards elimination to find all subsets of
 weights and compares these subset models to one another.
+}
+\examples{
+  TODO implement
 }
