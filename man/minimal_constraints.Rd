@@ -40,9 +40,16 @@ which specify the usage of:
 
 Refer to the \code{compare.R} file for further description of these modes of comparison}
 
-\item{approach}{A string specifying the path to a file to
-which the predictions will be saved. If the file exists it will be overwritten.
-If this argument isn't provided, the output will not be written to a file.}
+\item{approach}{A string specifying the desired approach, one of:
+\itemize{
+\item \code{recursive}: Uses pure recursion to explore every possible subset and
+drops suboptimal weights according to whichever method is specified. Max
+recursion depth affects this approach.
+\item \code{recursive_without_pruning}: Uses recursion where suboptimal subsets are
+pruned to minimize recursive calls. Max recursion depth affects this approach.
+\item \code{iterative}: Uses iteration to drop the current suboptimal weight according
+to the specified method. Max recursion depth does not affect this approach.
+}}
 
 \item{max_depth}{(optional) The maximum possible recursion depth if the
 approach is specified as "recursive_without_pruning"}

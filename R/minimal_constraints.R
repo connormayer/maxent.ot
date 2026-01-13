@@ -29,15 +29,14 @@
 #'
 #'  Refer to the `compare.R` file for further description of these modes of comparison
 #'
-#' @param approach A string specifying the desired mode of iteration to 
-#'  get optimal weights. The options of which are:
-#'    - 'recursive': recursive approach which prunes unused subsets
-#'    - 'recursive_without_pruning': recursive approach which naively recurses 
-#'    through all possible subsets
-#'    - 'iterative': iterative approach that drops a singular weight that would
-#'    improve performance per iteration.
-#'    All three approaches do not guarantee a smaller subset, as that is only according
-#'    to whether doing so would improve the model performance.
+#' @param approach A string specifying the desired approach, one of:
+#'  * `recursive`: Uses pure recursion to explore every possible subset and
+#'  drops suboptimal weights according to whichever method is specified. Max
+#'  recursion depth affects this approach.
+#'  * `recursive_without_pruning`: Uses recursion where suboptimal subsets are
+#'  pruned to minimize recursive calls. Max recursion depth affects this approach.
+#'  * `iterative`: Uses iteration to drop the current suboptimal weight according
+#'  to the specified method. Max recursion depth does not affect this approach.
 #' @param max_depth (optional) The maximum possible recursion depth if the
 #'  approach is specified as "recursive_without_pruning"
 #' @return An object with the following named attributes:
