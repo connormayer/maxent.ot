@@ -409,7 +409,7 @@ normalize_row <- function(row, m, col_num) {
   idx <- m[, 1] == row[1]
   log_num <- log(row[col_num])
   log_denom <- logSumExp(log(m[idx, col_num]))
-  exp(log_num - log_denom)
+  return(exp(log_num - log_denom))
 }
 
 # Calculates the bias term in the optimized function.

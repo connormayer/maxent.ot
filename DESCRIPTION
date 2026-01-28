@@ -17,7 +17,9 @@ Authors@R:
 Description: Fit Maximum Entropy Optimality Theory models to data sets,
   generate the predictions made by such models for novel data, and compare the 
   fit of different models using a variety of metrics. The package is described
-  in Mayer, C., Tan, A., Zuraw, K. (in press) <https://sites.socsci.uci.edu/~cjmayer/papers/cmayer_et_al_maxent_ot_accepted.pdf>.
+  in Mayer, C., Tan, A., & Zuraw, K. (2024). Introducing maxent.ot: an R 
+  package for Maximum Entropy constraint grammars. Phonological Data and 
+  Analysis, 6(3), 1-44.
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
@@ -25,6 +27,7 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Imports:
   data.table
+  matrixStats
 Suggests: 
     rmarkdown,
     knitr,
