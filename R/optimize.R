@@ -423,7 +423,10 @@ calculate_grad_bias <- function(bias_params, constraint_weights) {
 
 # Helper function that applies Z normalization
 normalize_row <- function(row, m, col_num) {
-  return(row[col_num] / sum(m[m[, 1] == row[1],][, col_num]))
+  idx <- m[, 1] == row[1]
+  log_num <- log(row[col_num])
+  log_denom <- logSumExp(log(m[idx, col_num]))
+  return(exp(log_num - log_denom))
 }
 
 # Calculates the bias term in the optimized function.
