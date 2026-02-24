@@ -1,0 +1,11 @@
+Input,Output,Frequency,Dep-i,Dep-u,Dep-e,Dep-o,Dep-a,Dep-i/i,Dep-u/i
+tim,timi,31,1,1
+tim,timu,11,1,1
+tim,time,0,1
+tim,timo,4,1
+tim,tima,4,1
+tSitof,tSitofi,14,1
+tSitof,tSitofu,106,1
+tSitof,tSitofe,1,1
+tSitof,tSitofo,13,1
+tSitof,tSitofa,8,1
