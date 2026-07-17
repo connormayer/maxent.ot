@@ -5,7 +5,7 @@ optimize_bias_max <- function(data = NULL, train_data = NULL, test_data = NULL,
                                      k = NULL, sigma = 1, mu = 0,
                                      method = "L-BFGS-B", upper_bound = 100,
                                      control_params = NA,
-                                     n = 10) {
+                                     n = 5) {
 
   results <- vector("list", n)
 
