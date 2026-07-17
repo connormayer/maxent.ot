@@ -1,3 +1,38 @@
+# Runs optimizt_bias n times, returning the sigma that most benefitted the
+# log-likelihood
+#' @export
+optimize_bias_max <- function(data = NULL, train_data = NULL, test_data = NULL,
+                                     k = NULL, sigma = 1, mu = 0,
+                                     method = "L-BFGS-B", upper_bound = 100,
+                                     control_params = NA,
+                                     n = 10) {
+
+  results <- vector("list", n)
+
+  for (i in 1:n) {
+    results[[i]] <- optimize_bias(
+      data = data,
+      train_data = train_data,
+      test_data = test_data,
+      k = k,
+      sigma = sigma,
+      mu = mu,
+      method = method,
+      upper_bound = upper_bound,
+      control_params = control_params
+    )
+  }
+
+  best_index <- which.max(sapply(results, function(x) x$mean_ll))
+  best_result <- results[[best_index]]
+
+  best_result$n_runs <- n
+  best_result$best_run <- best_index
+  best_result$all_results <- results
+
+  return(best_result)
+}
+
 #' @export
 optimize_bias <- function(data = NULL, train_data = NULL, test_data = NULL,
                           k = NULL, sigma = 1, mu = 0,
