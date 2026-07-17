@@ -2,6 +2,7 @@
 
 export(compare_models)
 export(cross_validate)
+export(join_optimize_bias)
 export(monte_carlo_weights)
 export(optimize_bias)
 export(optimize_weights)
