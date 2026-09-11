@@ -15,6 +15,9 @@ across each internal call to \code{optimize_bias}}
 
 \item{mu}{The mu value used for the center of the bias argument variation,
 defaulting to 0}
+
+\item{sigma}{The starting sigma value which \code{optimize_bias} optimizes,
+defaulting to 1, representing the standard deviation of the bias argument}
 }
 \description{
 Runs \code{optimize_bias} once for each train/test set and returns

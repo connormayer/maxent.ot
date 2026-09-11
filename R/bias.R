@@ -56,13 +56,15 @@ optimize_bias_max <- function(train_data, test_data, mu = 0, sigma = 1) {
 #'
 #' Sigma is optimized on the log scale so that sigma is always positive.
 #'
-#' @param data Optional data argument
+#' @param data (optional) Path to dataset, not necessary if being called through
+#' `optimize_bias_max`
 #'
 #' @param train_data Training tableau used to optimize the model weights
 #'
 #' @param test_data Testing tableau used to evaluate the resulting model
 #'
-#' @param k Optional number of partitions
+#' @param k (optional) Number of partitions, not necessary if being called
+#' through `optimize_bias_max`
 #'
 #' @param sigma Initial sigma value, defaulting to 1
 #'

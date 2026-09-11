@@ -14,13 +14,15 @@ optimize_bias(
 )
 }
 \arguments{
-\item{data}{Optional data argument}
+\item{data}{(optional) Path to dataset, not necessary if being called through
+\code{optimize_bias_max}}
 
 \item{train_data}{Training tableau used to optimize the model weights}
 
 \item{test_data}{Testing tableau used to evaluate the resulting model}
 
-\item{k}{Optional number of partitions}
+\item{k}{(optional) Number of partitions, not necessary if being called
+through \code{optimize_bias_max}}
 
 \item{sigma}{Initial sigma value, defaulting to 1}
 
