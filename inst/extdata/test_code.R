@@ -5,15 +5,15 @@ shona_input <- read_csv("inst/extdata/shona.csv")
 processed_input <- maxent.ot:::load_input(shona_input)
 data <- processed_input$data
 
-partitions <- maxent.ot:::partition_data(data, k = 5)
+partitions <- maxent.ot:::partition_data(data, k = 10)
 
-train_data_list <- vector("list", 5)
-test_data_list <- vector("list", 5)
+train_data_list <- vector("list", 10)
+test_data_list <- vector("list", 10)
 
 training_data <- data %>% mutate(Frequency = 0)
 test_data <- training_data
 
-for (hold_out in 1:5) {
+for (hold_out in 1:10) {
 
   training_part <- partitions %>%
     filter(partition != hold_out)
