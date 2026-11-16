@@ -16,7 +16,7 @@ metrics.
 The authors of this package are [Connor Mayer](http://connormayer.com),
 [Adeline Tan](https://www.linkedin.com/in/adeline-tan-ph-d-aa67742a9),
 [Kie Zuraw](https://linguistics.ucla.edu/people/zuraw/),
-and [Adarsh Venkateswaran](httpss://www.linkedin.com/in/adarsh-venkateswaran).
+and [Adarsh Venkateswaran](https://www.linkedin.com/in/adarsh-venkateswaran).
 
 ## Citing maxent.ot
 
