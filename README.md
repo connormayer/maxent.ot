@@ -15,7 +15,8 @@ metrics.
 
 The authors of this package are [Connor Mayer](http://connormayer.com),
 [Adeline Tan](https://www.linkedin.com/in/adeline-tan-ph-d-aa67742a9),
-and [Kie Zuraw](https://linguistics.ucla.edu/people/zuraw/).
+[Kie Zuraw](https://linguistics.ucla.edu/people/zuraw/),
+and [Adarsh Venkateswaran](httpss://www.linkedin.com/in/adarsh-venkateswaran).
 
 ## Citing maxent.ot
 
@@ -24,7 +25,7 @@ If you publish work that uses `maxent.ot`, please cite the following
 
 > `Mayer, C., Tan, A., & Zuraw, K. (2024). Introducing maxent.ot: an R package for Maximum Entropy constraint grammars. Phonological Data and Analysis, 6(3), 1-44.`
 
-> `Mayer, C., Tan, A., & Zuraw, K.(2024). maxent.ot: A package for doing Maximum Entropy Optimality Theory in R (Version 1.0.0) [Computer software]. 10.5281/zenodo.7246366`
+> `Mayer, C., Tan, A., Zuraw, K., & Venkateswaran, A. (2024). maxent.ot: A package for doing Maximum Entropy Optimality Theory in R (Version 1.0.0) [Computer software]. 10.5281/zenodo.7246366`
 
 ## Installation
 

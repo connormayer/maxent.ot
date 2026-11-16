@@ -1,6 +1,6 @@
 Package: maxent.ot
 Title: Perform Phonological Analyses using Maximum Entropy Optimality Theory
-Version: 1.0.0
+Version: 1.1.0
 Authors@R: 
     c(person(given = "Connor",
            family = "Mayer",
@@ -13,7 +13,11 @@ Authors@R:
       person(given = "Adeline",
             family = "Tan",
             role = "aut",
-            email = "aderaetan@ucla.edu"))
+            email = "aderaetan@ucla.edu"),
+      person(given = "Adarsh",
+            family = "Venkateswaran",
+            role = "aut",
+            email = "adarsv1@uci.edu"))
 Description: Fit Maximum Entropy Optimality Theory models to data sets,
   generate the predictions made by such models for novel data, and compare the 
   fit of different models using a variety of metrics. The package is described
